@@ -1,0 +1,3 @@
+*.ttl
+backup/
+__pycache__/
