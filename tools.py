@@ -1,6 +1,5 @@
 from typing_extensions import Self
 import datetime as DT
-import portion as P
 import json
 
 def storeDTT(I, path='./intervals.json'):
