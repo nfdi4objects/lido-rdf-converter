@@ -13,3 +13,14 @@ pip3 install -r requirement.txt
 python3 xml2rdf.py -u file:./Example1.xml -o "./example1.ttl" 
 python3 xml2rdf.py -u file:./Example20.xml -o "./example20.ttl" 
 ```
+The last commands create output file example1.ttl and example20.ttl 
+For help use:
+```
+python3 xml2rdf.py
+```
+The suffix of the output file defines the RDF format. 
+Supported formats are given in this dictionary (suffix:format):
+```
+{'xml': 'xml', 'ttl': 'turtle', 'json': 'json-ld','n3': 'n3', 'trig': 'trig', 'trix': 'trix', 'nquads': 'nquads', 'turtle': 'turtle'}
+``` 
+
