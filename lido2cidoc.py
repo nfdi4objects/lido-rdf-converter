@@ -1,6 +1,5 @@
 import xml.dom.pulldom as PD
 import xml.etree.ElementTree as ET
-import tools as tools
 import xml.dom.minidom as MD
 import hashlib
 import json
@@ -14,8 +13,6 @@ oaiSchemaURL = 'http://www.openarchives.org/OAI/2.0/'
 xmlnsURI = 'http://www.w3.org/XML/1998/namespace'
 lidoNS = {'lido': lidoSchemaURI, 'gml': gmlSchemaURI, 'skos': skosSchemaURL}
 
-
-
 def lidoXPath(elem, path):
     return elem.xpath(path,namespaces=lidoNS)
 
@@ -25,14 +22,11 @@ def lidoExpandNS(s):
 def lidoCompressNS(s):
     return s.replace(f'{{{lidoSchemaURI}}}','lido:')
 
-
 def md5Hash(s):
-    #return s
     return hashlib.md5(s.encode()).hexdigest()
 
-
-def MAPPING_FILE(): return 'lido_1.0_to_CIDOC_6.0.x3ml'
-
+def MAPPING_FILE(): 
+    return 'lido_1.0_to_CIDOC_6.0.x3ml'
 
 DOMAIN_PATH = './domain/source_node'
 DOMAIN_TYPE = './domain/target_node/entity/type'
@@ -50,7 +44,6 @@ COLLECTION_ID_TAG = 'cID'
 COLLECTION_TAG = 'collection'
 PATH_ID_TAG = 'lidoPath'
 
-
 class lxpath():
     '''Wrapper for lidoXPath'''
     def __init__(self, tag):
@@ -66,7 +59,6 @@ class lxpath():
         '''Retruns all child elements'''
         if not self.tag: return [elem]
         return lidoXPath(elem, f"./{self.tag}")
-
 
 '''Mapping lido tags to its ID tags (lxpath)'''
 LIDO_ID_MAP = { 
@@ -95,17 +87,13 @@ LIDO_ID_TYPE_URIS = ('http://terminology.lido-schema.org/lido00099', 'http://ter
 LIDO_TYPE_ATTR = lidoExpandNS('lido:type')
 XML_LANG_ATTR = f'{{http://www.w3.org/XML/1998/namespace}}lang'
 
-
-
 def notNone(*args) -> bool:
     '''Tests all args to not None'''
     return not any(x is None for x in args)
 
-
 def executeS(fun, x, default=None):
     '''Applies a function on a valid argument'''
     return fun(x) if notNone(x) else default
-
 
 def isValidType(elem: ET.Element) -> bool:
     '''Tests for valid lido type attribute'''
@@ -117,26 +105,19 @@ def getIDs(elem):
     validItems = filter(isValidType, getIdElements(elem))
     return list(map(lambda x: (x.text), validItems))
 
-
 def getIdElements(elem):
     '''Returns all ID child elements'''
     tag = lidoCompressNS(elem.tag)
     return executeS(lambda x: x.children(elem), LIDO_ID_MAP.get(tag), [])
 
-
 def findVar(elem: ET.Element) -> str | None:
     return executeS(lambda x: x.get('variable', ''), elem.find(RANGE_ENTT+"[@variable]"), '')
-
 
 def str2bool(v) -> bool:
     return v.lower() in ("yes", "true", "t", "1")
 
-
 def skipped(elem: ET.Element) -> bool:
     return str2bool(elem.get('skip', 'false'))
-
-
-Attributes = dict
 
 def fullLidoPath(elem):
     '''Return the full lido path of an element'''
@@ -246,7 +227,8 @@ class Mapping:
         self.condition = Condition()
         self.POs = []
 
-    def isValid(self,elem) : return self.condition.isValid(elem)
+    def isValid(self,elem) : 
+        return self.condition.isValid(elem)
 
     def toDict(self):
         return {'S':self.S.toDict(), 'POs':[po.toDict() for po in self.POs], 'condition':self.condition.toDict(),'n':self.n}
@@ -259,7 +241,6 @@ class Mapping:
     def getData(self, root):
         return [self.getSData(elemS,i) for i,elemS in enumerate(self.S.elements(root))]
 
-
     def __str__(self):
         poStr ='\n'.join([f"\t{x}" for x in self.POs])
         return f"{self.S}:\n{poStr}"
@@ -271,43 +252,7 @@ class Mapping:
         if intermediate:
             self.intermediates.append(intermediate)
 
-
 Mappings = list[Mapping]
-
-
-def fix(txt) -> str: 
-    return tools.fixSC(txt).strip()
-
-def getElemText(elem) -> str:
-    return fix(elem.text)
-
-def getElemTextL(elem) -> str:
-    txt = getElemText(elem)
-    if lang := elem.attrib.get(XML_LANG_ATTR,''):
-        txt = f"{txt} ({lang})" 
-    return txt
-
-def getTextAndTerms(elem):
-    attrs = {}
-    if terms := [getElemTextL(x) for x in lidoXPath(elem, './lido:term')]:
-        attrs['P3_has_note'] = terms
-    if text := elem.findtext('.', default='').strip():
-        attrs['P90_has_value'] = fix(text)
-    return attrs
-
-def makeSerial(attibutes):
-    ids = [attibutes.get(COLLECTION_TAG, ''), attibutes.get(COLLECTION_ID_TAG, ''), attibutes.get(PATH_ID_TAG, '')]
-    return  '-'.join(ids)
-
-def makeHashID(attibutes):
-    return  md5Hash(makeSerial(attibutes))
-
-def makeAttrs(link: ExP, elem: ET.Element, attibutes: Attributes = Attributes(),**kw) -> str:
-    resultAttrs = {}
-    if not link.isLiteral():
-        resultAttrs = getTextAndTerms(elem)
-        resultAttrs[COLLECTION_TAG] = attibutes.get(COLLECTION_TAG, '')
-    return resultAttrs
 
 def makeLink(pathElem: ET.Element, typeElem: ET.Element, varStr: str = '') -> ExP | None:
     if notNone(pathElem, typeElem):
@@ -315,7 +260,6 @@ def makeLink(pathElem: ET.Element, typeElem: ET.Element, varStr: str = '') -> Ex
         typeText = typeElem.text.strip()
         if typeText and pathText:
             return ExP(pathText, typeText, varStr)
-
 
 def mappingsFromEvents(events: PD.DOMEventStream) -> Mappings:
     '''Reads x3ml mapping nodes from an event stream'''
@@ -329,7 +273,6 @@ def mappingsFromEvents(events: PD.DOMEventStream) -> Mappings:
                     mappings += mappingsFromNode(node, nodeIndex)
                     nodeIndex += 1
     return mappings
-
 
 def mappingsFromNode(mappingNode, nodeIndex=0) -> Mappings:
     '''Reads single mappings from an x3ml mapping node'''
@@ -358,7 +301,6 @@ def getMapping(fname: str = MAPPING_FILE()) -> Mappings | None:
     with open(fname, 'r') as f:
         events = PD.parse(f)
         return mappingsFromEvents(events)
-
 
 if __name__ == "__main__":
     for t in getMapping():

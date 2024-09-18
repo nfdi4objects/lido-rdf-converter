@@ -3,7 +3,6 @@ import urllib.error as ULE
 import lido2cidoc as L2C
 from lxml import etree
 import rdflib as RF
-import tools
 
 # General used namespaces
 ECRM = RF.Namespace("http://erlangen-crm.org/170309/")
@@ -22,15 +21,20 @@ def makeERM_URI(s):
     rightToken = s.split(':')[-1]
     return ECRM[rightToken]
 
+def fixSC(s: str):
+    '''Fix special characters'''
+    if s!= None:
+        return s.replace("\"","\\\"").replace("\'","\\\'")
+    return ""
+
 def deep_get(d, keys):
     if not keys or d is None:
         return d
     return deep_get(d.get(keys[0]), keys[1:])
 
 class LidoHarvesterRDF():
-    def __init__(self, mappings, collection: str):
+    def __init__(self, mappings):
         self.mappings = mappings
-        self.collection= collection
         self.graph = RF.Graph()
         self.graph.bind("ecrm", ECRM)
         self.graph.bind("bn", BN)
@@ -40,7 +44,7 @@ class LidoHarvesterRDF():
         return self.harvestReq( ULR.Request(url,headers=headers))
  
     def harvestReq(self, req):
-        '''Transfers all lido elements from a node into a neo4j database (via drivers Cypher commands). Already existing IDs will be ignored'''
+        '''Transfers all lido elements'''
         numProcessed = 0
         token = ''
         lidoTag = f'{{{L2C.lidoSchemaURI}}}lido'
@@ -62,7 +66,6 @@ class LidoHarvesterRDF():
         except (ULR.HTTPError,ULE.URLError) as exception:
             print(exception)
         return numProcessed,token
-
 
     def process(self, elemRoot,**kw):
         '''Create graph LIDO root element w.r.t given mappings'''
@@ -93,7 +96,7 @@ def addSPO(graph, elemData, **kw):
             entity_O = deep_get(po,['O','entity'])
             isLiteral = deep_get(po,['O','isLiteral'])
             for po_data in po.get('data'):
-                text = tools.fixSC(po_data.get('text'))
+                text = fixSC(po_data.get('text'))
                 if isLiteral:
                     if text:
                         graph.add((S, makeERM_URI('P90_has_value'), RF.Literal(text)))

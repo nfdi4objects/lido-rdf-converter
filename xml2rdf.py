@@ -1,9 +1,9 @@
-"""Create RDF LIDO XML files"""
+"""Converts Lido file to RDF """
 from LidoHarvesterRDF import LidoHarvesterRDF
 from lido2cidoc import getMapping
 import argparse
 
-
+''' Some Type aliases'''
 ArgParser = argparse.ArgumentParser
 ArgType = argparse.Namespace
 
@@ -16,13 +16,8 @@ def makeParser() -> ArgParser:
     parser.add_argument('-m', '--mapping', dest="mappingFile",  default='lido_1.0_to_CIDOC_6.0.x3ml', help="X3ML mapping file")
     return parser
 
-
 def main():
-
-    def printv(*x):
-        if progArgs.verbose:
-            print(*x)
-
+    ''' Applies x3ml mapping to a Lido file'''
     parser = makeParser()
     progArgs = parser.parse_args()
     if progArgs:
@@ -30,13 +25,11 @@ def main():
             parser.print_help()
             parser.error("a repository url and output file are required")
         mappings = getMapping(progArgs.mappingFile)
-        harvester = LidoHarvesterRDF(mappings, progArgs.collection)
+        harvester = LidoHarvesterRDF(mappings)
         harvester.run(progArgs.url)
         harvester.store(progArgs.outfile)
-
     else:
         parser.print_help()
-
 
 if __name__ == "__main__":
     main()
