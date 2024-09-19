@@ -8,14 +8,6 @@ import rdflib as RF
 ECRM = RF.Namespace("http://erlangen-crm.org/170309/")
 BN = RF.Namespace('#')
 
-_suffix2Format = {'xml': 'xml', 'ttl': 'turtle', 'json': 'json-ld',
-                  'n3': 'n3', 'trig': 'trig', 'trix': 'trix',
-                  'nquads': 'nquads', 'turtle': 'turtle'}
-
-def getFmt(fname):
-    suff = fname.split('.')[-1]
-    return _suffix2Format.get(suff, 'turtle')
-
 def makeERM_URI(s):
     '''Returns URI' like e.g. crm:Enn_cccc'''
     rightToken = s.split(':')[-1]
@@ -39,12 +31,10 @@ class LidoHarvesterRDF():
         self.graph.bind("ecrm", ECRM)
         self.graph.bind("bn", BN)
 
-    def run(self, url:str):
-        headers = {'User-Agent': 'pyoaiharvester/3.0','Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
-        return self.harvestReq( ULR.Request(url,headers=headers))
- 
-    def harvestReq(self, req):
+    def processURL(self, url:str):
         '''Transfers all lido elements'''
+        headers = {'User-Agent': 'pyoaiharvester/3.0','Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
+        req = ULR.Request(url,headers=headers)
         numProcessed = 0
         token = ''
         lidoTag = f'{{{L2C.lidoSchemaURI}}}lido'
@@ -67,6 +57,9 @@ class LidoHarvesterRDF():
             print(exception)
         return numProcessed,token
 
+    def result(self):
+        return self.graph
+
     def process(self, elemRoot,**kw):
         '''Create graph LIDO root element w.r.t given mappings'''
         recId = ' '.join(L2C.lidoXPath(elemRoot,f"./lido:lidoRecID/text()"))
@@ -74,10 +67,6 @@ class LidoHarvesterRDF():
             for i,elemData in enumerate(mData):
                 if elemData.get('valid'):
                     addSPO(self.graph, elemData,index=i, recId=recId)
-
-    def store(self, outfile, **kw):
-        fmt = kw.get('format', getFmt(outfile))
-        self.graph.serialize(destination=outfile, format=fmt)
 
 def addSPO(graph, elemData, **kw):
     entity_S = deep_get(elemData,['S','entity'])
