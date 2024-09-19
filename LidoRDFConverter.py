@@ -1,6 +1,5 @@
 import urllib.request as ULR
-import urllib.error as ULE
-import lido2cidoc as L2C
+import x3ml as L2C
 from lxml import etree
 import rdflib as RF
 
@@ -24,40 +23,36 @@ def deep_get(d, keys):
         return d
     return deep_get(d.get(keys[0]), keys[1:])
 
-class LidoHarvesterRDF():
+class LidoRDFConverter():
     def __init__(self, mappings):
-        self.mappings = mappings
+        self.mappings = L2C.getMapping(mappings)
         self.graph = RF.Graph()
         self.graph.bind("ecrm", ECRM)
         self.graph.bind("bn", BN)
 
     def processURL(self, url:str):
-        '''Transfers all lido elements'''
+        '''Transfers all LIDO elements'''
         headers = {'User-Agent': 'pyoaiharvester/3.0','Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
         req = ULR.Request(url,headers=headers)
-        numProcessed = 0
-        token = ''
+        self.numProcessed = 0
+        with ULR.urlopen(req) as response:
+            return self.processXML(response)
+
+    def processXML(self, xml):
         lidoTag = f'{{{L2C.lidoSchemaURI}}}lido'
         resumTag = f'{{{L2C.oaiSchemaURL}}}resumptionToken'
         tag = (lidoTag,resumTag,'error')
-        try:
-            with ULR.urlopen(req) as response:
-                for _, elem in etree.iterparse(response, events=("end",),tag=tag,encoding='UTF-8',remove_blank_text=True):
-                    if resumTag == elem.tag:
-                        token = elem.text
-                    elif 'error' in elem.tag :
-                        print('error',elem.tag,elem.text)
-                    elif elem.tag == lidoTag:
-                        self.process(elem,index=numProcessed)
-                        numProcessed += 1
-                    else:
-                       print('unexpeced :-(')
-                       elem.clear()
-        except (ULR.HTTPError,ULE.URLError) as exception:
-            print(exception)
-        return numProcessed,token
+        for _, elem in etree.iterparse(xml, events=("end",),tag=tag,encoding='UTF-8',remove_blank_text=True):
+            if resumTag == elem.tag:
+                pass
+            elif 'error' in elem.tag :
+                print('error',elem.tag,elem.text)
+            elif elem.tag == lidoTag:
+                self.process(elem)
+            else:
+               print('unexpeced :-(')
+               elem.clear()
 
-    def result(self):
         return self.graph
 
     def process(self, elemRoot,**kw):

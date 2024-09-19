@@ -1,3 +1,4 @@
 *.ttl
+.venv/
 backup/
 __pycache__/

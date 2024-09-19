@@ -1,6 +1,9 @@
+#!.venv/bin/python
+
 import xml.dom.pulldom as PD
 import xml.etree.ElementTree as ET
 import xml.dom.minidom as MD
+import sys
 import hashlib
 import json
 
@@ -25,8 +28,8 @@ def lidoCompressNS(s):
 def md5Hash(s):
     return hashlib.md5(s.encode()).hexdigest()
 
-def MAPPING_FILE(): 
-    return 'lido_1.0_to_CIDOC_6.0.x3ml'
+def MAPPING_FILE():
+    return 'lido2rdf.x3ml'
 
 DOMAIN_PATH = './domain/source_node'
 DOMAIN_TYPE = './domain/target_node/entity/type'
@@ -61,7 +64,7 @@ class lxpath():
         return lidoXPath(elem, f"./{self.tag}")
 
 '''Mapping lido tags to its ID tags (lxpath)'''
-LIDO_ID_MAP = { 
+LIDO_ID_MAP = {
     'lido:lido':lxpath('lido:lidoRecID'),
     'lido:event': lxpath('lido:eventID'),
     'lido:eventType': lxpath('lido:eventID'),
@@ -97,7 +100,7 @@ def executeS(fun, x, default=None):
 
 def isValidType(elem: ET.Element) -> bool:
     '''Tests for valid lido type attribute'''
-    return True 
+    return True
 
 
 def getIDs(elem):
@@ -128,7 +131,7 @@ def fullLidoPath(elem):
             tags = fullLidoPath(parent) + tags
     return tags
 
-def getLidoInfo(elem,i):  
+def getLidoInfo(elem,i):
     if ids := getIDs(elem):
        mode = 'lidoID'
        id = ids[0]
@@ -150,13 +153,13 @@ class ExP:
 
     def toDict(self):
         return {'path':self.path.strip('/'), 'entity':self.entity,'var':self.var,'isRoot':self.isRoot(), 'isLiteral':self.isLiteral()}
-    
+
     def __str__(self):
         return f"{self.path}|{self.entity}"
 
     def isLiteral(self):
         return self.entity.startswith('http')
-    
+
     def classLabel(self):
         return self.entity.split(':')[-1]
 
@@ -165,7 +168,7 @@ class ExP:
 
     def elements(self,root):
         xpath = f"." if self.isRoot() else f".//{self.path}"
-        return lidoXPath(root,xpath) 
+        return lidoXPath(root,xpath)
 
 def stripPath(link: ExP, txt: str) -> str:
     return txt.removeprefix(link.path)
@@ -212,7 +215,7 @@ class PO():
 
     def __str__(self):
         return f"{self.P} -> {self.O}"
-    
+
     def isValid(self,elem) : return self.condition.isValid(elem)
 
     def getData(self, root):
@@ -227,7 +230,7 @@ class Mapping:
         self.condition = Condition()
         self.POs = []
 
-    def isValid(self,elem) : 
+    def isValid(self,elem) :
         return self.condition.isValid(elem)
 
     def toDict(self):
@@ -237,14 +240,14 @@ class Mapping:
         info = getLidoInfo(elem,i)
         poData = [po.getData(elem) for po in self.POs]
         return {'S':self.S.toDict(), 'info':info, 'PO':poData, 'valid':self.isValid(elem)}
-    
+
     def getData(self, root):
         return [self.getSData(elemS,i) for i,elemS in enumerate(self.S.elements(root))]
 
     def __str__(self):
         poStr ='\n'.join([f"\t{x}" for x in self.POs])
         return f"{self.S}:\n{poStr}"
-    
+
     def addPO(self,po:PO):
         self.POs.append(po)
 
@@ -296,12 +299,14 @@ def mappingsFromNode(mappingNode, nodeIndex=0) -> Mappings:
     return mappings
 
 
-def getMapping(fname: str = MAPPING_FILE()) -> Mappings | None:
+def getMapping(fname: str) -> Mappings | None:
     '''Returns all mappings from a file'''
     with open(fname, 'r') as f:
         events = PD.parse(f)
         return mappingsFromEvents(events)
 
 if __name__ == "__main__":
-    for t in getMapping():
+    args = sys.argv[1:]
+    mappings = args[0] if len(args) == 1 else "lido2rdf.x3ml"
+    for t in getMapping(mappings):
         print(json.dumps(t.toDict(),indent=3))

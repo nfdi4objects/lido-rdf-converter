@@ -1,28 +1,55 @@
 # Lido to RDF converter
-This repository contains python code to convert LIDO files tor RDF files.
 
+This repository contains Python code to convert LIDO files tor RDF files.
 
 ## Installation
-Requires python3 >=3.5, pip3 and python-venv 
-```
+
+Requires Python >=3.5 and a POSIX compliant operating system. Clone the repository:
+
+```sh
 git clone https://github.com/nfdi4objects/lido-rdf-converter.git
 cd lido-rdf-converter
+```
+
+Then install dependencies with `make deps` or 
+
+```sh
 python3 -m venv .venv
 . .venv/bin/activate
-pip3 install -r requirement.txt
-python3 xml2rdf.py -u file:./Example1.xml -o "./example1.ttl" 
-python3 xml2rdf.py -u file:./Example20.xml -o "./example20.ttl" 
-```
-The last commands create output the files example1.ttl and example20.ttl.  
-
-For help use:
-```
-python3 xml2rdf.py
+pip3 install -r requirements.txt
 ```
 
-The suffix of the output file defines the RDF format. 
-Supported formats are given in this dictionary (suffix:format):
-```
-{'xml': 'xml', 'ttl': 'turtle', 'json': 'json-ld','n3': 'n3', 'trig': 'trig', 'trix': 'trix', 'nquads': 'nquads', 'turtle': 'turtle'}
-``` 
+## Usage
 
+Call `./lido2rdf.py` without any arguments or with `--help` for help:
+
+~~~
+usage: lido2rdf.py [-h] [-o NAME] [-t FORMAT] [-m MAPPING] [LIDO-XML]
+
+Convert LIDO to RDF using X3ML mapping
+
+positional arguments:
+  LIDO-XML                       LIDO file or URL (default: -)
+
+options:
+  -h, --help                     show this help message and exit
+  -o NAME, --output NAME         RDF output file (default: -)
+  -t FORMAT, --to FORMAT         RDF output serialization (ttl,nt,json,xml)
+  -m MAPPING, --mapping MAPPING  X3ML mapping file (default: lido2rdf.x3ml)
+~~~
+ 
+For instance this will convert `example1.xml` to `example1.ttl`:
+
+~~~sh
+./lido2rdf.py example1.xml -o examle1.ttl
+~~~
+
+To inspect how an X3ML mapping file is used internally:
+
+~~~sh
+./x3ml.py lido2rdf.x3ml
+~~~
+
+## License
+
+MIT License
