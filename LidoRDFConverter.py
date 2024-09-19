@@ -85,12 +85,16 @@ def addSPO(graph, elemData, **kw):
                     if text:
                         graph.add((S, makeERM_URI('P90_has_value'), RF.Literal(text)))
                 else:
+                    isURI_Id = text.startswith('http') and entity_O=="crm:E42_Identifier"
                     id_O = po_data.get('id')
                     key_O = id_O + recId + id_S + str(i)
-                    O = BN[f"{L2C.md5Hash(key_O)}"]
-                    graph.add((O, RF.RDF.type, makeERM_URI(entity_O)))
-                    if text:
-                        graph.add((O, makeERM_URI('P90_has_value'), RF.Literal(text)))
-                    graph.add((S, makeERM_URI(entity_P), O))
+                    if id_O.startswith('http') or isURI_Id:
+                        graph.add((S, makeERM_URI(entity_P), RF.Literal(text)))
+                    else:
+                        O = BN[f"{L2C.md5Hash(key_O)}"]
+                        graph.add((O, RF.RDF.type, makeERM_URI(entity_O)))
+                        if text:
+                            graph.add((O, makeERM_URI('P90_has_value'), RF.Literal(text)))
+                        graph.add((S, makeERM_URI(entity_P), O))
 
 
