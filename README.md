@@ -50,6 +50,11 @@ To inspect how an X3ML mapping file is used internally:
 ./x3ml.py lido2rdf.x3ml
 ~~~
 
+## See Also
+
+- <https://github.com/nfdi4objects/lido-examples> contains sample LIDO files to be used as test cases
+- <https://github.com/nfdi4objects/lido-schema> contains schema files and validation script to check whether an XML file is valid LIDO
+
 ## License
 
 MIT License
