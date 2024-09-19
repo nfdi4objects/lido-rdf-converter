@@ -4,13 +4,13 @@ from lxml import etree
 import rdflib as RF
 
 # General used namespaces
-ECRM = RF.Namespace("http://erlangen-crm.org/170309/")
+CRM = RF.Namespace("http://www.cidoc-crm.org/cidoc-crm/")
 BN = RF.Namespace('#')
 
 def makeERM_URI(s):
     '''Returns URI' like e.g. crm:Enn_cccc'''
     rightToken = s.split(':')[-1]
-    return ECRM[rightToken]
+    return CRM[rightToken]
 
 def fixSC(s: str):
     '''Fix special characters'''
@@ -27,7 +27,7 @@ class LidoRDFConverter():
     def __init__(self, mappings):
         self.mappings = L2C.getMapping(mappings)
         self.graph = RF.Graph()
-        self.graph.bind("ecrm", ECRM)
+        self.graph.bind("crm", CRM)
         self.graph.bind("bn", BN)
 
     def processURL(self, url:str):
@@ -72,7 +72,7 @@ def addSPO(graph, elemData, **kw):
     S = BN[f"{L2C.md5Hash(key_S)}"]
     graph.add((S, RF.RDF.type, makeERM_URI(entity_S)))
     if mode == 'lidoID':
-        graph.add((S, ECRM['P48_has_preferred_identifier'], RF.Literal(id_S)))
+        graph.add((S, CRM['P48_has_preferred_identifier'], RF.Literal(id_S)))
 
     for i,po in enumerate(deep_get(elemData,['PO'])):
         if po.get('isValid'):
