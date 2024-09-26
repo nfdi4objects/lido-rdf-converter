@@ -2,7 +2,7 @@
 
 """Converts LIDO file to RDF """
 from LidoRDFConverter import LidoRDFConverter
-from sys import stdin, stdout, stderr, exit
+from sys import stdin, stderr, exit
 import re
 import argparse
 from io import BytesIO
@@ -45,14 +45,21 @@ def lido2rdf(source, target, mapping, format=None):
 
 
 def main():
-    formatter = lambda prog: argparse.HelpFormatter(prog,max_help_position=50)
-    parser = argparse.ArgumentParser(description="Convert LIDO to RDF using X3ML mapping", formatter_class=formatter)
+    def formatter(prog):
+        return argparse.HelpFormatter(prog, max_help_position=50)
 
-    parser.add_argument("-o", '--output', metavar="NAME", dest="target",  default='-', help="RDF output file (default: -)")
+    parser = argparse.ArgumentParser(
+        description="Convert LIDO to RDF using X3ML mapping", formatter_class=formatter)
+
+    parser.add_argument("-o", '--output', metavar="NAME", dest="target",
+                        default='-', help="RDF output file (default: -)")
     formats = ",".join(formatNames.keys())
-    parser.add_argument("-t", '--to', dest="format", help=f"RDF output serialization ({formats})")
-    parser.add_argument('-m', '--mapping', dest="mapping",  default='lido2rdf.x3ml', help="X3ML mapping file (default: lido2rdf.x3ml)")
-    parser.add_argument('source', metavar='LIDO-XML', nargs="?", default="-", help='LIDO file or URL (default: -)')
+    parser.add_argument("-t", '--to', dest="format",
+                        help=f"RDF output serialization ({formats})")
+    parser.add_argument('-m', '--mapping', dest="mapping", default='lido2rdf.x3ml',
+                        help="X3ML mapping file (default: lido2rdf.x3ml)")
+    parser.add_argument('source', metavar='LIDO-XML', nargs="?",
+                        default="-", help='LIDO file or URL (default: -)')
 
     args = parser.parse_args()
     if args.source == "-" and stdin.isatty():
