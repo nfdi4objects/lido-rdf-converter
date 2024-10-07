@@ -72,7 +72,8 @@ def addSPO(graph, elemData, **kw):
     S = BN[f"{L2C.md5Hash(key_S)}"]
     graph.add((S, RF.RDF.type, makeERM_URI(entity_S)))
     if mode == 'lidoID':
-        graph.add((S, CRM['P48_has_preferred_identifier'], RF.Literal(id_S)))
+        O =  RF.term.URIRef(id_S) if id_S.startswith('http') else RF.Literal(id_S)
+        graph.add((S, CRM['P48_has_preferred_identifier'], O))
 
     for i,po in enumerate(deep_get(elemData,['PO'])):
         if po.get('isValid'):
@@ -89,12 +90,11 @@ def addSPO(graph, elemData, **kw):
                     id_O = po_data.get('id')
                     key_O = id_O + recId + id_S + str(i)
                     if id_O.startswith('http') or isURI_Id:
-                        graph.add((S, makeERM_URI(entity_P), RF.Literal(text)))
+                        graph.add((S, makeERM_URI(entity_P), RF.term.URIRef(text)))
                     else:
                         O = BN[f"{L2C.md5Hash(key_O)}"]
                         graph.add((O, RF.RDF.type, makeERM_URI(entity_O)))
                         if text:
                             graph.add((O, makeERM_URI('P90_has_value'), RF.Literal(text)))
                         graph.add((S, makeERM_URI(entity_P), O))
-
 
