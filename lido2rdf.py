@@ -36,12 +36,14 @@ def lido2rdf(source, target, mapping, format=None):
     else:
         if source == "-":
             source = BytesIO(stdin.buffer.read())
-        graph = converter.processXML(source)
+        graph,_ = converter.processXML(source)
+        #graph = g
 
     if target == "-":
         print(graph.serialize(format=format))
     else:
-        graph.serialize(destination=target, format=format)
+        if graph:
+            graph.serialize(destination=target, format=format)
 
 
 def main():

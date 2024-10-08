@@ -3,3 +3,5 @@
 backup/
 __pycache__/
 tmp/
+data/
+oai_buffer.xml
