@@ -28,7 +28,7 @@ def lido2rdf(source, target, mapping, format=None):
             error(f"RDF serialization format not supported: {format}!")
     else:
         suffix = target.split('.')[-1]
-        format = formatNames.get(suffix, 'turtle')
+        format = formatNames.get(suffix, 'nt')
 
     converter = LidoRDFConverter(mapping)
     if urlPattern.match(source):
@@ -37,13 +37,12 @@ def lido2rdf(source, target, mapping, format=None):
         if source == "-":
             source = BytesIO(stdin.buffer.read())
         graph,_ = converter.processXML(source)
-        #graph = g
 
     if target == "-":
         print(graph.serialize(format=format))
     else:
         if graph:
-            graph.serialize(destination=target, format=format)
+            graph.serialize(destination=target, format=format, encoding='utf-8')
 
 
 def main():

@@ -8,18 +8,13 @@ import os,shutil
 
 # General used namespaces
 CRM = RF.Namespace("http://www.cidoc-crm.org/cidoc-crm/")
-BN = RF.Namespace('http://www.gbv.de/id/')
+N4O = RF.Namespace('http://graph.nfdi4objects.net/id/')
 
 def makeERM_URI(s):
     '''Returns URI' like e.g. crm:Enn_cccc'''
     rightToken = s.split(':')[-1]
     return CRM[rightToken]
 
-def fixSC(s: str):
-    '''Fix special characters'''
-    if s!= None:
-        return str(s)#s.replace("\"","\\\"").replace("\'","\\\'").replace(",", "%2C")
-    return ""
 
 def deep_get(d, keys):
     if not keys or d is None:
@@ -68,7 +63,7 @@ def toBuffer(req:ULR.Request,oaiFile)->str:
 def newGraph():
     g = RF.Graph()
     g.bind("crm", CRM)
-    g.bind("bn", BN)
+    g.bind("n4o", N4O)
     return g
 
 class LidoRDFConverter():
@@ -134,41 +129,49 @@ class LidoRDFConverter():
                     addSPO(g, elemData,index=i, recId=recId)
 
 
+def _hash(s):
+    return L2C.md5Hash(s)
+
+def makeItem(s,a=''):
+    if isURI(s):
+        return RF.term.URIRef(s) 
+    return N4O[f"{_hash(s + a)}"] #No URI for ID => local ID from path and recID
+
+
 def addSPO(graph, elemData, **kw):
     entity_S = deep_get(elemData,['S','entity'])
     id_S = safeURI(deep_get(elemData,['info','id']))
-    mode = deep_get(elemData,['info','mode'])
     recId = kw.get('recId','')
-    key_S = id_S + recId
-    S = BN[f"{L2C.md5Hash(key_S)}"]
+    S = makeItem(id_S, recId)
     triples = [(S, RF.RDF.type, makeERM_URI(entity_S))]
-    if mode == 'lidoID':
-        O =  RF.term.URIRef(id_S) if isURI(id_S) else RF.Literal(id_S)
-        triples.append((S, CRM['P48_has_preferred_identifier'], O))
     for i,po in enumerate(deep_get(elemData,['PO'])):
+        poTriples =  []
         if po.get('isValid'):
             entity_P = deep_get(po,['P','entity'])
             entity_O = deep_get(po,['O','entity'])
             isLiteral = deep_get(po,['O','isLiteral'])
             for po_data in po.get('data'):
-                text = safeURI(str(po_data.get('text')))
-                if isLiteral:
-                    if text:
-                        triples.append((S, makeERM_URI('P90_has_value'), RF.Literal(text)))
-                else:
-                    isURI_Id = isURI(text) and entity_O=="crm:E42_Identifier"
-                    id_O = po_data.get('id')
-                    key_O = id_O + recId + id_S + str(i)
-                    if isURI(id_O) or isURI_Id:
-                        triples.append((S, makeERM_URI(entity_P), RF.term.URIRef(text)))
+                if text := po_data.get('text'):
+                    if not isURI(text):
+                        poTriples.append((S, makeERM_URI('P90_has_value'), RF.Literal(text)))
                     else:
-                        O = BN[f"{L2C.md5Hash(key_O)}"]
-                        triples.append((O, RF.RDF.type, makeERM_URI(entity_O)))
-                        if text:
-                            triples.append((O, makeERM_URI('P90_has_value'), RF.Literal(text)))
-                        triples.append((S, makeERM_URI(entity_P), O))
-    #print(len(triples))
-    if len(triples) > 1:
-        for t in triples: 
-            graph.add(t)
+                        text = safeURI(text)
+                        isURI_Id = isURI(text) and entity_O=="crm:E42_Identifier"
+                        id_O = po_data.get('id')
+
+                        if id_S != id_O:
+                            if isURI(id_O) or isURI_Id:
+                                O = RF.term.URIRef(text)
+                                if S != O:
+                                    poTriples.append((S, makeERM_URI(entity_P), O))
+                            else:
+                                key_O = id_O + recId + id_S + str(i)
+                                O = N4O[f"{_hash(key_O)}"]
+                                poTriples.append((O, RF.RDF.type, makeERM_URI(entity_O)))
+                                poTriples.append((O, makeERM_URI('P90_has_value'), RF.Literal(text)))
+                                poTriples.append((S, makeERM_URI(entity_P), O))
+        if poTriples:
+            triples += poTriples
+    for t in triples: 
+        graph.add(t)
 
