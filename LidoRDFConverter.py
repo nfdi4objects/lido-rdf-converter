@@ -60,23 +60,27 @@ def toBuffer(req:ULR.Request,oaiFile)->str:
         f.write(answer.decode('utf-8'))
         return oaiFile
     
-def newGraph():
+def makeResultGraph():
     g = RF.Graph()
     g.bind("crm", CRM)
     g.bind("n4o", N4O)
     return g
+
+def makeCleanSubDir(path):
+    if os.path.exists(path):
+        shutil.rmtree(path)
+    os.mkdir(path)
 
 class LidoRDFConverter():
     def __init__(self, mappings):
         self.mappings = L2C.getMapping(mappings)
 
     def processURL(self, url:str):
-        if os.path.exists('data'):
-            shutil.rmtree('data',)
-        os.mkdir('data')
+        makeCleanSubDir('data')
         def proc(g,t):
             g.serialize(destination=f'./data/{t}.ttl', format='ttl')
             #print(f'{t}.ttl')
+
         '''Transfers all LIDO elements'''
         headers = {'User-Agent': 'pyoaiharvester/3.0','Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
         req = ULR.Request(url,headers=headers)
@@ -95,8 +99,9 @@ class LidoRDFConverter():
                 g , _ = self.processXML(response)
                 return g
 
+ 
     def processXML(self, xml,**kw):
-        g =newGraph()
+        g =makeResultGraph()
         lidoTag = f'{{{L2C.lidoSchemaURI}}}lido'
         resumTag = f'{{{L2C.oaiSchemaURL}}}resumptionToken'
         processor = kw.get('processor')
