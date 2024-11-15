@@ -1,8 +1,6 @@
 #!.venv/bin/python
-
-import xml.dom.pulldom as PD
 import xml.etree.ElementTree as ET
-import xml.dom.minidom as MD
+from lxml import etree
 import sys
 import hashlib
 import json
@@ -116,8 +114,8 @@ def getIdElements(elem):
 def findVar(elem: ET.Element) -> str | None:
     return executeS(lambda x: x.get('variable', ''), elem.find(RANGE_ENTT+"[@variable]"), '')
 
-def str2bool(v) -> bool:
-    return v.lower() in ("yes", "true", "t", "1")
+def str2bool(bstr) -> bool:
+    return bstr.lower() in ("yes", "true", "t", "1")
 
 def skipped(elem: ET.Element) -> bool:
     return str2bool(elem.get('skip', 'false'))
@@ -173,7 +171,6 @@ class ExP:
 def stripPath(link: ExP, txt: str) -> str:
     return txt.removeprefix(link.path)
 
-
 class Condition():
     def __init__(self):
         self.access = ''
@@ -222,7 +219,6 @@ class PO():
         data = [getLidoInfo(elem,i) for i,elem in enumerate(self.O.elements(root))]
         return {'P':self.P.toDict(),'O':self.O.toDict(), 'data':data, 'isValid':self.isValid(root)}
 
-
 class Mapping:
     def __init__(self, s:ExP, n=0):
         self.S = s
@@ -264,46 +260,33 @@ def makeLink(pathElem: ET.Element, typeElem: ET.Element, varStr: str = '') -> Ex
         if typeText and pathText:
             return ExP(pathText, typeText, varStr)
 
-def mappingsFromEvents(events: PD.DOMEventStream) -> Mappings:
-    '''Reads x3ml mapping nodes from an event stream'''
-    mappings = []
-    nodeIndex = 0
-    for (event, node) in events:
-        if event == "START_ELEMENT":
-            if node.tagName == 'mapping':
-                events.expandNode(node)
-                if not str2bool(node.getAttribute('skip')):
-                    mappings += mappingsFromNode(node, nodeIndex)
-                    nodeIndex += 1
-    return mappings
-
-def mappingsFromNode(mappingNode, nodeIndex=0) -> Mappings:
+def mappingsFromNode(mappingElem) -> Mappings:
     '''Reads single mappings from an x3ml mapping node'''
     mappings = []
-    mappingElem = ET.fromstring(mappingNode.toxml())
     if tS := makeLink(mappingElem.find(DOMAIN_PATH), mappingElem.find(DOMAIN_TYPE)):
-        mapping = Mapping(tS,nodeIndex)
+        mapping = Mapping(tS)
         # Find domain conditions
         for el in mappingElem.findall(DOMAIN_DST):
             mapping.condition.add(stripPath(tS, el.text), el.get('value'))
         for linkElem in mappingElem.findall('./link'):
             if not skipped(linkElem):
-                if tP := makeLink(linkElem.find(PATH_SRR), linkElem.find(PATH_TRR)):
+                if pLink := makeLink(linkElem.find(PATH_SRR), linkElem.find(PATH_TRR)):
                     varStr = findVar(linkElem)
-                    if tO := makeLink(linkElem.find(RANGE_SN), linkElem.find(RANGE_TYPE), varStr):
-                        po = PO(tP, tO)
+                    if oLink := makeLink(linkElem.find(RANGE_SN), linkElem.find(RANGE_TYPE), varStr):
+                        po = PO(pLink, oLink)
                         for el in linkElem.findall(PATH_TRE):
-                            po.condition.add(stripPath(tO, el.text), el.get('value'))
+                            po.condition.add(stripPath(oLink, el.text), el.get('value'))
                         mapping.addPO(po)
         mappings.append(mapping)
     return mappings
 
-
 def getMapping(fname: str) -> Mappings | None:
     '''Returns all mappings from a file'''
-    with open(fname, 'r') as f:
-        events = PD.parse(f)
-        return mappingsFromEvents(events)
+    mappings = []
+    for _, elem in etree.iterparse(fname, events=("end",),tag=('mapping'),encoding='UTF-8',remove_blank_text=True):
+        if not str2bool(elem.get('skip','false')):
+            mappings += mappingsFromNode(elem)
+    return mappings
 
 if __name__ == "__main__":
     args = sys.argv[1:]
