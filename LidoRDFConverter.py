@@ -1,6 +1,6 @@
 import time
 import urllib.request as ULR
-import urllib.parse
+import urllib.parse as ULP
 import x3ml as L2C
 from lxml import etree
 import rdflib as RF
@@ -22,11 +22,11 @@ def deep_get(d, keys):
     return deep_get(d.get(keys[0]), keys[1:])
 
 def isURI(s):
-    return s.lower().startswith('http')
-
+    return ULP.urlparse(s).scheme.startswith('http')
+ 
 def safeURI(s):
     if isURI(s):
-        return urllib.parse.quote(s).replace('%3A', ':')
+        return ULP.quote(s).replace('%3A', ':')
     return s
 
 def oaiRequest(serverURI:str, command:str)->ULR.Request|None:
@@ -147,6 +147,7 @@ def addSPO(graph, elemData, **kw):
     entity_S = deep_get(elemData,['S','entity'])
     id_S = safeURI(deep_get(elemData,['info','id']))
     recId = kw.get('recId','')
+    j = kw.get('index',0)
     S = makeItem(id_S, recId)
     triples = [(S, RF.RDF.type, makeERM_URI(entity_S))]
     for i,po in enumerate(deep_get(elemData,['PO'])):
@@ -154,7 +155,6 @@ def addSPO(graph, elemData, **kw):
         if po.get('isValid'):
             entity_P = deep_get(po,['P','entity'])
             entity_O = deep_get(po,['O','entity'])
-            isLiteral = deep_get(po,['O','isLiteral'])
             for po_data in po.get('data'):
                 if text := po_data.get('text'):
                     if not isURI(text):
@@ -167,11 +167,9 @@ def addSPO(graph, elemData, **kw):
                         if id_S != id_O:
                             if isURI(id_O) or isURI_Id:
                                 O = RF.term.URIRef(text)
-                                if S != O:
-                                    poTriples.append((S, makeERM_URI(entity_P), O))
+                                poTriples.append((S, makeERM_URI(entity_P), O))
                             else:
-                                key_O = id_O + recId + id_S + str(i)
-                                O = N4O[f"{_hash(key_O)}"]
+                                O = makeItem(id_O, recId)
                                 poTriples.append((O, RF.RDF.type, makeERM_URI(entity_O)))
                                 poTriples.append((O, makeERM_URI('P90_has_value'), RF.Literal(text)))
                                 poTriples.append((S, makeERM_URI(entity_P), O))

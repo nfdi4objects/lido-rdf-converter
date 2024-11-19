@@ -1,5 +1,4 @@
 #!.venv/bin/python
-import xml.etree.ElementTree as ET
 from lxml import etree
 import sys
 import hashlib
@@ -31,7 +30,7 @@ def MAPPING_FILE():
 
 DOMAIN_PATH = './domain/source_node'
 DOMAIN_TYPE = './domain/target_node/entity/type'
-DOMAIN_DST = './domain/target_node/if/or/if/equals'
+DOMAIN_COND = './domain/target_node/if/or/if/equals'
 
 PATH_SRR = './path/source_relation/relation'
 PATH_TRR = './path/target_relation/relationship'
@@ -96,10 +95,9 @@ def executeS(fun, x, default=None):
     '''Applies a function on a valid argument'''
     return fun(x) if notNone(x) else default
 
-def isValidType(elem: ET.Element) -> bool:
+def isValidType(elem: etree.Element) -> bool:
     '''Tests for valid lido type attribute'''
     return True
-
 
 def getIDs(elem):
     '''Returns all texts from valid Id elements'''
@@ -111,13 +109,13 @@ def getIdElements(elem):
     tag = lidoCompressNS(elem.tag)
     return executeS(lambda x: x.children(elem), LIDO_ID_MAP.get(tag), [])
 
-def findVar(elem: ET.Element) -> str | None:
+def findVar(elem: etree.Element) -> str | None:
     return executeS(lambda x: x.get('variable', ''), elem.find(RANGE_ENTT+"[@variable]"), '')
 
 def str2bool(bstr) -> bool:
     return bstr.lower() in ("yes", "true", "t", "1")
 
-def skipped(elem: ET.Element) -> bool:
+def skipped(elem: etree.Element) -> bool:
     return str2bool(elem.get('skip', 'false'))
 
 def fullLidoPath(elem):
@@ -253,7 +251,7 @@ class Mapping:
 
 Mappings = list[Mapping]
 
-def makeLink(pathElem: ET.Element, typeElem: ET.Element, varStr: str = '') -> ExP | None:
+def makeExP(pathElem: etree.Element, typeElem: etree.Element, varStr: str = '') -> ExP | None:
     if notNone(pathElem, typeElem):
         pathText = pathElem.text.strip()
         typeText = typeElem.text.strip()
@@ -263,19 +261,19 @@ def makeLink(pathElem: ET.Element, typeElem: ET.Element, varStr: str = '') -> Ex
 def mappingsFromNode(mappingElem) -> Mappings:
     '''Reads single mappings from an x3ml mapping node'''
     mappings = []
-    if tS := makeLink(mappingElem.find(DOMAIN_PATH), mappingElem.find(DOMAIN_TYPE)):
-        mapping = Mapping(tS)
+    if sExP := makeExP(mappingElem.find(DOMAIN_PATH), mappingElem.find(DOMAIN_TYPE)):
+        mapping = Mapping(sExP)
         # Find domain conditions
-        for el in mappingElem.findall(DOMAIN_DST):
-            mapping.condition.add(stripPath(tS, el.text), el.get('value'))
+        for cndElem in mappingElem.findall(DOMAIN_COND):
+            mapping.condition.add(stripPath(sExP, cndElem.text), cndElem.get('value'))
         for linkElem in mappingElem.findall('./link'):
             if not skipped(linkElem):
-                if pLink := makeLink(linkElem.find(PATH_SRR), linkElem.find(PATH_TRR)):
+                if pExP := makeExP(linkElem.find(PATH_SRR), linkElem.find(PATH_TRR)):
                     varStr = findVar(linkElem)
-                    if oLink := makeLink(linkElem.find(RANGE_SN), linkElem.find(RANGE_TYPE), varStr):
-                        po = PO(pLink, oLink)
-                        for el in linkElem.findall(PATH_TRE):
-                            po.condition.add(stripPath(oLink, el.text), el.get('value'))
+                    if oExP := makeExP(linkElem.find(RANGE_SN), linkElem.find(RANGE_TYPE), varStr):
+                        po = PO(pExP, oExP)
+                        for cndElem in linkElem.findall(PATH_TRE):
+                            po.condition.add(stripPath(oExP, cndElem.text), cndElem.get('value'))
                         mapping.addPO(po)
         mappings.append(mapping)
     return mappings
