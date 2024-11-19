@@ -16,6 +16,7 @@ def makeERM_URI(s):
     return CRM[rightToken]
 
 
+
 def deep_get(d, keys):
     if not keys or d is None:
         return d
@@ -82,8 +83,9 @@ class LidoRDFConverter():
             #print(f'{t}.ttl')
 
         '''Transfers all LIDO elements'''
-        headers = {'User-Agent': 'pyoaiharvester/3.0','Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
-        req = ULR.Request(url,headers=headers)
+        headers = {'User-Agent': 'pyoaiharvester/3.0',
+                   'Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
+        req = ULR.Request(url, headers=headers)
         self.numProcessed = 0
         if url.startswith('http'):
             req = oaiRequest(url, f'ListRecords&metadataPrefix=lido')
@@ -127,9 +129,9 @@ class LidoRDFConverter():
 
     def process(self, elemRoot,g,**kw):
         '''Create graph LIDO root element w.r.t given mappings'''
-        recId = ' '.join(L2C.lidoXPath(elemRoot,f"./lido:lidoRecID/text()"))
+        recId = ' '.join(L2C.lidoXPath(elemRoot, "./lido:lidoRecID/text()"))
         for mData in [m.getData(elemRoot) for m in self.mappings]:
-            for i,elemData in enumerate(mData):
+            for i, elemData in enumerate(mData):
                 if elemData.get('valid'):
                     addSPO(g, elemData,index=i, recId=recId)
 

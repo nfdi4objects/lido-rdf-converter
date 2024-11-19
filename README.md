@@ -1,6 +1,6 @@
 # Lido to RDF converter
 
-This repository contains Python code to convert LIDO files tor RDF files.
+This repository contains Python code to convert LIDO XML files to RDF using a X3ML mapping.
 
 ## Installation
 
