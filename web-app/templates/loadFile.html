@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{% block title %} Upload a x3ml file {% endblock %}</h1>
+
+<form method="post" t enctype=multipart/form-data>
+    <div class="form-group">
+        <input class="btn btn-primary" type="file" value="Input" name=file />
+        <input class="btn btn-primary" type="submit" value= "Load user file" name = 'upload' />
+        <input class="btn btn-primary" type="submit" value= "Use default file" name = 'default' />
+    </div>
+</form>
+{% endblock %}

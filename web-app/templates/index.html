@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+    {% block content %}
+    <h3>{% block title %} X3ML Editor {% endblock %}</h3>
+    <div class="accordion" id="Main">
+
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#M2" aria-expanded="true" aria-controls="M2">
+            Mappings
+          </button>
+        </h2>
+        <div id="M2" class="accordion-collapse collapse hide">
+          <div class="accordion-body">
+            {% for m in data.mappings %}
+            <h4>
+              <a class="btn btn-primary btn-sm" href="{{ url_for('editMapping', id = loop.index0) }}">Edit 2</a>
+              Mapping {{ m.label(loop.index) }}
+            </h4>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#N1" aria-expanded="true" aria-controls="N1">
+            Namespaces
+          </button>
+        </h2>
+        <div id="N1" class="accordion-collapse collapse hide">
+          <div class="accordion-body">
+            {% for ns in data.namespaces %}
+            <h2>
+              <a class="btn btn-primary btn-sm" href="{{ url_for('editNS', id = loop.index0) }}" >Edit</a>
+              Namespace {{loop.index}} : {{ ns.prefix()}} -> {{ns.uri() }}
+            </h2>
+            {% endfor %}
+            <h2>
+              <a class="btn btn-secondary btn-sm" href="{{ url_for('createNS') }}" >+</a>
+            </h2>
+          </div>
+        </div>
+      </div>
+   
+    </div>
+    {% endblock %}
