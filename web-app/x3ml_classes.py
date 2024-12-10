@@ -480,7 +480,7 @@ class ConditionsType(X3Base):
 
 class If(ConditionsType): pass
 
-def loadX3ml(filePath='test.x3ml'):
+def loadX3ml(filePath='defaultMapping.x3ml'):
     model = X3ml()
     tree = ET.parse(filePath)
     model.deserialize(tree.getroot())

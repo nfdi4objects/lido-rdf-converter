@@ -1,12 +1,14 @@
+import sys
+sys.path.insert(0, '..')
 import os
-from io import BytesIO
 from flask import Flask, render_template, request, url_for, flash, redirect, send_file
 from x3ml_classes import loadX3ml, storeX3ml, Namespace
-from werkzeug.utils import secure_filename
+from LidoRDFConverter import LidoRDFConverter
+from lidoEditor import makeWorkspace
 
 UPLOAD_FOLDER = './work'
 ALLOWED_EXTENSIONS = {'x3ml'}
-
+mapper =  makeWorkspace()
 
 try:
     if not os.path.exists(UPLOAD_FOLDER):
@@ -32,13 +34,15 @@ def getNSdata(id):
     return { 'id': id, 'title':f"{ns.getAttr('prefix')}",'content':f"{ns.getAttr('uri')}"}
 
 app = Flask(__name__)
+
 app.config['SECRET_KEY'] = '110662'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 localModel = loadX3ml()
 
 @app.route('/')
 def index():
-    return render_template('index.html', data=localModel)
+    return render_template('index.html', data=mapper)
 
 
 @app.route('/createNS', methods=('GET', 'POST'))
@@ -79,22 +83,21 @@ def deleteNS(id):
 
 @app.route('/<int:id>/deleteMapping', methods=('POST',))
 def deleteMapping(id):
-    localModel.mappings.pop(id)
+    mapper.mappings.pop(id)
     flash(f"Mapping '{id+1}' was successfully deleted!")
     return redirect(url_for('index'))
 
 @app.route('/<int:id>/editMapping', methods=('GET', 'POST'))
 def editMapping(id):
-    m = localModel.mappings[id]
+    m = mapper.mappings[id]
     if request.method == 'POST':
         rf = lambda s : request.form[s] 
-        m.domain.sourceNode.text =rf('domainS') 
-        m.domain.targetNode.entity.value =  rf('domainT')
-        for i,l in enumerate(m.links):
-            l.path.sourceRelation.relation = rf(f'relationP#{i}')
-            l.path.targetRelation.relationship.value = rf(f'relationURI#{i}')
-            l.range.targetNode.entity.value = rf(f'targetURI#{i}')
-        return redirect(url_for('index'))
+        m.S.path =rf('domainS') 
+        m.S.entity =  rf('domainT')
+        for i,l in enumerate(m.POs):
+            l.P.path = rf(f'relationP#{i}')
+            l.P.entity = rf(f'relationURI#{i}')
+            l.O.entity = rf(f'targetURI#{i}')
     return render_template('editMapping.html', mapping=m, id=id)
 
 @app.route('/download')
@@ -129,4 +132,5 @@ def upload():
 
 
 if __name__ == '__main__': 
+   
     app.run(host="localhost", port=8000)

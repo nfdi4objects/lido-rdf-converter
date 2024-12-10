@@ -1,18 +1,18 @@
 {% extends 'base.html' %}
 
     {% block content %}
-    <h1>{% block title %} {{mapping.label(id+1)}} {% endblock %}</h1>
+    <h1>{% block title %} Mapping {{id+1}} {% endblock %}</h1>
     <form method="post">
         <div class="form-group">
             <label for="domainS">Source path:</label>
-            <input size = "10" type="text" name="domainS" placeholder="" class="form-control" value="{{ mapping.domain.sourceNode.text }}"/>
+            <input size = "10" type="text" name="domainS" placeholder="" class="form-control" value="{{ mapping.S.path }}"/>
         </div>
         <div class="form-group">
             <label for="domainT">Source URI:</label>
-            <input size = "10" type="text" name="domainT" placeholder=""  class="form-control" value ="{{ mapping.domain.targetNode.entity.value }}"/>
+            <input size = "10" type="text" name="domainT" placeholder=""  class="form-control" value ="{{ mapping.S.entity }}"/>
         </div>
         <div class="accordion" id="accordionPanelsStayOpenExample">
-            {% for l in mapping.links %}
+            {% for l in mapping.POs %}
             <div class="accordion-item">
                 <div class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#Link{{loop.index0}}" aria-expanded="true" aria-controls="Link{{loop.index0}}">
@@ -22,15 +22,15 @@
                         <div class="accordion-body">
                             <div class="form-group">
                                 <label for="relationP#{{loop.index}}">Relation path:</label>
-                                <input type="text" name="relationP#{{loop.index0}}" class="form-control"  value="{{ l.path.sourceRelation.relation }}"/>
+                                <input type="text" name="relationP#{{loop.index0}}" class="form-control"  value="{{ l.P.path }}"/>
                             </div>
                             <div class="form-group">
                                 <label for="relationURI#{{loop.index}}">Relation URI:</label>
-                                <input type="text" name="relationURI#{{loop.index0}}" class="form-control" value="{{ l.path.targetRelation.relationship.value }}"/>
+                                <input type="text" name="relationURI#{{loop.index0}}" class="form-control" value="{{ l.P.entity }}"/>
                             </div>
                             <div class="form-group">
                                 <label for="targetURI#{{loop.index}}">Target URI:</label>
-                                <input type="text" name="targetURI#{{loop.index0}}" class="form-control" value="{{ l.range.targetNode.entity.value }}"/>
+                                <input type="text" name="targetURI#{{loop.index0}}" class="form-control" value="{{ l.O.entity }}"/>
                             </div>
                         </div>
                     </div>
