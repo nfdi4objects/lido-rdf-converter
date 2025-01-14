@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+import json
 
 def NN(elem:ET.Element): 
     return  not elem is None
@@ -15,7 +16,10 @@ class Attribute():
         
     def __str__(self):
         return f"{self.key}:{self.value}"
-    
+
+    def toDict(self):
+        return {'key':self.key, 'value':self.value}
+
 def njoin(v,sep='\n'):
     return sep.join(filter(None,v))
 
@@ -31,6 +35,9 @@ class X3Base():
         if NN(elem): self.deserialize(elem)
         X3Base.counter += 1
 
+    def toDict(self):
+        return {'attributes':[x.toDict() for x in self.attributes]}
+
     def __del__(self):
         X3Base.counter -= 1
 
@@ -39,8 +46,7 @@ class X3Base():
 
     def __str__(self):
         return f"{ self.__class__.__name__}"
-   
-        
+         
     def getAttr(self, name=None):
         if name:
             return next((x.value for x in self.attributes if x.key == name), '')
@@ -83,13 +89,19 @@ class Namespace(X3Base):
         self.setAttr('prefix',p)
         self.setAttr('uri',u)
         return self
- 
+    
 class Domain(X3Base):
     def __init__(self, elem: ET.Element|None=None):
         super().__init__(elem)
         self.sourceNode = SourceNode()
         self.targetNode = DomainTargetNodeType()
         if NN(elem): self.deserialize(elem)
+
+    def toDict(self):
+        s = super().toDict()
+        s['source_node'] = self.sourceNode.toDict()
+        s['target_node'] = self.targetNode.toDict()
+        return s
 
     def deserialize(self, elem:ET.Element):
         super().deserialize(elem)
@@ -106,11 +118,15 @@ class Domain(X3Base):
         s_s = self.sourceNode.toStr(indent+1)
         t_s = self.targetNode.toStr(indent+1)
         return njoin([ me,s_s,t_s])
-
+    
+        
 class NR():
     def __init__(self, node:str, relation:str) ->None:
         self.node = node
         self.relation = relation
+
+    def toDict(self):
+        return {'node':self.node,'relation':self.relation}
 
 class SourceRelation(X3Base):
     def __init__(self, elem : ET.Element|None = None):
@@ -118,6 +134,12 @@ class SourceRelation(X3Base):
         self.relation = ''
         self.nodes = []
         if NN(elem): self.deserialize(elem)
+
+    def toDict(self):
+        s = super().toDict()
+        s['relation'] = self.relation
+        s['nodes'] = [n.toDict() for n in self.nodes]
+        return s
 
     def deserialize(self, elem:ET.Element):
         super().deserialize(elem)
@@ -140,6 +162,8 @@ class SourceRelation(X3Base):
 
     def toStr(self, indent = 0):
         return f"{super().toStr(indent)} : {self.relation}"
+    
+
   
 class Path(X3Base):
     def __init__(self, elem : ET.Element|None = None):
@@ -147,6 +171,12 @@ class Path(X3Base):
         self.sourceRelation = SourceRelation()
         self.targetRelation = TargetRelationType()
         if NN(elem): self.deserialize(elem)
+
+    def toDict(self):
+        s = super().toDict()
+        s['source_relation'] = self.sourceRelation.toDict()
+        s['target_relation'] = self.targetRelation.toDict()
+        return s
 
     def deserialize(self, elem:ET.Element):
         super().deserialize(elem)
@@ -164,6 +194,8 @@ class Path(X3Base):
         s_s = self.sourceRelation.toStr(indent+1)
         t_s = self.targetRelation.toStr(indent+1)
         return njoin([me, s_s, t_s])
+    
+
 
 class Range(X3Base):
     def __init__(self, elem : ET.Element|None = None):
@@ -171,6 +203,12 @@ class Range(X3Base):
         self.sourceNode = SourceNode()
         self.targetNode = TargetNode()
         if NN(elem): self.deserialize(elem)
+
+    def toDict(self):
+        s = super().toDict()
+        s['source_node'] = self.sourceNode.toDict()
+        s['target_node'] = self.targetNode.toDict()
+        return s
 
     def deserialize(self, elem:ET.Element):
         super().deserialize(elem)
@@ -188,13 +226,19 @@ class Range(X3Base):
         s_s = self.sourceNode.toStr(indent+1)
         t_s = self.targetNode.toStr(indent+1)
         return njoin([me, s_s, t_s])
-
+    
 class Link(X3Base):
     def __init__(self, elem : ET.Element|None = None):
         super().__init__(elem)
         self.path = Path()
         self.range = Range()
         if NN(elem): self.deserialize(elem)
+
+    def toDict(self):
+        s = super().toDict()
+        s['path'] = self.path.toDict()
+        s['range'] = self.range.toDict()
+        return s
 
     def deserialize(self, elem:ET.Element):
         super().deserialize(elem)
@@ -219,6 +263,12 @@ class Mapping(X3Base):
         self.domain = Domain()
         self.links = []
         if NN(elem): self.deserialize(elem)
+
+    def toDict(self):
+        s = super().toDict()
+        s['domain'] = self.domain.toDict()
+        s['links'] = [x.toDict() for x in self.links]
+        return s
 
     def deserialize(self, elem:ET.Element):
         super().deserialize(elem)
@@ -250,6 +300,12 @@ class X3ml(X3Base):
         self.mappings = []
         if NN(elem): self.deserialize(elem)
 
+    def toDict(self):
+        s = super().toDict()
+        s['mappings'] = [x.toDict() for x in self.mappings]
+        s['namespaces'] = [x.toDict() for x in self.namespaces]
+        return s
+
     def deserialize(self, elem:ET.Element):
         super().deserialize(elem)
         self.namespaces = [Namespace(x) for x in elem.findall('./namespaces/namespace') ]
@@ -276,16 +332,31 @@ class LabelGenerator(X3Base):
         super().__init__()
         self.value:str = val
 
+    def toDict(self):
+        s = super().toDict()
+        s['value'] = self.value
+        return s
+
 class Instance_Generator(X3Base):
     def __init__(self,val=''):
         super().__init__()
         self.value:str = val
+
+    def toDict(self):
+        s = super().toDict()
+        s['value'] = self.value
+        return s
 
 class InstanceInfo(X3Base):
     def __init__(self,elem: ET.Element|None = None):
         super().__init__(elem)
         self.mode = ''
         if NN(elem): self.deserialize(elem)
+
+    def toDict(self):
+        s = super().toDict()
+        s['mode'] = self.mode
+        return s
 
     def deserialize(self, elem:ET.Element):
         if not elem.find('constant') is None:
@@ -299,34 +370,46 @@ class Relationship():
     def __init__(self,elem : ET.Element|None) -> None:
         self.value = getText(elem)
 
+    def toDict(self):
+        return {'value': self.value}
+
     def serialize(self, elem:ET.Element):
         elem.text = self.value
 
 class Entity(X3Base):
     def __init__(self,elem : ET.Element|None = None) -> None:
         super().__init__()
-        self.value = ''
+        self.type = ''
         self.instance_info = []
         self.instance_generator = []
         self.label_generator = []
         self.additional = []
         if NN(elem): self.deserialize(elem)
 
+    def toDict(self):
+        s = super().toDict()
+        s['type'] = self.type
+        s['instance_info'] = [x.toDict() for x in self.instance_info]
+        s['instance_generator'] = [x.toDict() for x in self.instance_generator]
+        s['label_generator'] = [x.toDict() for x in self.label_generator]
+        s['additional'] = [x.toDict() for x in self.additional]
+        return s
+
     def deserialize(self, elem:ET.Element|None):
         super().deserialize(elem)
         if elem:
-            self.value = getText(elem.find('type'))
+            self.type = getText(elem.find('type'))
             self.instance_info = [InstanceInfo(x) for x in elem.findall('instance_info')]
 
     def serialize(self, elem:ET.Element):
         super().serialize(elem)
         t = ET.SubElement(elem,'type')
-        t.text = self.value
+        t.text = self.type
         for x in self.instance_info:
             x.serialize(ET.SubElement(elem,'instance_info'))
 
     def toStr(self, indent = 0):
-        return f"{super().toStr(indent)} : { self.value }"
+        return f"{super().toStr(indent)} : { self.type }"
 
  
 class Additional():
@@ -335,6 +418,9 @@ class Additional():
         self.entity = entity
         self.relationship = relationShip
 
+    def toDict(self):
+        return {'entity':self.entity.toDict(), 'relationship':self.relationship.toDict()}
+
 class TargetRelationType(X3Base):
     def __init__(self,elem : ET.Element|None = None) -> None:
         super().__init__(elem)
@@ -342,6 +428,12 @@ class TargetRelationType(X3Base):
         self.relationship = Relationship(None)
         self.iterMediates = []
         if NN(elem): self.deserialize(elem)
+
+    def toDict(self):
+        s = super().toDict()
+        s['relationship'] = self.relationship.toDict()
+        s['iterMediates'] = [x.toDict() for x in self.iterMediates]
+        return s
 
     def deserialize(self, elem:ET.Element):
         super().deserialize(elem)
@@ -369,6 +461,12 @@ class RangeTargetNodeType(X3Base):
         self.entity = Entity()
         self.ifs = []
         if NN(elem):  self.deserialize(elem)
+
+    def toDict(self):
+        s = super().toDict()
+        s['entity'] = self.entity.toDict()
+        s['ifs'] = [x.toDict() for x in self.ifs]
+        return s
 
     def deserialize(self, elem:ET.Element):
         super().deserialize(elem)
@@ -399,6 +497,11 @@ class SourceNode(X3Base):
         self.text = ''
         if NN(elem): self.deserialize(elem)
 
+    def toDict(self):
+        s = super().toDict()
+        s['text'] = self.text
+        return s
+
     def deserialize(self, elem:ET.Element):
         super().deserialize(elem)
         self.text = getText(elem)
@@ -418,6 +521,13 @@ class LogicalOp (X3Base):
         self.xpath = ''
         self._ifs = []
         if NN(elem): self.deserialize(elem)
+
+    def toDict(self):
+        s = super().toDict()
+        s['tag'] = self.tag
+        s['xpath'] = self.xpath
+        s['ifs'] = [x.toDict() for x in self._ifs]
+        return s
 
     def deserialize(self, elem:ET.Element|None):
         super().deserialize(elem)
@@ -453,6 +563,12 @@ class ConditionsType(X3Base):
         self.op = Or()
         if NN(elem): self.deserialize(elem)
 
+    def toDict(self):
+        s = super().toDict()
+        s['text'] = self.text
+        s['op'] = self.op.toDict()
+        return s
+
     def deserialize(self, elem:ET.Element|None):
         super().deserialize(elem)
         def choice(tag,cls):
@@ -476,7 +592,6 @@ class ConditionsType(X3Base):
         elem.text = self.text
         if self.op:
             self.op.serialize(ET.SubElement(elem,self.op.tag))
-
 
 class If(ConditionsType): pass
 

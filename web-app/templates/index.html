@@ -3,22 +3,43 @@
     <h3>{% block title %} X3ML Editor {% endblock %}</h3>
     <div class="accordion" id="Main">
 
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#M2" aria-expanded="true" aria-controls="M2">
-            Mappings
-          </button>
-        </h2>
-        <div id="M2" class="accordion-collapse collapse hide">
-          <div class="accordion-body">
-            {% for m in data.mappings %}
-            <h4>
-              Mapping {{ loop.index }}
-              <a class="btn btn-primary btn-sm" href="{{ url_for('editMapping', id = loop.index0) }}">Edit</a>
-            </h4>
-            {% endfor %}
-          </div>
-        </div>
-      </div>   
-    </div>
+      <div id="app">${x3ml.mappings[0].domain}$</div> 
+      <button onclick="app.inc()">++</button>
+      <button onclick="app.dec()">--</button>
+
+    <script>
+      async function getData() {
+        try {
+          const response = await fetch("./mappings")
+          if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`);
+          }
+
+          const json = await response.json();
+          return json;
+        } catch (error) {
+          console.error(error.message);
+        }
+      }
+      var app = Vue.createApp({
+          data() {return {counter: 5, mappings:'test2', x3ml:null}},
+          // for global
+          delimiters: ["${", "}$"],
+          // for standalone
+          compilerOptions: {
+            delimiters: ["${", "}$"]
+          },
+          methods: {
+            inc() {this.counter++; },
+            dec() {this.counter--; },
+            readX3ml(s) {this.x3ml = JSON.parse(s);} 
+          },
+          created() 
+          {
+            fetch("/mappings")
+            .then((response) => response.json())
+            .then((o) => this.readX3ml(o.data));
+          }
+        }).mount('#app');
+    </script>  
     {% endblock %}

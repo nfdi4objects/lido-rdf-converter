@@ -1,10 +1,11 @@
 import sys
 sys.path.insert(0, '..')
 import os
-from flask import Flask, render_template, request, url_for, flash, redirect, send_file
+from flask import Flask, render_template, request, url_for, flash, redirect, send_file, jsonify
 from x3ml_classes import loadX3ml, storeX3ml, Namespace
 from LidoRDFConverter import LidoRDFConverter
 from lidoEditor import makeWorkspace
+import json
 
 UPLOAD_FOLDER = './work'
 ALLOWED_EXTENSIONS = {'x3ml'}
@@ -130,6 +131,18 @@ def upload():
             return redirect(url_for('index'))
     return render_template('loadFile.html')
 
+
+@app.route('/mappings', methods=['GET', 'POST'])
+def all_books():
+    global localModel
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
+        post_data = request.get_json()
+        print(post_data)
+        response_object['message'] = 'Book added!'
+    else:
+        response_object['data'] = json.dumps(localModel.toDict())
+    return jsonify(response_object)
 
 if __name__ == '__main__': 
    
