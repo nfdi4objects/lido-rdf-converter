@@ -1,28 +1,28 @@
 {% extends 'base.html' %}
     {% block content %}
     <h3>{% block title %} X3ML Editor {% endblock %}</h3>
-    <div class="accordion" id="Main">
-
-      <div id="app">${x3ml.mappings[0].domain}$</div> 
-      <button onclick="app.inc()">++</button>
-      <button onclick="app.dec()">--</button>
-
+    <div class="container">
+      <div class="row">
+        <div  id="app" class="col-sm-10">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Mapping</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(m, index) in x3ml.mappings" :key="index">
+                <td>No. ${index+1}$: ${m.domain.source_node.text}$</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
     <script>
-      async function getData() {
-        try {
-          const response = await fetch("./mappings")
-          if (!response.ok) {
-            throw new Error(`Response status: ${response.status}`);
-          }
-
-          const json = await response.json();
-          return json;
-        } catch (error) {
-          console.error(error.message);
-        }
-      }
       var app = Vue.createApp({
-          data() {return {counter: 5, mappings:'test2', x3ml:null}},
+          data() {return {x3ml:null}},
           // for global
           delimiters: ["${", "}$"],
           // for standalone
@@ -30,16 +30,15 @@
             delimiters: ["${", "}$"]
           },
           methods: {
-            inc() {this.counter++; },
-            dec() {this.counter--; },
             readX3ml(s) {this.x3ml = JSON.parse(s);} 
           },
           created() 
           {
             fetch("/mappings")
             .then((response) => response.json())
-            .then((o) => this.readX3ml(o.data));
-          }
+            .then((o) => this.x3ml = JSON.parse(o.data))
+            .catch((err) => {console.error(err);})
+           }
         }).mount('#app');
     </script>  
     {% endblock %}
