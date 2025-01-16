@@ -10,63 +10,69 @@
   <title>X3ML Editor</title>
 </head>
 
-<body class="p-3 m-0 border-0 bd-example m-0 border-0">
+<body class="mx-auto" style="width: 1200px;">
 
-  <div id="app" class="accordion">
+  <div id="app" class="accordion accordion-flush" style="overflow-y: scroll; height:400px;">
     <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
       <h2 class="accordion-header" :id="'M' + i">
-        <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#C' + i" aria-expanded="true" :aria-controls="'C' + i">
-          Mapping ${i+1}$
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#C' + i" aria-expanded="false" :aria-controls="'C' + i">
+          mapping ${i+1}$ from: "${mapping.domain.source_node.text.replace("lido:", "")}$"
         </button>
       </h2>
-      <div :id="'C' + i" class="accordion-collapse collapse show" :aria-labelledby="'M' + i" data-bs-parent="#app">
+      <div :id="'C' + i" class="accordion-collapse collapse hide" :aria-labelledby="'M' + i" data-bs-parent="#app">
         <div class="accordion-body">
-
-
           <form method="post">
             <label for="fname">S - Path:&nbsp;</label>
             <input type="text" name="S-path" v-bind:id="i" v-model="mapping.domain.source_node.text">
             <label for="lname">&nbsp;Entity:&nbsp;</label>
             <input type="text" name="S-type" v-bind:id="i" v-model="mapping.domain.target_node.entity.type">
           </form>
-
-          
-          <li v-for="(link, j) in mapping.links" :key="j">
-            <span class="caret">Link ${j+1}$</span>
-            <form method="post">
-              <label for="fname">P - Path:&nbsp;</label>
-              <input type="text" name="P-path" v-bind:id="j" v-model="link.path.source_relation.relation">
-              <label for="lname">&nbsp;Entity:&nbsp;</label>
-              <input type="text" name="P-type" v-bind:id="j" v-model="link.path.target_relation.relationship.value">
-              <label for="lname">&nbsp;O Entity:&nbsp;</label>
-              <input type="text" name="P-type" v-bind:id="j" v-model="link.range.target_node.entity.type">
-            </form>
-          </li>
-        
+          <div class="accordion accordion-flush" :id="'LA' + i">
+            <div class="accordion-item" v-for="(link, j) in mapping.links" :key="j">
+              <h2 class="accordion-header" :id="'L' + j">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#D' + j"  aria-expanded="false" :aria-controls="'D' + j">
+                  to link ${j+1}$: "${link.path.source_relation.relation.replace("lido:", "")}$"
+                </button>
+              </h2>
+              <div :id="'D' + j" class="accordion-collapse collapse hide" :aria-labelledby="'L' + j" :data-bs-parent="'#LA' + i">
+                <div class="accordion-body">
+                  <form method="post">
+                    <label for="fname">P - Path:&nbsp;</label>
+                    <input type="text" name="P-path" v-bind:id="j" v-model="link.path.source_relation.relation">
+                    <label for="lname">&nbsp;Entity:&nbsp;</label>
+                    <input type="text" name="P-type" v-bind:id="j"
+                      v-model="link.path.target_relation.relationship.value">
+                    <label for="lname">&nbsp;O Entity:&nbsp;</label>
+                    <input type="text" name="P-type" v-bind:id="j" v-model="link.range.target_node.entity.type">
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  <script>
-    var app = Vue.createApp({
-      data() {
-        return { x3ml: null }
-      },
-      delimiters: ["${", "}$"], // for global
-      compilerOptions: { delimiters: ["${", "}$"] }, // for standalone
-      methods: {
-        getX3ml() {
-          fetch("/mappings")
-            .then((response) => response.json())
-            .then((s) => this.x3ml = JSON.parse(s.data))
-            .catch((err) => { console.error(err); })
+
+    <script>
+      var app = Vue.createApp({
+        data() {
+          return { x3ml: null }
         },
-      },
-      created() {
-        this.getX3ml()
-      }
-    }).mount('#app');
-  </script>
+        delimiters: ["${", "}$"], // for global
+        compilerOptions: { delimiters: ["${", "}$"] }, // for standalone
+        methods: {
+          getX3ml() {
+            fetch("/mappings")
+              .then((response) => response.json())
+              .then((s) => this.x3ml = JSON.parse(s.data))
+              .catch((err) => { console.error(err); })
+          },
+        },
+        created() {
+          this.getX3ml()
+        }
+      }).mount('#app');
+    </script>
 </body>
 
 </html>
