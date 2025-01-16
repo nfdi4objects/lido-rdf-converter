@@ -389,9 +389,6 @@ class Entity(X3Base):
     def toDict(self):
         s = super().toDict()
         s['type'] = self.type
-        s['instance_info'] = [x.toDict() for x in self.instance_info]
-        s['instance_generator'] = [x.toDict() for x in self.instance_generator]
-        s['label_generator'] = [x.toDict() for x in self.label_generator]
         s['additional'] = [x.toDict() for x in self.additional]
         return s
 

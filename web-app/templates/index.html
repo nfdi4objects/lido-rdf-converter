@@ -1,44 +1,66 @@
-{% extends 'base.html' %}
-    {% block content %}
-    <h3>{% block title %} X3ML Editor {% endblock %}</h3>
-    <div class="container">
-      <div class="row">
-        <div  id="app" class="col-sm-10">
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th scope="col">Mapping</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(m, index) in x3ml.mappings" :key="index">
-                <td>No. ${index+1}$: ${m.domain.source_node.text}$</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://getbootstrap.com/docs/5.3/assets/css/docs.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<title>X3ML Editor</title>
+</head>
+
+<body class="p-3 m-0 border-0 bd-example m-0 border-0">
+  <div id="app" class="container">
+    <div style="overflow-y: scroll;">
+      <ul>
+        <li v-for="(mapping, i) in x3ml.mappings" :key="i">
+          <span class="caret">Mapping ${i+1}$</span>
+
+          <ul class="nested">
+            <form method="post">
+              <label for="fname">S - Path:&nbsp;</label>
+              <input type="text" name="S-path" v-bind:id="i" v-model="mapping.domain.source_node.text">
+              <label for="lname">&nbsp;Entity:&nbsp;</label>
+              <input type="text" name="S-type" v-bind:id="i" v-model="mapping.domain.target_node.entity.type">
+            </form>
+            <li v-for="(link, j) in mapping.links" :key="j">
+              <span class="caret">Link ${j+1}$</span>
+              <form method="post">
+                <label for="fname">P - Path:&nbsp;</label>
+                <input type="text" name="P-path" v-bind:id="j" v-model="link.path.source_relation.relation">
+                <label for="lname">&nbsp;Entity:&nbsp;</label>
+                <input type="text" name="P-type" v-bind:id="j" v-model="link.path.target_relation.relationship.value">
+                <label for="lname">&nbsp;O Entity:&nbsp;</label>
+                <input type="text" name="P-type" v-bind:id="j" v-model="link.range.target_node.entity.type">
+                </form>
+            </li>
+          </ul>
+
+        </li>
+      </ul>
     </div>
-    <script>
-      var app = Vue.createApp({
-          data() {return {x3ml:null}},
-          // for global
-          delimiters: ["${", "}$"],
-          // for standalone
-          compilerOptions: {
-            delimiters: ["${", "}$"]
-          },
-          methods: {
-            readX3ml(s) {this.x3ml = JSON.parse(s);} 
-          },
-          created() 
-          {
-            fetch("/mappings")
+  </div>
+  <script>
+    var app = Vue.createApp({
+      data() {
+        return { x3ml: null }
+      },
+      delimiters: ["${", "}$"], // for global
+      compilerOptions: { delimiters: ["${", "}$"] }, // for standalone
+      methods: {
+        getX3ml() {
+          fetch("/mappings")
             .then((response) => response.json())
-            .then((o) => this.x3ml = JSON.parse(o.data))
-            .catch((err) => {console.error(err);})
-           }
-        }).mount('#app');
-    </script>  
-    {% endblock %}
+            .then((s) => this.x3ml = JSON.parse(s.data))
+            .catch((err) => { console.error(err); })
+        },
+      },
+      created() {
+        this.getX3ml()
+      }
+    }).mount('#app');
+  </script>
+</body>
+
+</html>
