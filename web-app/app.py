@@ -133,10 +133,11 @@ def upload():
 
 
 @app.route('/mappings', methods=['GET', 'POST'])
-def all_books():
+def mappings():
     global localModel
     response_object = {'status': 'success'}
     if request.method == 'POST':
+        print(request)
         post_data = request.get_json()
         print(post_data)
         response_object['message'] = 'Book added!'
