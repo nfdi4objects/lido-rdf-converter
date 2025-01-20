@@ -28,10 +28,10 @@ def localFile(s):
 
 def findNS(prefix) -> Namespace|None:
     hasPrefix = lambda x : x.prefix()==prefix
-    return next((x for x in localModel.namespaces if hasPrefix(x)),None)
+    return next((x for x in workX3ml.namespaces if hasPrefix(x)),None)
 
 def getNSdata(id):
-    ns = localModel.namespaces[id]
+    ns = workX3ml.namespaces[id]
     return { 'id': id, 'title':f"{ns.getAttr('prefix')}",'content':f"{ns.getAttr('uri')}"}
 
 app = Flask(__name__)
@@ -39,7 +39,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = '110662'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-localModel = loadX3ml()
+workX3ml = loadX3ml()
 
 @app.route('/')
 def index():
@@ -56,14 +56,14 @@ def createNS():
         else:
             if not findNS(prefix):
                 ns = Namespace().set(prefix,uri)
-                localModel.namespaces.append(ns)
+                workX3ml.namespaces.append(ns)
             return redirect(url_for('index'))
 
     return render_template('createNS.html')
 
 @app.route('/<int:id>/editNS', methods=('GET', 'POST'))
 def editNS(id):
-    ns = localModel.namespaces[id]
+    ns = workX3ml.namespaces[id]
 
     if request.method == 'POST':
         title = request.form['title']
@@ -78,7 +78,7 @@ def editNS(id):
 
 @app.route('/<int:id>/deleteNS', methods=('POST',))
 def deleteNS(id):
-    localModel.namespaces.pop(id)
+    workX3ml.namespaces.pop(id)
     flash(f"Namespace '{id+1}' was successfully deleted!")
     return redirect(url_for('index'))
 
@@ -103,17 +103,17 @@ def editMapping(id):
 
 @app.route('/download')
 def download():
-    global localModel
+    global workX3ml
     storePath = localFile('download.x3ml')
-    storeX3ml(localModel,storePath)
+    storeX3ml(workX3ml,storePath)
     return send_file(storePath,  download_name='mapping.x3ml')
 
 @app.route('/upload', methods=('GET', 'POST'))
 def upload():
-    global localModel
+    global workX3ml
     if request.method == 'POST':
         if 'default' in request.form:
-            localModel = loadX3ml()
+            workX3ml = loadX3ml()
             return redirect(url_for('index'))
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -127,14 +127,14 @@ def upload():
         if file and allowed_file(file.filename):
             store = localFile('upload.x3ml')
             file.save(store)
-            localModel = loadX3ml(store)
+            workX3ml = loadX3ml(store)
             return redirect(url_for('index'))
     return render_template('loadFile.html')
 
 
-@app.route('/mappings', methods=['GET', 'POST'])
-def mappings():
-    global localModel
+@app.route('/x3ml', methods=['GET', 'POST'])
+def x3ml():
+    global workX3ml
     response_object = {'status': 'success'}
     if request.method == 'POST':
         print(request)
@@ -142,7 +142,7 @@ def mappings():
         print(post_data)
         response_object['message'] = 'Book added!'
     else:
-        response_object['data'] = json.dumps(localModel.toDict())
+        response_object['jsonX3ml'] = json.dumps(workX3ml.toDict())
     return jsonify(response_object)
 
 if __name__ == '__main__': 
