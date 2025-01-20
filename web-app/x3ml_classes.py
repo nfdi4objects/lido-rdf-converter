@@ -97,6 +97,10 @@ class Domain(X3Base):
         self.targetNode = DomainTargetNodeType()
         if NN(elem): self.deserialize(elem)
 
+    def apply(self,path,entity):
+        self.sourceNode.text = path
+        self.targetNode.entity.type = entity
+
     def toDict(self):
         s = super().toDict()
         s['source_node'] = self.sourceNode.toDict()

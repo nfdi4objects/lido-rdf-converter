@@ -137,9 +137,13 @@ def x3ml():
     global workX3ml
     response_object = {'status': 'success'}
     if request.method == 'POST':
-        print(request)
-        post_data = request.get_json()
-        print(post_data)
+        parm = request.get_json()
+        if parm['type'] == 'mapping':
+            print(parm)
+            i = int(parm['mIndex'])
+            d = workX3ml.mappings[i].domain
+            d.apply(parm['path'], parm['entity'])
+            print(d.toDict())
         response_object['message'] = 'Map changes applied!'
     else:
         response_object['jsonX3ml'] = json.dumps(workX3ml.toDict())
