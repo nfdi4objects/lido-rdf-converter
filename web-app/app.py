@@ -140,10 +140,30 @@ def x3ml():
         print(request)
         post_data = request.get_json()
         print(post_data)
-        response_object['message'] = 'Book added!'
+        response_object['message'] = 'Map changes applied!'
     else:
         response_object['jsonX3ml'] = json.dumps(workX3ml.toDict())
     return jsonify(response_object)
+
+@app.route('/deleteMap/<int:mapId>', methods=['DELETE'])
+def deleteMap(mapId):
+    global workX3ml
+    response_object = {'status': 'success'}
+    if request.method == 'DELETE':
+        print(f'delete map {mapId}')
+        workX3ml.mappings.pop(mapId)
+        response_object['message'] = 'Map removed!'
+    return jsonify(response_object)
+
+@app.route('/deleteLink/<int:mapId>/<int:linkId>', methods=['DELETE'])
+def deleteLink(mapId,linkId):
+    global workX3ml
+    answer = {'status': 'success'}
+    if request.method == 'DELETE':
+        print(f'delete link {linkId} of map {mapId}')
+        workX3ml.mappings[mapId].links.pop(linkId)
+        answer['message'] = 'Link removed!'
+    return jsonify(answer)
 
 if __name__ == '__main__': 
    

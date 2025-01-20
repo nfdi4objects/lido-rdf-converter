@@ -93,8 +93,10 @@
             if (event) {
               attrs = event.target.attributes
               mIndex = attrs.iM.value
+              // Delete mapping on client (Model => View)
               this.x3ml.mappings.shift(mIndex);
-              console.log(this.x3ml.mappings);
+              // Delete mapping on server
+              fetch('/deleteMap/'+mIndex,{method:'DELETE'})
             }
           },
           applyMap(event) {
@@ -133,8 +135,10 @@
               attrs = event.target.attributes
               mIndex = attrs.iM.value
               lIndex = attrs.iL.value
+              // Delete link on client (Model => View)
               this.x3ml.mappings[mIndex].links.shift(lIndex)
-              console.log(this.x3ml.mappings[mIndex].links);
+              // Delete link on server
+              fetch('/deleteLink/'+mIndex+'/'+lIndex,{method:'DELETE'})
             }
           }  
         },
