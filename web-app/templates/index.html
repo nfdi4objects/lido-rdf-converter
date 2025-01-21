@@ -17,58 +17,62 @@
 <body>
   <div class="container">
     <div class="row">
-      <div id="app" class="accordion accordion-flush" style="overflow-y: scroll; height:600px">
-        <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
-          <h2 class="accordion-header" :id="'M' + i">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#C' + i"
-              aria-expanded="false" :aria-controls="'C' + i">
-              Mapping ${i+1}$ from: "${mapping.domain.sourceNode.text.replace("lido:", "")}$"
-            </button>
-          </h2>
-          <div :id="'C' + i" class="accordion-collapse collapse hide" :aria-labelledby="'M' + i" data-bs-parent="#app">
-            <div class="accordion-body">
+      <div class="col">
+        <div id="app" class="accordion accordion-flush" style="overflow-y: scroll; height:600px">
+          <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
+            <h2 class="accordion-header" :id="'M' + i">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#C' + i"
+                aria-expanded="false" :aria-controls="'C' + i">
+                Mapping ${i+1}$ from: "${mapping.domain.sourceNode.text.replace("lido:", "")}$"
+              </button>
+            </h2>
+            <div :id="'C' + i" class="accordion-collapse collapse hide" :aria-labelledby="'M' + i"
+              data-bs-parent="#app">
+              <div class="accordion-body">
 
-              <div class="container-fluid">
-                <label for="fname">Path:</label>
-                <input class="form-control" type="text" name="S-path" :id="i" v-model="mapping.domain.sourceNode.text">
-                <label for="lname">Entity:</label>
-                <input class="form-control" type="text" name="S-type" :id="i"
-                  v-model="mapping.domain.targetNode.entity.type">
-                <br />
-                <button type="button" class="btn btn-primary btn-sm" @click="applyMap" :iM="i">Submit</button>&nbsp;
-                <button type="button" class="btn btn-danger btn-sm" @click="deleteMap" :iM="i">Delete</button>&nbsp;
-                <br />
-              </div>
+                <div class="container-fluid">
+                  <label for="fname">Path:</label>
+                  <input class="form-control" type="text" name="S-path" :id="i"
+                    v-model="mapping.domain.sourceNode.text">
+                  <label for="lname">Entity:</label>
+                  <input class="form-control" type="text" name="S-type" :id="i"
+                    v-model="mapping.domain.targetNode.entity.type">
+                  <br />
+                  <button type="button" class="btn btn-primary btn-sm" @click="applyMap" :iM="i">Submit</button>&nbsp;
+                  <button type="button" class="btn btn-danger btn-sm" @click="deleteMap" :iM="i">Delete</button>&nbsp;
+                  <br />
+                </div>
 
 
-              <div class="accordion accordion-flush" :id="'LA' + i">
-                <div class="accordion-item" v-for="(link, j) in mapping.links" :key="j">
-                  <h2 class="accordion-header" :id="'L' + j">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#D' + j"
-                      aria-expanded="false" :aria-controls="'D' + j">
-                      Link ${j+1}$: "${link.path.sourceRelation.relation.replace("lido:", "")}$"
-                    </button>
-                  </h2>
-                  <div :id="'D' + j" class="accordion-collapse collapse hide" :aria-labelledby="'L' + j"
-                    :data-bs-parent="'#LA' + i">
-                    <div class="accordion-body">
-                      <form method="post">
-                        <label for="fname">Path:</label>
-                        <input class="form-control" type="text" name="P-path" :id="j"
-                          v-model="link.path.sourceRelation.relation">
-                        <label for="lname">Property</label>
-                        <input class="form-control" type="text" name="P-type" :id="j"
-                          v-model="link.path.targetRelation.relationship.value">
-                        <label for="lname">Entity</label>
-                        <input class="form-control" type="text" name="P-type" :id="j"
-                          v-model="link.range.targetNode.entity.type">
-                        <br />
-                        <button type="button" class="btn btn-primary btn-sm" @click="applyLink" :iM="i"
-                          :iL="j">Submit</button>&nbsp;
-                        <button type="button" class="btn btn-danger btn-sm" @click="deleteLink" :iM="i"
-                          :iL="j">Delete</button>&nbsp;
-                        <br />
-                      </form>
+                <div class="accordion accordion-flush" :id="'LA' + i">
+                  <div class="accordion-item" v-for="(link, j) in mapping.links" :key="j">
+                    <h2 class="accordion-header" :id="'L' + j">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        :data-bs-target="'#D' + j" aria-expanded="false" :aria-controls="'D' + j">
+                        Link ${j+1}$: "${link.path.sourceRelation.relation.replace("lido:", "")}$"
+                      </button>
+                    </h2>
+                    <div :id="'D' + j" class="accordion-collapse collapse hide" :aria-labelledby="'L' + j"
+                      :data-bs-parent="'#LA' + i">
+                      <div class="accordion-body">
+                        <form method="post">
+                          <label for="fname">Path:</label>
+                          <input class="form-control" type="text" name="P-path" :id="j"
+                            v-model="link.path.sourceRelation.relation">
+                          <label for="lname">Property</label>
+                          <input class="form-control" type="text" name="P-type" :id="j"
+                            v-model="link.path.targetRelation.relationship.value">
+                          <label for="lname">Entity</label>
+                          <input class="form-control" type="text" name="P-type" :id="j"
+                            v-model="link.range.targetNode.entity.type">
+                          <br />
+                          <button type="button" class="btn btn-primary btn-sm" @click="applyLink" :iM="i"
+                            :iL="j">Submit</button>&nbsp;
+                          <button type="button" class="btn btn-danger btn-sm" @click="deleteLink" :iM="i"
+                            :iL="j">Delete</button>&nbsp;
+                          <br />
+                        </form>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -77,14 +81,15 @@
           </div>
         </div>
       </div>
+      <div class="col">
+        <div id="editor" style="height:600px"></div>
+        <br/>
+        <p><button type="button" class="btn btn-primary btn-sm">Run</button></p>
+      </div>
     </div>
   </div>
-  <div class="container"></div>
+  <div class="container">
     <div class="row">
-      <div class="col">
-        &nbsp;<button type="button" class="btn btn-primary btn-sm">Run</button>&nbsp;
-        <div id="editor"></div>
-      </div>
       <div class="col">
         <div id="output">y1</div>
       </div>
@@ -105,7 +110,7 @@
     }
 
     var app = Vue.createApp({
-      data() { return { x3ml: {}, lido:'' } },
+      data() { return { x3ml: {}, lido: '' } },
       delimiters: ["${", "}$"], // for global
       compilerOptions: { delimiters: ["${", "}$"] }, // for standalone
       methods: {
