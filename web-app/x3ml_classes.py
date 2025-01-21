@@ -107,8 +107,8 @@ class Domain(X3Base):
 
     def toDict(self):
         s = super().toDict()
-        s['source_node'] = self.sourceNode.toDict()
-        s['target_node'] = self.targetNode.toDict()
+        s['sourceNode'] = self.sourceNode.toDict()
+        s['targetNode'] = self.targetNode.toDict()
         return s
 
     def deserialize(self, elem:ET.Element):
@@ -180,10 +180,14 @@ class Path(X3Base):
         self.targetRelation = TargetRelationType()
         if NN(elem): self.deserialize(elem)
 
+    def apply(self,path,relationship):
+        self.sourceRelation.relation = path
+        self.targetRelation.relationship.value = relationship
+
     def toDict(self):
         s = super().toDict()
-        s['source_relation'] = self.sourceRelation.toDict()
-        s['target_relation'] = self.targetRelation.toDict()
+        s['sourceRelation'] = self.sourceRelation.toDict()
+        s['targetRelation'] = self.targetRelation.toDict()
         return s
 
     def deserialize(self, elem:ET.Element):
@@ -212,10 +216,14 @@ class Range(X3Base):
         self.targetNode = TargetNode()
         if NN(elem): self.deserialize(elem)
 
+    def apply(self,path,entity):
+        self.sourceNode.text = path
+        self.targetNode.entity.type = entity
+
     def toDict(self):
         s = super().toDict()
-        s['source_node'] = self.sourceNode.toDict()
-        s['target_node'] = self.targetNode.toDict()
+        s['sourceNode'] = self.sourceNode.toDict()
+        s['targetNode'] = self.targetNode.toDict()
         return s
 
     def deserialize(self, elem:ET.Element):
@@ -241,6 +249,10 @@ class Link(X3Base):
         self.path = Path()
         self.range = Range()
         if NN(elem): self.deserialize(elem)
+
+    def apply(self,path,relationship,entity):
+        self.path.apply(path,relationship)
+        self.range.apply(path,entity)
 
     def toDict(self):
         s = super().toDict()

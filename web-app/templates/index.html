@@ -107,8 +107,8 @@
               data = {
                 type: 'mapping',
                 mIndex: mIndex,
-                path: mapping.domain.source_node.text,
-                entity: mapping.domain.target_node.entity.type
+                path: mapping.domain.sourceNode.text,
+                entity: mapping.domain.targetNode.entity.type
               }
               post('/x3ml', data).then(res => res.json());
             }
@@ -123,9 +123,9 @@
                 type: 'link',
                 mIndex: mIndex,
                 lIndex: lIndex,
-                source_relation: link.path.source_relation.relation,
-                relationship: link.path.target_relation.relationship.value,
-                entity: link.range.target_node.entity.type
+                path: link.path.sourceRelation.relation,
+                relationship: link.path.targetRelation.relationship.value,
+                entity: link.range.targetNode.entity.type
               }
               post('/x3ml', data).then(res => res.json());
             }

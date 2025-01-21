@@ -143,7 +143,13 @@ def x3ml():
             i = int(parm['mIndex'])
             d = workX3ml.mappings[i].domain
             d.apply(parm['path'], parm['entity'])
-            print(d.toDict())
+        if parm['type'] == 'link':
+            print(parm)
+            i = int(parm['mIndex'])
+            j = int(parm['lIndex'])
+            link = workX3ml.mappings[i].links[j]
+            link.apply(parm['path'],parm['relationship'], parm['entity'])
+            print(link.toJSON())
         response_object['message'] = 'Map changes applied!'
     else:
         response_object['jsonX3ml'] = workX3ml.toJSON()
