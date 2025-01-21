@@ -146,7 +146,7 @@ def x3ml():
             print(d.toDict())
         response_object['message'] = 'Map changes applied!'
     else:
-        response_object['jsonX3ml'] = json.dumps(workX3ml.toDict())
+        response_object['jsonX3ml'] = workX3ml.toJSON()
     return jsonify(response_object)
 
 @app.route('/deleteMap/<int:mapId>', methods=['DELETE'])

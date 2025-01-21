@@ -1,6 +1,10 @@
 import xml.etree.ElementTree as ET
 import json
 
+class Serializer:
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__,  sort_keys=True, indent=4)
+
 def NN(elem:ET.Element): 
     return  not elem is None
 
@@ -9,7 +13,7 @@ def getText(elem:ET.Element|None) ->str:
         return str(elem.text)
     return '' 
 
-class Attribute():
+class Attribute(Serializer):
     def __init__(self, key:str, value:str=''):
         self.key = key
         self.value = value
@@ -28,7 +32,7 @@ def toStrV(v,indent=0):
 
 Attributes = list[Attribute]
 
-class X3Base():
+class X3Base(Serializer):
     counter = 0
     def __init__(self,elem:ET.Element|None=None):
         self.attributes = []
@@ -124,7 +128,7 @@ class Domain(X3Base):
         return njoin([ me,s_s,t_s])
     
         
-class NR():
+class NR(Serializer):
     def __init__(self, node:str, relation:str) ->None:
         self.node = node
         self.relation = relation
@@ -370,7 +374,7 @@ class InstanceInfo(X3Base):
         if not elem.find('description') is None:
             self.mode = 'description'
  
-class Relationship():
+class Relationship(Serializer):
     def __init__(self,elem : ET.Element|None) -> None:
         self.value = getText(elem)
 
@@ -413,7 +417,7 @@ class Entity(X3Base):
         return f"{super().toStr(indent)} : { self.type }"
 
  
-class Additional():
+class Additional(Serializer):
     '''Holds a pair of Entity and Relationship'''
     def __init__(self, entity:Entity, relationShip:Relationship) -> None:
         self.entity = entity
