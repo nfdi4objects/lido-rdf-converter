@@ -131,6 +131,7 @@ def upload():
             return redirect(url_for('index'))
     return render_template('loadFile.html')
 
+#############################################################################
 
 @app.route('/x3ml', methods=['GET', 'POST'])
 def x3ml():
@@ -174,6 +175,24 @@ def deleteLink(mapId,linkId):
         workX3ml.mappings[mapId].links.pop(linkId)
         answer['message'] = 'Link removed!'
     return jsonify(answer)
+
+def fromFile(fname):
+    with open(fname,'r') as fid:
+        return fid.read()
+    return ''
+
+def toFile(fname,data):
+    if data:
+        with open(fname,'w') as fid:
+            fid.write(data)
+            return fname
+
+@app.route('/loadLido')
+def loadDftlLido():
+    data = fromFile('./defaultLido.xml')
+    answer = {'status': 'success','lidoData':data}
+    return jsonify(answer)
+
 
 if __name__ == '__main__': 
    

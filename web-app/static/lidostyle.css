@@ -21,12 +21,12 @@
 }
 
 .container {
-  display: flex;
+  width: 100%; 
 }
 
 #editor {
   height: 500px;
-  width: 50%; /* Adjust width as needed */
+  width: 100%; /* Adjust width as needed */
   font-size: 12px;
   font-family: monospace;
 }
@@ -40,7 +40,7 @@
 
 #output {
     height: 500px;
-    width: 50%; /* Adjust width as needed */
+    width: 100%; /* Adjust width as needed */
     font-size: 12px;
     font-family: monospace;
   }
