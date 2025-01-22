@@ -38,18 +38,18 @@
                   <label for="lname">Entity:</label>
                   <input class="form-control" type="text" name="S-type" :id="i"
                     v-model="mapping.domain.targetNode.entity.type">
-                  <br />
-                  <button type="button" class="btn btn-primary btn-sm" @click="applyMap" :iM="i">Submit</button>&nbsp;
-                  <button type="button" class="btn btn-danger btn-sm" @click="deleteMap" :iM="i">Delete</button>&nbsp;
-                  <br />
+                  <br/>
+                  <p>
+                    <button type="button" class="btn btn-primary btn-sm" @click="applyMap" :iM="i">Submit</button>&nbsp;
+                    <button type="button" class="btn btn-primary btn-sm" @click="addLink" :iM="i">Add Link</button>&nbsp;
+                    <button type="button" class="btn btn-danger btn-sm" @click="deleteMap" :iM="i">Delete</button>&nbsp;
+                  </p>
                 </div>
-
 
                 <div class="accordion accordion-flush" :id="'LA' + i">
                   <div class="accordion-item" v-for="(link, j) in mapping.links" :key="j">
                     <h2 class="accordion-header" :id="'L' + j">
-                      <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                        :data-bs-target="'#D' + j" aria-expanded="false" :aria-controls="'D' + j">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse":data-bs-target="'#D' + j" aria-expanded="false" :aria-controls="'D' + j">
                         Link ${j+1}$: "${link.path.sourceRelation.relation.replace("lido:", "")}$"
                       </button>
                     </h2>
@@ -58,20 +58,14 @@
                       <div class="accordion-body">
                         <form method="post">
                           <label for="fname">Path:</label>
-                          <input class="form-control" type="text" name="P-path" :id="j"
-                            v-model="link.path.sourceRelation.relation">
+                          <input class="form-control" type="text" name="P-path" :id="j" v-model="link.path.sourceRelation.relation">
                           <label for="lname">Property</label>
-                          <input class="form-control" type="text" name="P-type" :id="j"
-                            v-model="link.path.targetRelation.relationship.value">
+                          <input class="form-control" type="text" name="P-type" :id="j" v-model="link.path.targetRelation.relationship.value">
                           <label for="lname">Entity</label>
-                          <input class="form-control" type="text" name="P-type" :id="j"
-                            v-model="link.range.targetNode.entity.type">
+                          <input class="form-control" type="text" name="P-type" :id="j" v-model="link.range.targetNode.entity.type">
                           <br />
-                          <button type="button" class="btn btn-primary btn-sm" @click="applyLink" :iM="i"
-                            :iL="j">Submit</button>&nbsp;
-                          <button type="button" class="btn btn-danger btn-sm" @click="deleteLink" :iM="i"
-                            :iL="j">Delete</button>&nbsp;
-                          <br />
+                          <button type="button" class="btn btn-primary btn-sm" @click="applyLink" :iM="i" :iL="j">Submit</button>&nbsp;
+                          <button type="button" class="btn btn-danger btn-sm" @click="deleteLink" :iM="i" :iL="j">Delete</button>&nbsp;
                         </form>
                       </div>
                     </div>
@@ -81,8 +75,7 @@
             </div>
           </div>
         </div>
-  
-        <br/>
+        <br />
         <p>
           <button type="button" class="btn btn-primary btn-sm"  @click="addMapping">Add mapping</button>&nbsp;
           <button type="button" class="btn btn-primary btn-sm">Apply mappings</button>
@@ -193,6 +186,16 @@
             lIndex = attrs.iL.value
             // Delete link on server
             fetch('/deleteLink/' + mIndex + '/' + lIndex, { method: 'DELETE' })
+            // Sync
+            this.getX3ml()
+          }
+        },
+        addLink(event) {
+          if (event) {
+            attrs = event.target.attributes
+            mIndex = attrs.iM.value
+            data = {type: 'addLink', mIndex: mIndex, lIndex:-1}          
+            post('/addLink', data).then(res => res.json());
             // Sync
             this.getX3ml()
           }

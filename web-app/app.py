@@ -117,6 +117,22 @@ def addMap():
         response_object['message'] = 'Map changes applied!'
     return jsonify(response_object)
 
+@app.route('/addLink', methods=['GET', 'POST'])
+def addLink():
+    global workX3ml
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
+        parm = request.get_json()
+        print(parm)
+        m = workX3ml.mappings[int(parm['mIndex'])]
+        newLink = Link()
+        if len(m.links):
+            newLink.path =copy.deepcopy(m.links[0].path)
+        m.links.insert(0,newLink)
+        response_object['message'] = 'Map changes applied!'
+    return jsonify(response_object)
+
+
 @app.route('/deleteMap/<int:mapId>', methods=['DELETE'])
 def deleteMap(mapId):
     global workX3ml
