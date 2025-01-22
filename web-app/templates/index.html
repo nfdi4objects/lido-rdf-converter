@@ -138,18 +138,21 @@
             .catch((err) => { console.error(err); })
         },
         addMapping(event) {
-          data = {type: 'mapping', mIndex: -1}          
-          post('/addMap', data).then(res => res.json());
-          this.getX3ml()
+          if (event) {
+            data = {type: 'addMapping', mIndex: -1}          
+            post('/addMap', data).then(res => res.json());
+            // Sync
+            this.getX3ml()
+          }
         },
         deleteMap(event) {
           if (event) {
             attrs = event.target.attributes
             mIndex = attrs.iM.value
-            // Delete mapping on client (Model => View)
-            this.x3ml.mappings.shift(mIndex);
             // Delete mapping on server
             fetch('/deleteMap/' + mIndex, { method: 'DELETE' })
+            // Sync
+            this.getX3ml()
           }
         },
         applyMap(event) {
@@ -188,10 +191,10 @@
             attrs = event.target.attributes
             mIndex = attrs.iM.value
             lIndex = attrs.iL.value
-            // Delete link on client (Model => View)
-            this.x3ml.mappings[mIndex].links.shift(lIndex)
             // Delete link on server
             fetch('/deleteLink/' + mIndex + '/' + lIndex, { method: 'DELETE' })
+            // Sync
+            this.getX3ml()
           }
         }
       },

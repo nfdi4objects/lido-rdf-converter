@@ -45,62 +45,6 @@ workX3ml = loadX3ml()
 def index():
     return render_template('index.html', data=mapper)
 
-
-@app.route('/createNS', methods=('GET', 'POST'))
-def createNS():
-    if request.method == 'POST':
-        prefix = request.form['title']
-        uri = request.form['content']
-        if not prefix:
-            flash('Prefix is required!')
-        else:
-            if not findNS(prefix):
-                ns = Namespace().set(prefix,uri)
-                workX3ml.namespaces.append(ns)
-            return redirect(url_for('index'))
-
-    return render_template('createNS.html')
-
-@app.route('/<int:id>/editNS', methods=('GET', 'POST'))
-def editNS(id):
-    ns = workX3ml.namespaces[id]
-
-    if request.method == 'POST':
-        title = request.form['title']
-        content = request.form['content']
-        if not title:
-            flash('Title is required!')
-        else:
-            ns.set(title,content)
-            return redirect(url_for('index'))
-
-    return render_template('editNS.html', ns=ns, id=id)
-
-@app.route('/<int:id>/deleteNS', methods=('POST',))
-def deleteNS(id):
-    workX3ml.namespaces.pop(id)
-    flash(f"Namespace '{id+1}' was successfully deleted!")
-    return redirect(url_for('index'))
-
-@app.route('/<int:id>/deleteMapping', methods=('POST',))
-def deleteMapping(id):
-    mapper.mappings.pop(id)
-    flash(f"Mapping '{id+1}' was successfully deleted!")
-    return redirect(url_for('index'))
-
-@app.route('/<int:id>/editMapping', methods=('GET', 'POST'))
-def editMapping(id):
-    m = mapper.mappings[id]
-    if request.method == 'POST':
-        rf = lambda s : request.form[s] 
-        m.S.path =rf('domainS') 
-        m.S.entity =  rf('domainT')
-        for i,l in enumerate(m.POs):
-            l.P.path = rf(f'relationP#{i}')
-            l.P.entity = rf(f'relationURI#{i}')
-            l.O.entity = rf(f'targetURI#{i}')
-    return render_template('editMapping.html', mapping=m, id=id)
-
 @app.route('/download')
 def download():
     global workX3ml
