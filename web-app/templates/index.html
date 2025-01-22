@@ -18,6 +18,7 @@
   <div class="container">
     <div class="row">
       <div class="col">
+        <h3>Mapping (x3ml)</h3>
         <div id="app" class="accordion accordion-flush" style="overflow-y: scroll; height:600px">
           <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
             <h2 class="accordion-header" :id="'M' + i">
@@ -82,6 +83,7 @@
         </div>
       </div>
       <div class="col">
+        <h3>Lido-Sample (xml)</h3>
         <div id="editor" style="height:600px"></div>
         <br/>
         <p><button type="button" class="btn btn-primary btn-sm">Run</button></p>
@@ -91,6 +93,7 @@
   <div class="container">
     <div class="row">
       <div class="col">
+        <h3>RDF Output (ttl)</h3>
         <div id="output">y1</div>
       </div>
     </div>
