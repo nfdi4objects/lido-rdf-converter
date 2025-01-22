@@ -78,7 +78,7 @@
         <br />
         <p>
           <button type="button" class="btn btn-primary btn-sm"  @click="addMapping">Add mapping</button>&nbsp;
-          <button type="button" class="btn btn-primary btn-sm">Apply mappings</button>
+          <button type="button" class="btn btn-success btn-sm" @click="runMappings">Apply mappings</button>
         </p>
       </div>
       <div class="col">
@@ -160,6 +160,7 @@
               entity: mapping.domain.targetNode.entity.type
             }
             post('/x3ml', data).then(res => res.json());
+            this.runMappings(event)
           }
         },
         applyLink(event) {
@@ -177,6 +178,7 @@
               entity: link.range.targetNode.entity.type
             }
             post('/x3ml', data).then(res => res.json());
+            this.runMappings(event)
           }
         },
         deleteLink(event) {
@@ -196,6 +198,16 @@
             mIndex = attrs.iM.value
             data = {type: 'addLink', mIndex: mIndex, lIndex:-1}          
             post('/addLink', data).then(res => res.json());
+            // Sync
+            this.getX3ml()
+          }
+        },
+        runMappings(event) {
+          if (event) {
+            data = {type: '/runMappings', data: sourceEditor.getValue()}          
+            post('/runMappings', data)
+            .then(res => res.json())
+            .then(s => outputDisplay.setValue(s.text));
             // Sync
             this.getX3ml()
           }

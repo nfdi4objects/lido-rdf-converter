@@ -4,12 +4,12 @@ import os
 from flask import Flask, render_template, request, url_for, flash, redirect, send_file, jsonify
 from x3ml_classes import loadX3ml, storeX3ml, Namespace, Mapping,Link
 from LidoRDFConverter import LidoRDFConverter
-from lidoEditor import makeWorkspace
+from lidoEditor import makeWorkspace, processString
 import copy
 
 UPLOAD_FOLDER = './work'
 ALLOWED_EXTENSIONS = {'x3ml'}
-mapper =  makeWorkspace()
+mapper = makeWorkspace()
 
 try:
     if not os.path.exists(UPLOAD_FOLDER):
@@ -84,21 +84,27 @@ def x3ml():
     if request.method == 'POST':
         parm = request.get_json()
         if parm['type'] == 'mapping':
-            print(parm)
             i = int(parm['mIndex'])
             d = workX3ml.mappings[i].domain
             d.apply(parm['path'], parm['entity'])
         if parm['type'] == 'link':
-            print(parm)
             i = int(parm['mIndex'])
             j = int(parm['lIndex'])
             link = workX3ml.mappings[i].links[j]
             link.apply(parm['path'],parm['relationship'], parm['entity'])
-            print(link.toJSON())
         response_object['message'] = 'Map changes applied!'
     else:
-        print(f'#M={len(workX3ml.mappings)}')
         response_object['jsonX3ml'] = workX3ml.toJSON()
+    return jsonify(response_object)
+
+@app.route('/runMappings', methods=['GET', 'POST'])
+def runMappings():
+    global workX3ml
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
+        parm = request.get_json()
+        response_object['text'] = processString(parm['data'])
+        response_object['message'] = 'Mappings applied to Lido!'
     return jsonify(response_object)
 
 @app.route('/addMap', methods=['GET', 'POST'])
@@ -107,7 +113,6 @@ def addMap():
     response_object = {'status': 'success'}
     if request.method == 'POST':
         parm = request.get_json()
-        print(parm)
         newMapping = Mapping()
         if len(workX3ml.mappings):
             newMapping.domain =copy.deepcopy(workX3ml.mappings[0].domain)
