@@ -15,11 +15,11 @@
 </head>
 
 <body>
-  <div class="container">
+  <div id="app" class="container">
     <div class="row">
       <div class="col">
         <h3>Mapping (x3ml)</h3>
-        <div id="app" class="accordion accordion-flush" style="overflow-y: scroll; height:600px">
+        <div id="acc" class="accordion accordion-flush" style="overflow-y: scroll; height:600px">
           <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
             <h2 class="accordion-header" :id="'M' + i">
               <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#C' + i"
@@ -28,7 +28,7 @@
               </button>
             </h2>
             <div :id="'C' + i" class="accordion-collapse collapse hide" :aria-labelledby="'M' + i"
-              data-bs-parent="#app">
+              data-bs-parent="#acc">
               <div class="accordion-body">
 
                 <div class="container-fluid">
@@ -81,12 +81,16 @@
             </div>
           </div>
         </div>
+  
+        <br/>
+        <p>
+          <button type="button" class="btn btn-primary btn-sm"  @click="addMapping">Add mapping</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm">Apply mappings</button>
+        </p>
       </div>
       <div class="col">
         <h3>Lido-Sample (xml)</h3>
         <div id="editor" style="height:600px"></div>
-        <br/>
-        <p><button type="button" class="btn btn-primary btn-sm">Run</button></p>
       </div>
     </div>
   </div>
@@ -100,6 +104,9 @@
   </div>
 
   <script>
+    function clone(o) {
+      return JSON.parse(JSON.stringify(o))
+    }
     async function post(url, data) {
       headers = { 'Accept': 'application/json, text/plain, */*', 'Content-Type': 'application/json' }
       req = { method: 'POST', headers: headers, body: JSON.stringify(data) }
@@ -117,15 +124,23 @@
       delimiters: ["${", "}$"], // for global
       compilerOptions: { delimiters: ["${", "}$"] }, // for standalone
       methods: {
-        initData() {
+        getX3ml()
+        {
           get("/x3ml")
             .then((response) => response.json())
             .then((s) => { this.x3ml = JSON.parse(s.jsonX3ml) })
-            .catch((err) => { console.error(err); })
+            .catch((err) => { console.error(err); });
+        },
+        getLido() {
           get("/loadLido")
             .then((response) => response.json())
             .then((s) => { sourceEditor.setValue(s.lidoData); })
             .catch((err) => { console.error(err); })
+        },
+        addMapping(event) {
+          data = {type: 'mapping', mIndex: -1}          
+          post('/addMap', data).then(res => res.json());
+          this.getX3ml()
         },
         deleteMap(event) {
           if (event) {
@@ -181,7 +196,8 @@
         }
       },
       created() {
-        this.initData()
+        this.getX3ml();
+        this.getLido();
       }
     }).mount('#app');
 

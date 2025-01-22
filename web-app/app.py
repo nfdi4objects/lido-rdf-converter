@@ -2,10 +2,10 @@ import sys
 sys.path.insert(0, '..')
 import os
 from flask import Flask, render_template, request, url_for, flash, redirect, send_file, jsonify
-from x3ml_classes import loadX3ml, storeX3ml, Namespace
+from x3ml_classes import loadX3ml, storeX3ml, Namespace, Mapping,Link
 from LidoRDFConverter import LidoRDFConverter
 from lidoEditor import makeWorkspace
-import json
+import copy
 
 UPLOAD_FOLDER = './work'
 ALLOWED_EXTENSIONS = {'x3ml'}
@@ -153,7 +153,24 @@ def x3ml():
             print(link.toJSON())
         response_object['message'] = 'Map changes applied!'
     else:
+        print(f'#M={len(workX3ml.mappings)}')
         response_object['jsonX3ml'] = workX3ml.toJSON()
+    return jsonify(response_object)
+
+@app.route('/addMap', methods=['GET', 'POST'])
+def addMap():
+    global workX3ml
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
+        parm = request.get_json()
+        print(parm)
+        newMapping = Mapping()
+        if len(workX3ml.mappings):
+            newMapping.domain =copy.deepcopy(workX3ml.mappings[0].domain)
+        else:
+            newMapping.domain.sourceNode.text = '//lido:lido'
+        workX3ml.mappings.insert(0,newMapping)
+        response_object['message'] = 'Map changes applied!'
     return jsonify(response_object)
 
 @app.route('/deleteMap/<int:mapId>', methods=['DELETE'])
