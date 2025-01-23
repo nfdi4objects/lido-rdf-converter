@@ -22,7 +22,6 @@ def allowed_file(filename):
     ext = os.path.splitext(filename)[-1].lower().strip('.')
     return ext in ALLOWED_EXTENSIONS
 
-
 def localFile(s):
     return  os.path.join(app.config['UPLOAD_FOLDER'], s)
 
@@ -95,6 +94,18 @@ def x3ml():
         response_object['message'] = 'Map changes applied!'
     else:
         response_object['jsonX3ml'] = workX3ml.toJSON()
+    return jsonify(response_object)
+
+
+@app.route('/uploadMapping', methods=['GET', 'POST'])
+def uploadMapping():
+    global workX3ml
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
+        parm = request.get_json()
+        fn = toFile('user.x3ml',parm['data'])
+        workX3ml = loadX3ml(fn)
+        response_object['message'] = 'Mappings applied to Lido!'
     return jsonify(response_object)
 
 @app.route('/runMappings', methods=['GET', 'POST'])

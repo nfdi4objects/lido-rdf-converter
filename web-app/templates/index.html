@@ -11,11 +11,38 @@
   <link rel="stylesheet" href="{{url_for('static',filename='lidostyle.css')}}">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"></script>
   <title>X3ML Editor</title>
 </head>
 
 <body>
+
+  <!-- Main dialog Item connected to vue-app -->
   <div id="app" class="container">
+    <!-- Upload Modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="uploadModalLabel">Uploading X3ml mappings</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form novalidate @submit.prevent="onSubmit">
+              <div class="input-group mb-3">
+                <input type="file" class="form-control" @change="addX3mlFile" />
+                <input type="submit" class="btn btn-primary" data-bs-dismiss="modal" value="Submit" />
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="row">
       <div class="col">
         <h3>Mapping (x3ml)</h3>
@@ -38,10 +65,11 @@
                   <label for="lname">Entity:</label>
                   <input class="form-control" type="text" name="S-type" :id="i"
                     v-model="mapping.domain.targetNode.entity.type">
-                  <br/>
+                  <br />
                   <p>
                     <button type="button" class="btn btn-primary btn-sm" @click="applyMap" :iM="i">Submit</button>&nbsp;
-                    <button type="button" class="btn btn-primary btn-sm" @click="addLink" :iM="i">Add Link</button>&nbsp;
+                    <button type="button" class="btn btn-primary btn-sm" @click="addLink" :iM="i">Add
+                      Link</button>&nbsp;
                     <button type="button" class="btn btn-danger btn-sm" @click="deleteMap" :iM="i">Delete</button>&nbsp;
                   </p>
                 </div>
@@ -49,7 +77,8 @@
                 <div class="accordion accordion-flush" :id="'LA' + i">
                   <div class="accordion-item" v-for="(link, j) in mapping.links" :key="j">
                     <h2 class="accordion-header" :id="'L' + j">
-                      <button class="accordion-button" type="button" data-bs-toggle="collapse":data-bs-target="'#D' + j" aria-expanded="false" :aria-controls="'D' + j">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        :data-bs-target="'#D' + j" aria-expanded="false" :aria-controls="'D' + j">
                         Link ${j+1}$: "${link.path.sourceRelation.relation.replace("lido:", "")}$"
                       </button>
                     </h2>
@@ -58,14 +87,19 @@
                       <div class="accordion-body">
                         <form method="post">
                           <label for="fname">Path:</label>
-                          <input class="form-control" type="text" name="P-path" :id="j" v-model="link.path.sourceRelation.relation">
+                          <input class="form-control" type="text" name="P-path" :id="j"
+                            v-model="link.path.sourceRelation.relation">
                           <label for="lname">Property</label>
-                          <input class="form-control" type="text" name="P-type" :id="j" v-model="link.path.targetRelation.relationship.value">
+                          <input class="form-control" type="text" name="P-type" :id="j"
+                            v-model="link.path.targetRelation.relationship.value">
                           <label for="lname">Entity</label>
-                          <input class="form-control" type="text" name="P-type" :id="j" v-model="link.range.targetNode.entity.type">
+                          <input class="form-control" type="text" name="P-type" :id="j"
+                            v-model="link.range.targetNode.entity.type">
                           <br />
-                          <button type="button" class="btn btn-primary btn-sm" @click="applyLink" :iM="i" :iL="j">Submit</button>&nbsp;
-                          <button type="button" class="btn btn-danger btn-sm" @click="deleteLink" :iM="i" :iL="j">Delete</button>&nbsp;
+                          <button type="button" class="btn btn-primary btn-sm" @click="applyLink" :iM="i"
+                            :iL="j">Submit</button>&nbsp;
+                          <button type="button" class="btn btn-danger btn-sm" @click="deleteLink" :iM="i"
+                            :iL="j">Delete</button>&nbsp;
                         </form>
                       </div>
                     </div>
@@ -77,8 +111,10 @@
         </div>
         <br />
         <p>
-          <button type="button" class="btn btn-primary btn-sm"  @click="addMapping">Add mapping</button>&nbsp;
-          <button type="button" class="btn btn-success btn-sm" @click="runMappings">Apply mappings</button>
+          <button type="button" class="btn btn-primary btn-sm" @click="addMapping">Add mapping</button>&nbsp;
+          <button type="button" class="btn btn-success btn-sm" @click="runMappings">Apply mappings</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
+            Upload</button>
         </p>
       </div>
       <div class="col">
@@ -97,6 +133,9 @@
   </div>
 
   <script>
+    $('#myModal').on('shown.bs.modal', function () {
+      $('#myInput').trigger('focus')
+    })
     function clone(o) {
       return JSON.parse(JSON.stringify(o))
     }
@@ -113,12 +152,26 @@
     }
 
     var app = Vue.createApp({
-      data() { return { x3ml: {}, lido: '' } },
+      data() { return { x3ml: {}, lido: '', x3file: null } },
       delimiters: ["${", "}$"], // for global
       compilerOptions: { delimiters: ["${", "}$"] }, // for standalone
       methods: {
-        getX3ml()
-        {
+        addX3mlFile(event) {
+          this.x3file = event.target.files[0];
+        },
+        onSubmit() {
+          if (this.x3file) {
+            this.x3file.text()
+              .then((s) => {
+                post('/uploadMapping', { type: 'uploadMapping', data: s })
+                  .then((res) => {
+                    this.getX3ml();
+                    this.x3file = null
+                  });
+              })
+          }
+        },
+        getX3ml() {
           get("/x3ml")
             .then((response) => response.json())
             .then((s) => { this.x3ml = JSON.parse(s.jsonX3ml) })
@@ -132,7 +185,7 @@
         },
         addMapping(event) {
           if (event) {
-            data = {type: 'addMapping', mIndex: -1}          
+            data = { type: 'addMapping', mIndex: -1 }
             post('/addMap', data).then(res => res.json());
             // Sync
             this.getX3ml()
@@ -196,7 +249,7 @@
           if (event) {
             attrs = event.target.attributes
             mIndex = attrs.iM.value
-            data = {type: 'addLink', mIndex: mIndex, lIndex:-1}          
+            data = { type: 'addLink', mIndex: mIndex, lIndex: -1 }
             post('/addLink', data).then(res => res.json());
             // Sync
             this.getX3ml()
@@ -204,10 +257,10 @@
         },
         runMappings(event) {
           if (event) {
-            data = {type: '/runMappings', data: sourceEditor.getValue()}          
+            data = { type: '/runMappings', data: sourceEditor.getValue() }
             post('/runMappings', data)
-            .then(res => res.json())
-            .then(s => outputDisplay.setValue(s.text));
+              .then(res => res.json())
+              .then(s => outputDisplay.setValue(s.text));
             // Sync
             this.getX3ml()
           }
