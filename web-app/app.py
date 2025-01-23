@@ -23,7 +23,7 @@ def allowed_file(filename):
     return ext in ALLOWED_EXTENSIONS
 
 def localFile(s):
-    return  os.path.join(app.config['UPLOAD_FOLDER'], s)
+    return os.path.join(app.config['UPLOAD_FOLDER'], s)
 
 def findNS(prefix) -> Namespace|None:
     hasPrefix = lambda x : x.prefix()==prefix
@@ -40,10 +40,6 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 workX3ml = loadX3ml()
 
-@app.route('/')
-def index():
-    return render_template('index.html', data=mapper)
-
 @app.route('/download')
 def download():
     global workX3ml
@@ -51,30 +47,11 @@ def download():
     storeX3ml(workX3ml,storePath)
     return send_file(storePath,  download_name='mapping.x3ml')
 
-@app.route('/upload', methods=('GET', 'POST'))
-def upload():
-    global workX3ml
-    if request.method == 'POST':
-        if 'default' in request.form:
-            workX3ml = loadX3ml()
-            return redirect(url_for('index'))
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        file = request.files['file']
-        
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            store = localFile('upload.x3ml')
-            file.save(store)
-            workX3ml = loadX3ml(store)
-            return redirect(url_for('index'))
-    return render_template('loadFile.html')
-
 #############################################################################
+
+@app.route('/')
+def index():
+    return render_template('index.html', data=mapper)
 
 @app.route('/x3ml', methods=['GET', 'POST'])
 def x3ml():
@@ -103,7 +80,7 @@ def uploadMapping():
     response_object = {'status': 'success'}
     if request.method == 'POST':
         parm = request.get_json()
-        fn = toFile('user.x3ml',parm['data'])
+        fn = toFile(localFile('upload.x3ml'),parm['data'])
         workX3ml = loadX3ml(fn)
         response_object['message'] = 'Mappings applied to Lido!'
     return jsonify(response_object)
