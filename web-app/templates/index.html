@@ -128,28 +128,25 @@
     <div class="row">
       <div class="col">
         <h3>RDF Output (ttl)</h3>
-        <div id="rdfEditor">y1</div>
+        <div id="rdfEditor"></div>
       </div>
     </div>
   </div>
 
   <script>
 
-    function clone(o) {
-      return JSON.parse(JSON.stringify(o))
+    function clone(object) { return JSON.parse(JSON.stringify(object)); }
+
+    async function sfetch(url, mode, data = null) {
+      headers = { 'Accept': 'application/json, text/plain, */*', 'Content-Type': 'application/json' }
+      req = { method: mode, headers: headers }
+      if (mode == 'POST') req['body'] = JSON.stringify(data);
+      return await fetch(url, req);
     }
 
-    async function post(url, data) {
-      headers = { 'Accept': 'application/json, text/plain, */*', 'Content-Type': 'application/json' }
-      req = { method: 'POST', headers: headers, body: JSON.stringify(data) }
-      return await fetch(url, req)
-    }
-
-    async function get(url) {
-      headers = { 'Accept': 'application/json, text/plain, */*', 'Content-Type': 'application/json' }
-      req = { method: 'GET', headers: headers }
-      return await fetch(url, req)
-    }
+    async function post(url, data) { return await sfetch(url, 'POST', data); }
+    async function get(url) { return await sfetch(url, 'GET'); }
+    async function del(url) { return await sfetch(url, 'DELETE'); }
 
     var app = Vue.createApp({
       data() {
@@ -169,6 +166,7 @@
                 .then((res) => {
                   this.syncronize();
                   this.x3file = null;
+                  rdfEditor.setValue('');
                 });
             });
           }
@@ -194,7 +192,7 @@
           attrs = event.target.attributes;
           if (attrs.iM) {
             mIndex = attrs.iM.value;
-            fetch('/deleteMap/' + mIndex, { method: 'DELETE' });
+            del('/deleteMap/' + mIndex);
             this.syncronize();
           }
         },
