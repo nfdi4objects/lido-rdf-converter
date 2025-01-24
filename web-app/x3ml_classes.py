@@ -623,6 +623,7 @@ def storeX3ml(model:X3ml, filePath='download.x3ml'):
     ET.indent(root)
     tree = ET.ElementTree(root)
     tree.write(filePath)
+    return filePath
     
 if __name__ == "__main__":
     loadX3ml()

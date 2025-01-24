@@ -73,8 +73,8 @@ def makeCleanSubDir(path):
     os.mkdir(path)
 
 class LidoRDFConverter():
-    def __init__(self, mappings):
-        self.mappings = L2C.getMapping(mappings)
+    def __init__(self, filePath):
+        self.mappings = L2C.getMapping(filePath)
 
     def processURL(self, url:str):
         makeCleanSubDir('data')

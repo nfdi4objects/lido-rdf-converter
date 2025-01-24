@@ -4,7 +4,7 @@ import os
 from flask import Flask, render_template, request, url_for, flash, redirect, send_file, jsonify
 from x3ml_classes import loadX3ml, storeX3ml, Namespace, Mapping,Link
 from LidoRDFConverter import LidoRDFConverter
-from lidoEditor import makeWorkspace, processString
+from lidoEditor import makeWorkspace, processString,workMappingFile
 import copy
 
 UPLOAD_FOLDER = './work'
@@ -80,7 +80,7 @@ def uploadMapping():
     response_object = {'status': 'success'}
     if request.method == 'POST':
         parm = request.get_json()
-        fn = toFile(localFile('upload.x3ml'),parm['data'])
+        fn = toFile(workMappingFile(),parm['data'])
         workX3ml = loadX3ml(fn)
         response_object['message'] = 'Mappings applied to Lido!'
     return jsonify(response_object)
@@ -91,7 +91,8 @@ def runMappings():
     response_object = {'status': 'success'}
     if request.method == 'POST':
         parm = request.get_json()
-        response_object['text'] = processString(parm['data'])
+        wmf = storeX3ml(workX3ml,workMappingFile())
+        response_object['text'] = processString(parm['data'],wmf)
         response_object['message'] = 'Mappings applied to Lido!'
     return jsonify(response_object)
 

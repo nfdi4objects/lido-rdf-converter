@@ -149,14 +149,14 @@ def dfltLidoText():
 def workLidoText():
     return fromFile(workLidoFile())
 
-def processString(s):
+def processString(lidoString,mapingFile=workMappingFile()):
     fmt = 'turtle'
     result = '<no-data/>'
-    if xmlFile := toFile(workLidoFile(),s):
-        converter = LRC.LidoRDFConverter(workMappingFile())
-        graph,_ = converter.processXML(xmlFile)
+    if lidoFile := toFile(workLidoFile(),lidoString):
+        converter = LRC.LidoRDFConverter(mapingFile)
+        graph,_ = converter.processXML(lidoFile)
         result = graph.serialize(format=fmt)
     return result
 
-def processRequest(request):
-    return processString(request.json['xmlData'])
+def processRequest(request,mapingFile=workMappingFile()):
+    return processString(request.json['xmlData'],mapingFile)
