@@ -21,7 +21,7 @@
 
   <!-- Main dialog Item connected to vue-app -->
   <div id="app" class="container">
-    <!-- Upload Modal -->
+    <!-- Upload modal dialog -->
     <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -30,10 +30,10 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <form novalidate @submit.prevent="onSubmit">
+            <form novalidate @submit.prevent="openDLFile">
               <div class="input-group mb-3">
-                <input type="file" class="form-control" @change="addX3mlFile" />
-                <input type="submit" class="btn btn-primary" data-bs-dismiss="modal" value="Submit" />
+                <input type="file" class="form-control" @change="addX3mlFile" />&nbsp;
+                <input type="submit" class="btn btn-primary" data-bs-dismiss="modal" value="Open" />
               </div>
             </form>
           </div>
@@ -43,6 +43,7 @@
         </div>
       </div>
     </div>
+    <!-- Main dialog -->
     <div class="row">
       <div class="col">
         <h3>Mapping (x3ml)</h3>
@@ -118,8 +119,8 @@
         </p>
       </div>
       <div class="col">
-        <h3>Lido-Sample (xml)</h3>
-        <div id="editor" style="height:600px"></div>
+        <h3>Lido source (xml)</h3>
+        <div id="sourceEditor" style="height:600px"></div>
       </div>
     </div>
   </div>
@@ -127,18 +128,17 @@
     <div class="row">
       <div class="col">
         <h3>RDF Output (ttl)</h3>
-        <div id="output">y1</div>
+        <div id="rdfEditor">y1</div>
       </div>
     </div>
   </div>
 
   <script>
-    $('#myModal').on('shown.bs.modal', function () {
-      $('#myInput').trigger('focus')
-    })
+
     function clone(o) {
       return JSON.parse(JSON.stringify(o))
     }
+
     async function post(url, data) {
       headers = { 'Accept': 'application/json, text/plain, */*', 'Content-Type': 'application/json' }
       req = { method: 'POST', headers: headers, body: JSON.stringify(data) }
@@ -152,76 +152,73 @@
     }
 
     var app = Vue.createApp({
-      data() { return { x3ml: {}, lido: '', x3file: null } },
+      data() {
+        return { x3ml: {}, lido: '', x3file: null }
+      },
       delimiters: ["${", "}$"], // for global
       compilerOptions: { delimiters: ["${", "}$"] }, // for standalone
       methods: {
         addX3mlFile(event) {
           this.x3file = event.target.files[0];
         },
-        onSubmit() {
+        openDLFile() {
           if (this.x3file) {
-            this.x3file.text()
-              .then((s) => {
-                post('/uploadMapping', { type: 'uploadMapping', data: s })
-                  .then((res) => {
-                    this.getX3ml();
-                    this.x3file = null
-                  });
-              })
+            const pText = this.x3file.text();
+            pText.then((x3mlStr) => {
+              post('/uploadMapping', { type: 'uploadMapping', data: x3mlStr })
+                .then((res) => {
+                  this.syncronize();
+                  this.x3file = null;
+                });
+            });
           }
         },
-        getX3ml() {
+        syncronize() {
           get("/x3ml")
             .then((response) => response.json())
-            .then((s) => { this.x3ml = JSON.parse(s.jsonX3ml) })
+            .then((jsData) => { this.x3ml = JSON.parse(jsData.jsonX3ml); })
             .catch((err) => { console.error(err); });
         },
         getLido() {
           get("/loadLido")
             .then((response) => response.json())
-            .then((s) => { sourceEditor.setValue(s.lidoData); })
-            .catch((err) => { console.error(err); })
+            .then((jsData) => { sourceEditor.setValue(jsData.lidoData); })
+            .catch((err) => { console.error(err); });
         },
         addMapping(event) {
-          if (event) {
-            data = { type: 'addMapping', mIndex: -1 }
-            post('/addMap', data).then(res => res.json());
-            // Sync
-            this.getX3ml()
-          }
+          data = { type: 'addMapping', mIndex: -1 }
+          post('/addMap', data).then(res => res.json());
+          this.syncronize();
         },
         deleteMap(event) {
-          if (event) {
-            attrs = event.target.attributes
-            mIndex = attrs.iM.value
-            // Delete mapping on server
-            fetch('/deleteMap/' + mIndex, { method: 'DELETE' })
-            // Sync
-            this.getX3ml()
+          attrs = event.target.attributes;
+          if (attrs.iM) {
+            mIndex = attrs.iM.value;
+            fetch('/deleteMap/' + mIndex, { method: 'DELETE' });
+            this.syncronize();
           }
         },
         applyMap(event) {
-          if (event) {
-            attrs = event.target.attributes
-            mIndex = attrs.iM.value
-            mapping = this.x3ml.mappings[mIndex]
+          attrs = event.target.attributes;
+          if (attrs.iM) {
+            mIndex = attrs.iM.value;
+            mapping = this.x3ml.mappings[mIndex];
             data = {
               type: 'mapping',
               mIndex: mIndex,
               path: mapping.domain.sourceNode.text,
               entity: mapping.domain.targetNode.entity.type
-            }
+            };
             post('/x3ml', data).then(res => res.json());
-            this.runMappings(event)
+            this.runMappings(event);
           }
         },
         applyLink(event) {
-          if (event) {
-            attrs = event.target.attributes
-            mIndex = attrs.iM.value
-            lIndex = attrs.iL.value
-            link = this.x3ml.mappings[mIndex].links[lIndex]
+          attrs = event.target.attributes;
+          if (attrs.iM && attrs.iL) {
+            mIndex = attrs.iM.value;
+            lIndex = attrs.iL.value;
+            link = this.x3ml.mappings[mIndex].links[lIndex];
             data = {
               type: 'link',
               mIndex: mIndex,
@@ -229,60 +226,55 @@
               path: link.path.sourceRelation.relation,
               relationship: link.path.targetRelation.relationship.value,
               entity: link.range.targetNode.entity.type
-            }
+            };
             post('/x3ml', data).then(res => res.json());
-            this.runMappings(event)
+            this.runMappings(event);
           }
         },
         deleteLink(event) {
-          if (event) {
-            attrs = event.target.attributes
-            mIndex = attrs.iM.value
-            lIndex = attrs.iL.value
-            // Delete link on server
-            fetch('/deleteLink/' + mIndex + '/' + lIndex, { method: 'DELETE' })
-            // Sync
-            this.getX3ml()
+          attrs = event.target.attributes;
+          if (attrs.iM && attrs.iL) {
+            mIndex = attrs.iM.value;
+            lIndex = attrs.iL.value;
+            fetch('/deleteLink/' + mIndex + '/' + lIndex, { method: 'DELETE' });
+            this.syncronize();
           }
         },
         addLink(event) {
-          if (event) {
-            attrs = event.target.attributes
-            mIndex = attrs.iM.value
-            data = { type: 'addLink', mIndex: mIndex, lIndex: -1 }
+          attrs = event.target.attributes;
+          if (attrs.iM) {
+            mIndex = attrs.iM.value;
+            data = { type: 'addLink', mIndex: mIndex, lIndex: -1 };
             post('/addLink', data).then(res => res.json());
-            // Sync
-            this.getX3ml()
+            this.syncronize();
           }
         },
         runMappings(event) {
-          if (event) {
-            data = { type: '/runMappings', data: sourceEditor.getValue() }
-            post('/runMappings', data)
-              .then(res => res.json())
-              .then(s => outputDisplay.setValue(s.text));
-            // Sync
-            this.getX3ml()
-          }
+          data = { type: '/runMappings', data: sourceEditor.getValue() }
+          post('/runMappings', data)
+            .then(res => res.json())
+            .then(s => rdfEditor.setValue(s.text));
+          this.syncronize();
         }
       },
       created() {
-        this.getX3ml();
+        this.syncronize();
         this.getLido();
       }
     }).mount('#app');
 
-    function makeEdit(label, style = "ace/theme/monokai", fmt = "ace/mode/xml") {
+    function makeEditor(label, style = "ace/theme/monokai", fmt = "ace/mode/xml") {
       var ed = ace.edit(label);
       ed.setTheme(style);
       ed.session.setMode(fmt);
-      ed.setPrintMarginColumn(-1)
+      ed.setPrintMarginColumn(-1);
       return ed;
     }
-    var sourceEditor = makeEdit("editor");
-    sourceEditor.setValue(app.lido)
-    var outputDisplay = makeEdit("output", "", "ace/mode/turtle");
-    outputDisplay.setOptions({ "readOnly": true })
+
+    var sourceEditor = makeEditor("sourceEditor");
+    sourceEditor.setValue(app.lido);
+    var rdfEditor = makeEditor("rdfEditor", "", "ace/mode/turtle");
+    //rdfEditor.setOptions({ "readOnly": true });
 
   </script>
 </body>

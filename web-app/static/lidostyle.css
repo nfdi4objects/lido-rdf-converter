@@ -24,7 +24,7 @@
   width: 100%; 
 }
 
-#editor {
+#sourceEditor {
   height: 500px;
   width: 100%; /* Adjust width as needed */
   font-size: 12px;
@@ -38,7 +38,7 @@
   font-family: monospace;
 }
 
-#output {
+#rdfEditor {
     height: 500px;
     width: 100%; /* Adjust width as needed */
     font-size: 12px;
