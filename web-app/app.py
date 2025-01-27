@@ -39,11 +39,12 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 workX3ml = loadX3ml()
 
-@app.route('/download')
-def download():
+@app.route('/downloadX3ml')
+def downloadX3ml():
     global workX3ml
     storePath = localFile('download.x3ml')
     storeX3ml(workX3ml,storePath)
+    print(storePath)
     return send_file(storePath,  download_name='mapping.x3ml')
 
 #############################################################################
