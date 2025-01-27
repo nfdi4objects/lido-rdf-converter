@@ -3,7 +3,6 @@ sys.path.insert(0, '..')
 import os
 from flask import Flask, render_template, request, url_for, flash, redirect, send_file, jsonify
 from x3ml_classes import loadX3ml, storeX3ml, Namespace, Mapping,Link
-from LidoRDFConverter import LidoRDFConverter
 from lidoEditor import makeWorkspace, processString,workMappingFile
 import copy
 

@@ -34,7 +34,7 @@ Attributes = list[Attribute]
 
 class X3Base(Serializer):
     counter = 0
-    def __init__(self,elem:ET.Element|None=None):
+    def __init__(self,elem:ET.Element):
         self.attributes = []
         if NN(elem): self.deserialize(elem)
         X3Base.counter += 1
@@ -68,14 +68,118 @@ class X3Base(Serializer):
 
     def serialize(self, elem:ET.Element):
         for attr in self.attributes:
-            if attr.value:
+            if NN(attr.value):
                 elem.attrib[attr.key] = attr.value
         return elem
+
+
+class SimpleText(X3Base):
+    def __init__(self,elem:ET.Element|None = None):
+        super().__init__(elem)
+        self.text = ''
+        if NN(elem): self.deserialize(elem)
+
+    def deserialize(self, elem:ET.Element):
+        super().deserialize(elem)
+        self.text = elem.text
+
+    def serialize(self, elem:ET.Element):
+        super().serialize(elem)
+        elem.text = self.text
+
+
+class Source(X3Base):
+    def __init__(self,elem:ET.Element|None = None):
+        super().__init__(elem)
+        self.source_schema = SimpleText()
+        if NN(elem): self.deserialize(elem)
+
+    def deserialize(self, elem:ET.Element):
+        super().deserialize(elem)
+        self.source_schema = SimpleText(elem.find('source_info/source_schema'))
+
+    def serialize(self, elem:ET.Element):
+        super().serialize(elem)
+        elem1 = ET.SubElement(elem,'source_info')
+        self.source_schema.serialize(ET.SubElement(elem1,'source_schema'))
+
+class Target(X3Base):
+    def __init__(self,elem:ET.Element|None = None):
+        super().__init__(elem)
+        self.target_schema = SimpleText()
+        if NN(elem): self.deserialize(elem)
+
+    def deserialize(self, elem:ET.Element):
+        super().deserialize(elem)
+        self.target_schema = SimpleText(elem.find('target_info/target_schema'))
+
+    def serialize(self, elem:ET.Element):
+        super().serialize(elem)
+        elem1 = ET.SubElement(elem,'target_info')
+        self.target_schema.serialize(ET.SubElement(elem1,'target_schema'))
+
+class MappingInfo(X3Base):
+    def __init__(self,elem:ET.Element|None = None):
+        super().__init__(elem)
+
+    def deserialize(self, elem:ET.Element):
+        super().deserialize(elem)
+
+    def serialize(self, elem:ET.Element):
+        super().serialize(elem)
+        ET.SubElement(elem,'mapping_created_by_org')
+        ET.SubElement(elem,'mapping_created_by_person')
+        ET.SubElement(elem,'in_collaboration_with')
+
+class ExampleDataInfo(X3Base):
+    def __init__(self,elem:ET.Element|None = None):
+        super().__init__(elem)
+
+    def deserialize(self, elem:ET.Element):
+        super().deserialize(elem)
+
+    def serialize(self, elem:ET.Element):
+        super().serialize(elem)
+        ET.SubElement(elem,'example_data_from')
+        ET.SubElement(elem,'example_data_contact_person')
+        ET.SubElement(elem,'example_data_source_record')
+        ET.SubElement(elem,'generator_policy_info')
+        ET.SubElement(elem,'example_data_target_record')
+        ET.SubElement(elem,'thesaurus_info')
+
+class Info(X3Base):
+    def __init__(self,elem:ET.Element|None = None):
+        super().__init__(elem)
+        self.title =  SimpleText()
+        self.general_description =  SimpleText()
+        self.source = Source()
+        self.target = Target()
+        self.mapping_info = MappingInfo()
+        self.example_data_info = ExampleDataInfo()
+        if NN(elem): self.deserialize(elem)
+
+    def deserialize(self, elem:ET.Element):
+        super().deserialize(elem)
+        self.title = SimpleText(elem.find('title'))
+        self.general_description = SimpleText(elem.find('general_description'))
+        self.source = Source(elem.find('source'))
+        self.target = Target(elem.find('target'))
+        self.mapping_info = MappingInfo(elem.find('mapping_info'))
+        self.example_data_info = ExampleDataInfo(elem.find('example_data_info'))
+
+    def serialize(self, elem:ET.Element):
+        super().serialize(elem)
+        self.title.serialize(ET.SubElement(elem,'title'))
+        self.general_description.serialize(ET.SubElement(elem,'general_description'))
+        self.source.serialize(ET.SubElement(elem,'source'))
+        self.target.serialize(ET.SubElement(elem,'target'))
+        self.mapping_info.serialize(ET.SubElement(elem,'mapping_info'))
+        self.example_data_info.serialize(ET.SubElement(elem,'example_data_info'))
+        
 
 class Namespace(X3Base):
     def __init__(self,elem:ET.Element|None = None):
         super().__init__(elem)
-        self.attributes = [Attribute('prefix'),Attribute('uri')]
 
     def prefix(self): 
         return self.getAttr('prefix')
@@ -93,7 +197,7 @@ class Namespace(X3Base):
         self.setAttr('prefix',p)
         self.setAttr('uri',u)
         return self
-    
+ 
 class Domain(X3Base):
     def __init__(self, elem: ET.Element|None=None):
         super().__init__(elem)
@@ -160,12 +264,10 @@ class SourceRelation(X3Base):
 
     def serialize(self, elem:ET.Element):
         super().serialize(elem)
-        elem.text =self.relation
+        ET.SubElement(elem,'relation').text = self.relation
         for ns in self.nodes:
-            r =ET.SubElement(elem,'relation')
-            r.text = ns.relation
-            n =ET.SubElement(elem,'node')
-            n.text = ns.node
+            ET.SubElement(elem,'relation').text = ns.relation
+            ET.SubElement(elem,'node').text = ns.node
         return elem
 
     def toStr(self, indent = 0):
@@ -206,8 +308,6 @@ class Path(X3Base):
         s_s = self.sourceRelation.toStr(indent+1)
         t_s = self.targetRelation.toStr(indent+1)
         return njoin([me, s_s, t_s])
-    
-
 
 class Range(X3Base):
     def __init__(self, elem : ET.Element|None = None):
@@ -318,6 +418,7 @@ class X3ml(X3Base):
         super().__init__(elem)
         self.namespaces = []
         self.mappings = []
+        self.info = Info()
         if NN(elem): self.deserialize(elem)
 
     def toDict(self):
@@ -328,11 +429,13 @@ class X3ml(X3Base):
 
     def deserialize(self, elem:ET.Element):
         super().deserialize(elem)
+        self.info = Info(elem.find('info'))
         self.namespaces = [Namespace(x) for x in elem.findall('./namespaces/namespace') ]
         self.mappings = [Mapping(x) for x in elem.findall('./mappings/mapping') ]
  
     def serialize(self, elem:ET.Element):
         super().serialize(elem)
+        self.info.serialize(ET.SubElement(elem,'info'))
         nss = ET.SubElement(elem,'namespaces')
         for m in self.namespaces:
             m.serialize(ET.SubElement(nss,'namespace'))
@@ -398,7 +501,7 @@ class Relationship(Serializer):
 
 class Entity(X3Base):
     def __init__(self,elem : ET.Element|None = None) -> None:
-        super().__init__()
+        super().__init__(elem)
         self.type = ''
         self.instance_info = []
         self.instance_generator = []
@@ -533,7 +636,7 @@ class SourceNode(X3Base):
 
 class LogicalOp (X3Base):
     def __init__(self, elem : ET.Element|None=None, tag:str='') -> None:
-        super().__init__()
+        super().__init__(elem)
         self.tag = tag
         self.xpath = ''
         self._ifs = []
