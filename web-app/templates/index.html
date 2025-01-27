@@ -74,10 +74,9 @@
         <h4><span class="label label-default">Mappings (x3ml)</span></h4>
         <p>
           <button type="button" class="btn btn-primary btn-sm" @click="addMapping">Add mapping</button>&nbsp;
-          <a href="/downloadX3ml" target="blank"><button class='btn btn-primary btn-sm'>Download
-              mappings</button></a>&nbsp;
-          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
-            data-bs-target="#uploadX3mlModal">Upload mappings</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" @click="">Reset</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal">Upload</button>&nbsp;
+          <a href="/downloadX3ml" target="blank"><button class='btn btn-primary btn-sm'>Download</button></a>&nbsp;
         </p>
         <div id="acc" class="accordion accordion-flush" style="overflow-y: scroll; height:600px">
           <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
