@@ -147,7 +147,9 @@
       <div class="col">
         <h4>Lido source (xml)</h4>
         <p>
-          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadLidoModal">Upload Lido</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+            data-bs-target="#uploadLidoModal">Upload Lido</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" onclick="getLido()">Reset</button>&nbsp;
         </p>
         <div id="sourceEditor" style="height:600px"></div>
       </div>
@@ -168,7 +170,7 @@
   <script>
     var app = Vue.createApp({
       data() {
-        return { x3ml: {}, lido: '', x3file: null, lidofile:null }
+        return { x3ml: {}, lido: '', x3file: null, lidofile: null }
       },
       delimiters: ["${", "}$"], // for global
       compilerOptions: { delimiters: ["${", "}$"] }, // for standalone
@@ -206,12 +208,6 @@
           get("/x3ml")
             .then((response) => response.json())
             .then((jsData) => { this.x3ml = JSON.parse(jsData.jsonX3ml); })
-            .catch((err) => { console.error(err); });
-        },
-        getLido() {
-          get("/loadLido")
-            .then((response) => response.json())
-            .then((jsData) => { sourceEditor.setValue(jsData.lidoData); })
             .catch((err) => { console.error(err); });
         },
         addMapping(event) {
@@ -281,7 +277,7 @@
       },
       created() {
         this.syncronize();
-        this.getLido();
+        getLido();
       }
     }).mount('#app');
 
@@ -297,6 +293,13 @@
     sourceEditor.setValue(app.lido);
     var rdfEditor = makeEditor("rdfEditor", "", "ace/mode/turtle");
     //rdfEditor.setOptions({ "readOnly": true });
+
+    function getLido() {
+      get("/loadLido")
+        .then((response) => response.json())
+        .then((jsData) => { sourceEditor.setValue(jsData.lidoData); })
+        .catch((err) => { console.error(err); });
+    };
 
     function runMappings() {
       data = { type: '/runMappings', data: sourceEditor.getValue() }
