@@ -121,6 +121,7 @@ class Target(X3Base):
 class MappingInfo(X3Base):
     def __init__(self,elem:ET.Element|None = None):
         super().__init__(elem)
+        
 
     def deserialize(self, elem:ET.Element):
         super().deserialize(elem)
@@ -130,6 +131,24 @@ class MappingInfo(X3Base):
         ET.SubElement(elem,'mapping_created_by_org')
         ET.SubElement(elem,'mapping_created_by_person')
         ET.SubElement(elem,'in_collaboration_with')
+
+class Comment(X3Base):
+    def __init__(self,elem:ET.Element|None = None):
+        super().__init__(elem)
+
+    def deserialize(self, elem:ET.Element):
+        super().deserialize(elem)
+
+    def serialize(self, elem:ET.Element):
+        super().serialize(elem)
+        ET.SubElement(elem,'rationale')
+        ET.SubElement(elem,'alternatives')
+        ET.SubElement(elem,'typical_mistakes')
+        ET.SubElement(elem,'local_habits')
+        ET.SubElement(elem,'link_to_cook_book')
+        ex= ET.SubElement(elem,'example')
+        ET.SubElement(ex,'example_source')
+        ET.SubElement(ex,'example_target')
 
 class ExampleDataInfo(X3Base):
     def __init__(self,elem:ET.Element|None = None):
@@ -203,6 +222,7 @@ class Domain(X3Base):
         super().__init__(elem)
         self.sourceNode = SourceNode()
         self.targetNode = DomainTargetNodeType()
+        self.comments = []
         if NN(elem): self.deserialize(elem)
 
     def apply(self,path,entity):
@@ -219,11 +239,16 @@ class Domain(X3Base):
         super().deserialize(elem)
         self.sourceNode = SourceNode(elem.find('source_node'))
         self.targetNode = DomainTargetNodeType(elem.find('target_node'))
+        self.comments = [Comment(x) for x in elem.findall('comments/comment')]
 
     def serialize(self, elem:ET.Element):
         super().serialize(elem)
         self.sourceNode.serialize(ET.SubElement(elem,'source_node'))
         self.targetNode.serialize(ET.SubElement(elem,'target_node'))
+        if self.comments:
+            cs = ET.SubElement(elem,'comments')
+            for x in self.comments: 
+                x.serialize(ET.SubElement(cs,'comment'))
 
     def toStr(self, indent = 0):
         me = f"{super().toStr(indent)}: { self.getAttr()}"
@@ -280,6 +305,7 @@ class Path(X3Base):
         super().__init__(elem)
         self.sourceRelation = SourceRelation()
         self.targetRelation = TargetRelationType()
+        self.comments = []
         if NN(elem): self.deserialize(elem)
 
     def apply(self,path,relationship):
@@ -296,11 +322,16 @@ class Path(X3Base):
         super().deserialize(elem)
         self.sourceRelation = SourceRelation(elem.find('source_relation'))
         self.targetRelation = TargetRelationType(elem.find('target_relation'))
+        self.comments = [Comment(x) for x in elem.findall('comments/comment')]
  
     def serialize(self, elem:ET.Element):
         super().serialize(elem)
         self.sourceRelation.serialize(ET.SubElement(elem,'source_relation'))
         self.targetRelation.serialize(ET.SubElement(elem,'target_relation'))
+        if self.comments:
+            cs = ET.SubElement(elem,'comments')
+            for x in self.comments: 
+                x.serialize(ET.SubElement(cs,'comment'))
         return elem
 
     def toStr(self, indent = 0):
@@ -725,7 +756,7 @@ def storeX3ml(model:X3ml, filePath='download.x3ml'):
     root = model.serialize(ET.Element('x3ml') )
     ET.indent(root)
     tree = ET.ElementTree(root)
-    tree.write(filePath)
+    tree.write(filePath, encoding='utf-8', xml_declaration=True)
     return filePath
     
 if __name__ == "__main__":
