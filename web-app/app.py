@@ -85,6 +85,17 @@ def uploadMapping():
         response_object['message'] = 'Mappings applied to Lido!'
     return jsonify(response_object)
 
+@app.route('/uploadLido', methods=['GET', 'POST'])
+def uploadLido():
+    global workX3ml
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
+        parm = request.get_json()
+        print(parm['data'])
+        
+        response_object['message'] = 'Mappings applied to Lido!'
+    return jsonify(response_object)
+
 @app.route('/runMappings', methods=['GET', 'POST'])
 def runMappings():
     global workX3ml

@@ -22,12 +22,13 @@
 
   <!-- Main dialog Item connected to vue-app -->
   <div id="app" class="container">
-    <!-- Upload modal dialog -->
-    <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <!-- Upload X3ml modal dialog -->
+    <div class="modal fade" id="uploadX3mlModal" tabindex="-1" aria-labelledby="uploadX3mlModalLabel"
+      aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="uploadModalLabel">Uploading X3ml mappings</h5>
+            <h5 class="modal-title" id="uploadX3mlModalLabel">Uploading X3ml mappings</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
@@ -44,16 +45,41 @@
         </div>
       </div>
     </div>
+    <!-- Upload Lidomodal dialog -->
+    <div class="modal fade" id="uploadLidoModal" tabindex="-1" aria-labelledby="uploadLidoModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="uploadLidoModalLabel">Uploading Lido file</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form novalidate @submit.prevent="openLidoFile">
+              <div class="input-group mb-3">
+                <input type="file" class="form-control" @change="addLidoFile" />&nbsp;
+                <input type="submit" class="btn btn-primary" data-bs-dismiss="modal" value="Open" />
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Main dialog -->
     <div class="row">
       <div class="col">
         <h4><span class="label label-default">Mappings (x3ml)</span></h4>
         <p>
-        <button type="button" class="btn btn-primary btn-sm" @click="addMapping">Add mapping</button>&nbsp;
-        <a href="/downloadX3ml" target="blank"><button class='btn btn-primary btn-sm'>Download mappings</button></a>&nbsp;
-        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">Upload mappings</button>&nbsp;
-      </p>
-      <div id="acc" class="accordion accordion-flush" style="overflow-y: scroll; height:600px">
+          <button type="button" class="btn btn-primary btn-sm" @click="addMapping">Add mapping</button>&nbsp;
+          <a href="/downloadX3ml" target="blank"><button class='btn btn-primary btn-sm'>Download
+              mappings</button></a>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+            data-bs-target="#uploadX3mlModal">Upload mappings</button>&nbsp;
+        </p>
+        <div id="acc" class="accordion accordion-flush" style="overflow-y: scroll; height:600px">
           <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
             <h2 class="accordion-header" :id="'M' + i">
               <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#C' + i"
@@ -121,7 +147,7 @@
       <div class="col">
         <h4>Lido source (xml)</h4>
         <p>
-          <button type="button" class="btn btn-success btn-sm" onclick="uploadLido()">Upload Lido </button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadLidoModal">Upload Lido</button>&nbsp;
         </p>
         <div id="sourceEditor" style="height:600px"></div>
       </div>
@@ -142,13 +168,16 @@
   <script>
     var app = Vue.createApp({
       data() {
-        return { x3ml: {}, lido: '', x3file: null }
+        return { x3ml: {}, lido: '', x3file: null, lidofile:null }
       },
       delimiters: ["${", "}$"], // for global
       compilerOptions: { delimiters: ["${", "}$"] }, // for standalone
       methods: {
         addX3mlFile(event) {
           this.x3file = event.target.files[0];
+        },
+        addLidoFile(event) {
+          this.lidofile = event.target.files[0];
         },
         openDLFile() {
           if (this.x3file) {
@@ -160,6 +189,16 @@
                   this.x3file = null;
                   rdfEditor.setValue('');
                 });
+            });
+          }
+        },
+        openLidoFile() {
+          if (this.lidofile) {
+            const pText = this.lidofile.text();
+            pText.then((lidoStr) => {
+              sourceEditor.setValue(lidoStr)
+              rdfEditor.setValue('');
+              this.lidofile = null
             });
           }
         },
@@ -258,14 +297,14 @@
     sourceEditor.setValue(app.lido);
     var rdfEditor = makeEditor("rdfEditor", "", "ace/mode/turtle");
     //rdfEditor.setOptions({ "readOnly": true });
- 
+
     function runMappings() {
       data = { type: '/runMappings', data: sourceEditor.getValue() }
       post('/runMappings', data)
-          .then(res => res.json())
-          .then(s => rdfEditor.setValue(s.text));
+        .then(res => res.json())
+        .then(s => rdfEditor.setValue(s.text));
       app.syncronize();
-   }
+    }
 
   </script>
 </body>
