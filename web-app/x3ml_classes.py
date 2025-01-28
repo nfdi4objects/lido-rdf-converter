@@ -289,10 +289,13 @@ class SourceRelation(X3Base):
 
     def serialize(self, elem:ET.Element):
         super().serialize(elem)
-        ET.SubElement(elem,'relation').text = self.relation
+        rel = ET.SubElement(elem,'relation')
+        rel.text = self.relation
         for ns in self.nodes:
-            ET.SubElement(elem,'relation').text = ns.relation
-            ET.SubElement(elem,'node').text = ns.node
+            rel = ET.SubElement(elem,'relation')
+            rel.text = ns.relation
+            node = ET.SubElement(elem,'node')
+            node.text = ns.node
         return elem
 
     def toStr(self, indent = 0):

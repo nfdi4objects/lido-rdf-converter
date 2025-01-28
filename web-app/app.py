@@ -80,19 +80,11 @@ def uploadMapping():
     response_object = {'status': 'success'}
     if request.method == 'POST':
         parm = request.get_json()
-        fn = toFile(workMappingFile(),parm['data'])
-        workX3ml = loadX3ml(fn)
-        response_object['message'] = 'Mappings applied to Lido!'
-    return jsonify(response_object)
-
-@app.route('/uploadLido', methods=['GET', 'POST'])
-def uploadLido():
-    global workX3ml
-    response_object = {'status': 'success'}
-    if request.method == 'POST':
-        parm = request.get_json()
-        print(parm['data'])
-        
+        if data := parm['data']:
+            fn = toFile(workMappingFile(),data)
+            workX3ml = loadX3ml(fn)
+        else:
+            workX3ml = loadX3ml() #use default mapping
         response_object['message'] = 'Mappings applied to Lido!'
     return jsonify(response_object)
 

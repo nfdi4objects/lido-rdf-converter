@@ -32,7 +32,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <form novalidate @submit.prevent="openDLFile">
+            <form novalidate @submit.prevent="uploadDLFile">
               <div class="input-group mb-3">
                 <input type="file" class="form-control" @change="addX3mlFile" />&nbsp;
                 <input type="submit" class="btn btn-primary" data-bs-dismiss="modal" value="Open" />
@@ -55,7 +55,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <form novalidate @submit.prevent="openLidoFile">
+            <form novalidate @submit.prevent="uploadLidoFile">
               <div class="input-group mb-3">
                 <input type="file" class="form-control" @change="addLidoFile" />&nbsp;
                 <input type="submit" class="btn btn-primary" data-bs-dismiss="modal" value="Open" />
@@ -74,7 +74,7 @@
         <h4><span class="label label-default">Mappings (x3ml)</span></h4>
         <p>
           <button type="button" class="btn btn-primary btn-sm" @click="addMapping">Add mapping</button>&nbsp;
-          <button type="button" class="btn btn-primary btn-sm" @click="">Reset</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" @click="uploadDfltMapping">Reset</button>&nbsp;
           <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal">Upload</button>&nbsp;
           <a href="/downloadX3ml" target="blank"><button class='btn btn-primary btn-sm'>Download</button></a>&nbsp;
         </p>
@@ -180,7 +180,7 @@
         addLidoFile(event) {
           this.lidofile = event.target.files[0];
         },
-        openDLFile() {
+        uploadDLFile() {
           if (this.x3file) {
             const pText = this.x3file.text();
             pText.then((x3mlStr) => {
@@ -193,7 +193,11 @@
             });
           }
         },
-        openLidoFile() {
+        uploadDfltMapping() {
+          post('/uploadMapping', { type: 'uploadMapping', data: null })
+            .then((res) => {this.syncronize(); rdfEditor.setValue('');  });
+        },
+        uploadLidoFile() {
           if (this.lidofile) {
             const pText = this.lidofile.text();
             pText.then((lidoStr) => {
