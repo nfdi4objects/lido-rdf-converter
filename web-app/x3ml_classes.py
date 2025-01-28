@@ -77,15 +77,22 @@ class SimpleText(X3Base):
     def __init__(self,elem:ET.Element|None = None):
         super().__init__(elem)
         self.text = ''
+        self.alias = ''
         if NN(elem): self.deserialize(elem)
 
     def deserialize(self, elem:ET.Element):
         super().deserialize(elem)
-        self.text = elem.text
+        if NN(elem.text):
+            self.text = elem.text
+            self.alias = self.text.replace('lido:', '')
 
     def serialize(self, elem:ET.Element):
         super().serialize(elem)
         elem.text = self.text
+ 
+    def __str__(self):
+        return f"{ self.__class__.__name__}: value={self.text}"
+ 
 
 
 class Source(X3Base):
@@ -258,7 +265,7 @@ class Domain(X3Base):
     
         
 class NR(Serializer):
-    def __init__(self, node:str, relation:str) ->None:
+    def __init__(self, node:SimpleText, relation:SimpleText) ->None:
         self.node = node
         self.relation = relation
 
@@ -268,7 +275,7 @@ class NR(Serializer):
 class SourceRelation(X3Base):
     def __init__(self, elem : ET.Element|None = None):
         super().__init__(elem)
-        self.relation = ''
+        self.relation = SimpleText()
         self.nodes = []
         if NN(elem): self.deserialize(elem)
 
@@ -280,22 +287,17 @@ class SourceRelation(X3Base):
 
     def deserialize(self, elem:ET.Element):
         super().deserialize(elem)
-        gt = lambda x: getText(x)
         rs = elem.findall('relation')
         ns = elem.findall('node')
-
-        self.relation = gt(rs.pop(0))
-        self.nodes = [(NR(gt(n),gt(r))) for n,r in zip(ns,rs)]
+        self.relation = SimpleText(rs.pop(0))
+        self.nodes = [(NR(SimpleText(n),SimpleText(r))) for n,r in zip(ns,rs)]
 
     def serialize(self, elem:ET.Element):
         super().serialize(elem)
-        rel = ET.SubElement(elem,'relation')
-        rel.text = self.relation
+        self.relation.serialize(ET.SubElement(elem,'relation'))
         for ns in self.nodes:
-            rel = ET.SubElement(elem,'relation')
-            rel.text = ns.relation
-            node = ET.SubElement(elem,'node')
-            node.text = ns.node
+            ns.relation.serialize(ET.SubElement(elem,'relation'))
+            ns.node.serialize(ET.SubElement(elem,'node'))
         return elem
 
     def toStr(self, indent = 0):
@@ -645,28 +647,8 @@ class TargetNode(RangeTargetNodeType):
 class DomainTargetNodeType(RangeTargetNodeType):
     pass
 
-class SourceNode(X3Base):
-    def __init__(self,elem : ET.Element|None = None):
-        super().__init__(elem)
-        self.text = ''
-        if NN(elem): self.deserialize(elem)
-
-    def toDict(self):
-        s = super().toDict()
-        s['text'] = self.text
-        return s
-
-    def deserialize(self, elem:ET.Element):
-        super().deserialize(elem)
-        self.text = getText(elem)
-     
-    def serialize(self, elem:ET.Element):
-        super().serialize(elem)
-        elem.text = self.text
-
-    def toStr(self, indent = 0):
-        return f"{super().toStr(indent)} : {self.text}"
-
+class SourceNode(SimpleText):
+    pass
 
 class LogicalOp (X3Base):
     def __init__(self, elem : ET.Element|None=None, tag:str='') -> None:

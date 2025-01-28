@@ -44,7 +44,6 @@ def downloadX3ml():
     global workX3ml
     storePath = localFile('download.x3ml')
     storeX3ml(workX3ml,storePath)
-    print(storePath)
     return send_file(storePath,  download_name='mapping.x3ml')
 
 #############################################################################
@@ -104,7 +103,6 @@ def addMap():
     global workX3ml
     response_object = {'status': 'success'}
     if request.method == 'POST':
-        parm = request.get_json()
         newMapping = Mapping()
         if len(workX3ml.mappings):
             newMapping.domain =copy.deepcopy(workX3ml.mappings[0].domain)
@@ -120,7 +118,7 @@ def addLink():
     response_object = {'status': 'success'}
     if request.method == 'POST':
         parm = request.get_json()
-        print(parm)
+        #print(parm)
         m = workX3ml.mappings[int(parm['mIndex'])]
         newLink = Link()
         if len(m.links):

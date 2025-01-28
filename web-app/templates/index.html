@@ -83,7 +83,7 @@
             <h2 class="accordion-header" :id="'M' + i">
               <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#C' + i"
                 aria-expanded="false" :aria-controls="'C' + i">
-                Mapping ${i+1}$ from: "${mapping.domain.sourceNode.text.replace("lido:", "")}$"
+                Mapping ${i+1}$ from: "${mapping.domain.sourceNode.alias}$"
               </button>
             </h2>
             <div :id="'C' + i" class="accordion-collapse collapse hide" :aria-labelledby="'M' + i"
@@ -111,7 +111,7 @@
                     <h2 class="accordion-header" :id="'L' + j">
                       <button class="accordion-button" type="button" data-bs-toggle="collapse"
                         :data-bs-target="'#D' + j" aria-expanded="false" :aria-controls="'D' + j">
-                        Link ${i+1}$-${j+1}$: "${link.path.sourceRelation.relation.replace("lido:", "")}$"
+                        Link ${i+1}$-${j+1}$: "${link.path.sourceRelation.relation.alias}$"
                       </button>
                     </h2>
                     <div :id="'D' + j" class="accordion-collapse collapse hide" :aria-labelledby="'L' + j"
@@ -120,7 +120,7 @@
                         <form method="post">
                           <label for="fname">Path:</label>
                           <input class="form-control" type="text" name="P-path" :id="j"
-                            v-model="link.path.sourceRelation.relation">
+                            v-model="link.path.sourceRelation.relation.text">
                           <label for="lname">Property</label>
                           <input class="form-control" type="text" name="P-type" :id="j"
                             v-model="link.path.targetRelation.relationship.value">
@@ -238,7 +238,7 @@
               entity: mapping.domain.targetNode.entity.type
             };
             post('/x3ml', data).then(res => res.json());
-            this.runMappings(event);
+            runMappings(event);
           }
         },
         applyLink(event) {
@@ -251,12 +251,12 @@
               type: 'link',
               mIndex: mIndex,
               lIndex: lIndex,
-              path: link.path.sourceRelation.relation,
+              path: link.path.sourceRelation.relation.text,
               relationship: link.path.targetRelation.relationship.value,
               entity: link.range.targetNode.entity.type
             };
             post('/x3ml', data).then(res => res.json());
-            this.runMappings(event);
+            runMappings(event);
           }
         },
         deleteLink(event) {
