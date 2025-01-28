@@ -75,7 +75,8 @@
         <p>
           <button type="button" class="btn btn-primary btn-sm" @click="addMapping">Add mapping</button>&nbsp;
           <button type="button" class="btn btn-primary btn-sm" @click="uploadDfltMapping">Reset</button>&nbsp;
-          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal">Upload</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+            data-bs-target="#uploadX3mlModal">Upload</button>&nbsp;
           <a href="/downloadX3ml" target="blank"><button class='btn btn-primary btn-sm'>Download</button></a>&nbsp;
         </p>
         <div id="acc" class="accordion accordion-flush" style="overflow-y: scroll; height:600px">
@@ -123,7 +124,7 @@
                             v-model="link.path.sourceRelation.relation.text">
                           <label for="lname">Property</label>
                           <input class="form-control" type="text" name="P-type" :id="j"
-                            v-model="link.path.targetRelation.relationship.value">
+                            v-model="link.path.targetRelation.relationship.text">
                           <label for="lname">Entity</label>
                           <input class="form-control" type="text" name="P-type" :id="j"
                             v-model="link.range.targetNode.entity.type">
@@ -195,7 +196,7 @@
         },
         uploadDfltMapping() {
           post('/uploadMapping', { type: 'uploadMapping', data: null })
-            .then((res) => {this.syncronize(); rdfEditor.setValue('');  });
+            .then((res) => { this.syncronize(); rdfEditor.setValue(''); });
         },
         uploadLidoFile() {
           if (this.lidofile) {
@@ -252,7 +253,7 @@
               mIndex: mIndex,
               lIndex: lIndex,
               path: link.path.sourceRelation.relation.text,
-              relationship: link.path.targetRelation.relationship.value,
+              relationship: link.path.targetRelation.relationship.text,
               entity: link.range.targetNode.entity.type
             };
             post('/x3ml', data).then(res => res.json());
