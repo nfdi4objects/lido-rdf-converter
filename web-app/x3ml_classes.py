@@ -4,7 +4,7 @@ import json
 
 class Serializer:
     def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__,  sort_keys=True, indent=4)
+        return json.dumps(self, default=lambda o: o.__dict__,  sort_keys=True, indent=2)
 
 
 def NN(elem: ET.Element):
@@ -39,7 +39,7 @@ Attributes = list[Attribute]
 class X3Base(Serializer):
     counter = 0
 
-    def __init__(self, elem: ET.Element):
+    def __init__(self, elem: ET.Element = None):
         self.attributes = []
         if NN(elem):
             self.deserialize(elem)
@@ -47,9 +47,6 @@ class X3Base(Serializer):
 
     def __del__(self):
         X3Base.counter -= 1
-
-    def toStr(self, indent=0):
-        return f"{'   '*indent}{self}"
 
     def __str__(self):
         return f"{ self.__class__.__name__}"
@@ -78,7 +75,7 @@ class X3Base(Serializer):
 
 class SimpleText(X3Base):
     def __init__(self, elem: ET.Element | None = None):
-        super().__init__(elem)
+        super().__init__(elem=None)
         self.text = ''
         self.alias = ''
         if NN(elem):

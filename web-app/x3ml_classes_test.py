@@ -1,27 +1,32 @@
-import x3ml_classes as XC 
-import xml.etree.ElementTree as ET
-
 import unittest
+import x3ml_classes as XC
+
 
 class TestStringMethods(unittest.TestCase):
 
-    model = XC.X3ml()
-    tree = ET.parse(filePath)
-    model.deserialize(tree.getroot())
+    def setUp(self):
+        pass
 
-    def test_upper(self):
-        self.assertEqual('foo'.upper(), 'FOO')
+    def test_t0000_serial(self):
+        testee = XC.Serializer()
+        testee.y = 5
+        self.assertEqual(testee.toJSON(), '{\n  "y": 5\n}') 
 
-    def test_isupper(self):
-        self.assertTrue('FOO'.isupper())
-        self.assertFalse('Foo'.isupper())
+    def test_t0001_attr(self):
+        testee = XC.Attribute('k')
+        self.assertEqual(testee.key, 'k')
+        self.assertEqual(testee.value, '')
+        self.assertEqual(str(testee), 'k:')
+        self.assertEqual(testee.toJSON(), '{\n  "key": "k",\n  "value": ""\n}') 
 
-    def test_split(self):
-        s = 'hello world'
-        self.assertEqual(s.split(), ['hello', 'world'])
-        # check that s.split fails when the separator is not a string
-        with self.assertRaises(TypeError):
-            s.split(2)
+    def test_t0002_attr(self):
+        testee = XC.Attribute('myKey', 'myValue')
+        self.assertEqual(testee.key, 'myKey')
+        self.assertEqual(testee.value, 'myValue')
+        self.assertEqual(str(testee), 'myKey:myValue')
+        self.assertEqual(testee.toJSON(), '{\n  "key": "myKey",\n  "value": "myValue"\n}') 
+
+
 
 if __name__ == '__main__':
     unittest.main()
