@@ -25,6 +25,7 @@ class Attribute(Serializer):
     def __str__(self):
         return f"{self.key}:{self.value}"
 
+
 def njoin(v, sep='\n'):
     return sep.join(filter(None, v))
 
@@ -52,14 +53,16 @@ class X3Base(Serializer):
         return f"{ self.__class__.__name__}"
 
     def getAttr(self, name=None):
-        if name:
-            return next((x.value for x in self.attributes if x.key == name), '')
-        else:
-            return njoin([x.value for x in self.attributes], ',')
+        return next((x.value for x in self.attributes if x.key == name), None)
 
     def setAttr(self, name, value):
-        if a := next(x for x in self.attributes if x.key == name):
+        a = self.getAttr(name)
+        if a:
             a.value = value
+        else:
+            a = Attribute(name, value)
+            self.attributes.append(a)
+        return a
 
     def deserialize(self, elem: ET.Element):
         for k, v in elem.attrib.items():
@@ -92,7 +95,7 @@ class SimpleText(X3Base):
         elem.text = self.text
 
     def __str__(self):
-        return f"{ self.__class__.__name__}: value={self.text}"
+        return f"{ self.__class__.__name__}\t{self.text}"
 
 
 class Source(X3Base):
@@ -105,11 +108,16 @@ class Source(X3Base):
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
         self.source_schema = SimpleText(elem.find('source_info/source_schema'))
+        return elem
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
-        elem1 = ET.SubElement(elem, 'source_info')
-        self.source_schema.serialize(ET.SubElement(elem1, 'source_schema'))
+        subElem = ET.SubElement(elem, 'source_info')
+        self.source_schema.serialize(ET.SubElement(subElem, 'source_schema'))
+        return elem
+
+    def set(self, schema):
+        self.source_schema.text = schema
 
 
 class Target(X3Base):
@@ -122,11 +130,16 @@ class Target(X3Base):
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
         self.target_schema = SimpleText(elem.find('target_info/target_schema'))
+        return elem
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
-        elem1 = ET.SubElement(elem, 'target_info')
-        self.target_schema.serialize(ET.SubElement(elem1, 'target_schema'))
+        subElem = ET.SubElement(elem, 'target_info')
+        self.target_schema.serialize(ET.SubElement(subElem, 'target_schema'))
+        return elem
+
+    def set(self, schema):
+        self.target_schema.text = schema
 
 
 class MappingInfo(X3Base):
@@ -135,12 +148,14 @@ class MappingInfo(X3Base):
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
+        return elem
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
         ET.SubElement(elem, 'mapping_created_by_org')
         ET.SubElement(elem, 'mapping_created_by_person')
         ET.SubElement(elem, 'in_collaboration_with')
+        return elem
 
 
 class Comment(X3Base):
@@ -149,6 +164,7 @@ class Comment(X3Base):
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
+        return elem
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
@@ -160,6 +176,7 @@ class Comment(X3Base):
         ex = ET.SubElement(elem, 'example')
         ET.SubElement(ex, 'example_source')
         ET.SubElement(ex, 'example_target')
+        return elem
 
 
 class ExampleDataInfo(X3Base):
@@ -168,6 +185,7 @@ class ExampleDataInfo(X3Base):
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
+        return elem
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
@@ -177,6 +195,7 @@ class ExampleDataInfo(X3Base):
         ET.SubElement(elem, 'generator_policy_info')
         ET.SubElement(elem, 'example_data_target_record')
         ET.SubElement(elem, 'thesaurus_info')
+        return elem
 
 
 class Info(X3Base):
@@ -188,8 +207,7 @@ class Info(X3Base):
         self.target = Target()
         self.mapping_info = MappingInfo()
         self.example_data_info = ExampleDataInfo()
-        if NN(elem):
-            self.deserialize(elem)
+        if NN(elem): self.deserialize(elem)
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
@@ -198,8 +216,8 @@ class Info(X3Base):
         self.source = Source(elem.find('source'))
         self.target = Target(elem.find('target'))
         self.mapping_info = MappingInfo(elem.find('mapping_info'))
-        self.example_data_info = ExampleDataInfo(
-            elem.find('example_data_info'))
+        self.example_data_info = ExampleDataInfo(elem.find('example_data_info'))
+        return elem
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
@@ -209,8 +227,8 @@ class Info(X3Base):
         self.source.serialize(ET.SubElement(elem, 'source'))
         self.target.serialize(ET.SubElement(elem, 'target'))
         self.mapping_info.serialize(ET.SubElement(elem, 'mapping_info'))
-        self.example_data_info.serialize(
-            ET.SubElement(elem, 'example_data_info'))
+        self.example_data_info.serialize(ET.SubElement(elem, 'example_data_info'))
+        return elem
 
 
 class Namespace(X3Base):
@@ -275,6 +293,7 @@ class NR(Serializer):
         self.node = node
         self.relation = relation
 
+
 class SourceRelation(X3Base):
     def __init__(self, elem: ET.Element | None = None):
         super().__init__(elem)
@@ -315,7 +334,6 @@ class Path(X3Base):
     def set(self, path, relationship):
         self.sourceRelation.relation.text = path
         self.targetRelation.relationship.text = relationship
-
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
@@ -476,6 +494,7 @@ class Instance_Generator(X3Base):
     def __init__(self, val=''):
         super().__init__()
         self.value: str = val
+
 
 class InstanceInfo(X3Base):
     def __init__(self, elem: ET.Element | None = None):
