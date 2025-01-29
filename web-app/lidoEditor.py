@@ -55,7 +55,7 @@ class Mapper():
     def namespacesElement(self):
         nssElem = etree.Element('namespaces')
         for ns in self.namespaces:
-            etree.SubElement(nssElem,'namespace', attrib=ns.toDict())
+            etree.SubElement(nssElem,'namespace', attrib=ns.__dict__())
         return nssElem
     
     def mappingsElement(self):

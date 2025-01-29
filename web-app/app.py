@@ -57,21 +57,22 @@ def x3ml():
     global workX3ml
     response_object = {'status': 'success'}
     if request.method == 'POST':
-        parm = request.get_json()
-        if parm['type'] == 'mapping':
-            i = int(parm['mIndex'])
-            d = workX3ml.mappings[i].domain
-            d.apply(parm['path'], parm['entity'])
-        if parm['type'] == 'link':
-            i = int(parm['mIndex'])
-            j = int(parm['lIndex'])
-            link = workX3ml.mappings[i].links[j]
-            link.apply(parm['path'],parm['relationship'], parm['entity'])
-        response_object['message'] = 'Map changes applied!'
+        try:
+            parm = request.get_json()
+            mapping = workX3ml.mappings[int(parm['mIndex'])]
+            match parm['type']:
+                case 'mapping':
+                    mapping.domain.set(parm['path'], parm['entity'])
+                case 'link':
+                    link = mapping.links[int(parm['lIndex'])]
+                    link.set(parm['path'],parm['relationship'], parm['entity'])
+            response_object['message'] = 'Map changes applied!'
+        except Exception as e:
+             response_object['message'] = f'error {e}'
     else:
+        print(workX3ml.mappings[0].domain.sourceNode.text)
         response_object['jsonX3ml'] = workX3ml.toJSON()
     return jsonify(response_object)
-
 
 @app.route('/uploadMapping', methods=['GET', 'POST'])
 def uploadMapping():
@@ -80,8 +81,8 @@ def uploadMapping():
     if request.method == 'POST':
         parm = request.get_json()
         if data := parm['data']:
-            fn = toFile(workMappingFile(),data)
-            workX3ml = loadX3ml(fn)
+            fileName = toFile(workMappingFile(),data)
+            workX3ml = loadX3ml(fileName)
         else:
             workX3ml = loadX3ml() #use default mapping
         response_object['message'] = 'Mappings applied to Lido!'

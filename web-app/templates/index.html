@@ -84,7 +84,7 @@
             <h2 class="accordion-header" :id="'M' + i">
               <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#C' + i"
                 aria-expanded="false" :aria-controls="'C' + i">
-                Mapping ${i+1}$ from: "${mapping.domain.sourceNode.alias}$"
+                Mapping ${i+1}$ from: "${mapping.domain.sourceNode.text}$"
               </button>
             </h2>
             <div :id="'C' + i" class="accordion-collapse collapse hide" :aria-labelledby="'M' + i"
@@ -112,7 +112,7 @@
                     <h2 class="accordion-header" :id="'L' + j">
                       <button class="accordion-button" type="button" data-bs-toggle="collapse"
                         :data-bs-target="'#D' + j" aria-expanded="false" :aria-controls="'D' + j">
-                        Link ${i+1}$-${j+1}$: "${link.path.sourceRelation.relation.alias}$"
+                        Link ${i+1}$-${j+1}$: "${link.path.sourceRelation.relation.text}$"
                       </button>
                     </h2>
                     <div :id="'D' + j" class="accordion-collapse collapse hide" :aria-labelledby="'L' + j"
@@ -187,8 +187,8 @@
             pText.then((x3mlStr) => {
               post('/uploadMapping', { type: 'uploadMapping', data: x3mlStr })
                 .then((res) => {
-                  this.syncronize();
                   this.x3file = null;
+                  this.syncronize();
                   rdfEditor.setValue('');
                 });
             });
@@ -211,20 +211,18 @@
         syncronize() {
           get("/x3ml")
             .then((response) => response.json())
-            .then((jsData) => { this.x3ml = JSON.parse(jsData.jsonX3ml); })
+            .then((jsData) => { console.log('sync'); this.x3ml = JSON.parse(jsData.jsonX3ml); })
             .catch((err) => { console.error(err); });
         },
         addMapping(event) {
           data = { type: 'addMapping', mIndex: -1 }
-          post('/addMap', data).then(res => res.json());
-          this.syncronize();
+          post('/addMap', data).then(res => {this.syncronize();});
         },
         deleteMap(event) {
           attrs = event.target.attributes;
           if (attrs.iM) {
             mIndex = attrs.iM.value;
-            del('/deleteMap/' + mIndex);
-            this.syncronize();
+            del('/deleteMap/' + mIndex).then(res => {this.syncronize();});
           }
         },
         applyMap(event) {
@@ -238,8 +236,7 @@
               path: mapping.domain.sourceNode.text,
               entity: mapping.domain.targetNode.entity.type
             };
-            post('/x3ml', data).then(res => res.json());
-            runMappings(event);
+            post('/x3ml', data).then(res => {this.syncronize();});
           }
         },
         applyLink(event) {
@@ -256,8 +253,7 @@
               relationship: link.path.targetRelation.relationship.text,
               entity: link.range.targetNode.entity.type
             };
-            post('/x3ml', data).then(res => res.json());
-            runMappings(event);
+            post('/x3ml', data).then(res => {this.syncronize();});
           }
         },
         deleteLink(event) {
@@ -265,8 +261,7 @@
           if (attrs.iM && attrs.iL) {
             mIndex = attrs.iM.value;
             lIndex = attrs.iL.value;
-            fetch('/deleteLink/' + mIndex + '/' + lIndex, { method: 'DELETE' });
-            this.syncronize();
+            del('/deleteLink/' + mIndex + '/' + lIndex).then(res => {this.syncronize();});
           }
         },
         addLink(event) {
@@ -274,8 +269,7 @@
           if (attrs.iM) {
             mIndex = attrs.iM.value;
             data = { type: 'addLink', mIndex: mIndex, lIndex: -1 };
-            post('/addLink', data).then(res => res.json());
-            this.syncronize();
+            post('/addLink', data).then((res) => {this.syncronize(); });
           }
         }
       },
