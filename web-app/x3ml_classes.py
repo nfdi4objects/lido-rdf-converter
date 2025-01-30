@@ -53,6 +53,7 @@ class SimpleText(X3Base):
         self.alias = self.text.replace('lido:', '')
         if NN(elem):
             self.deserialize(elem)
+    
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
         if NN(elem.text):
@@ -134,14 +135,18 @@ class MappingInfo(X3Base):
 class Comment(X3Base):
     def __init__(self, elem: ET.Element | None = None):
         super().__init__(elem)
+        self.rationale = SimpleText()
+        if NN(elem):
+            self.deserialize(elem)
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
+        self.rationale = SimpleText(elem.find('rationale'))
         return elem
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
-        ET.SubElement(elem, 'rationale')
+        self.rationale.serialize(ET.SubElement(elem, 'rationale'))
         ET.SubElement(elem, 'alternatives')
         ET.SubElement(elem, 'typical_mistakes')
         ET.SubElement(elem, 'local_habits')
@@ -150,6 +155,11 @@ class Comment(X3Base):
         ET.SubElement(ex, 'example_source')
         ET.SubElement(ex, 'example_target')
         return elem
+    @staticmethod
+    def create(s):
+        t = Comment()
+        t.rationale = SimpleText.create(s)
+        return t
 
 
 class ExampleDataInfo(X3Base):
@@ -308,6 +318,12 @@ class SourceRelation(X3Base):
         self.nodes = []
         if NN(elem):
             self.deserialize(elem)
+    @property
+    def path(self): return  self.relation.text
+    
+    @path.setter
+    def path(self, value):  self.relation.text = value
+
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
@@ -340,15 +356,31 @@ class Path(X3Base):
         if NN(elem):
             self.deserialize(elem)
 
+    @property
+    def path(self): return  self.sourceRelation.path
+    
+    @path.setter
+    def path(self, value):  self.sourceRelation.path = value
+
+    @property
+    def enitity(self): return  self.targetRelation.entity
+    
+    @enitity.setter
+    def enitity(self, value):  self.targetRelation.entity = value
+
     def set(self, path, relationship):
-        self.sourceRelation.relation.text = path
-        self.targetRelation.relationship.text = relationship
+        self.path = path
+        self.enitity = relationship
+
+    def addComment(s):
+        pass
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
         self.sourceRelation = SourceRelation(elem.find('source_relation'))
         self.targetRelation = TargetRelationType(elem.find('target_relation'))
         self.comments = [Comment(x) for x in elem.findall('comments/comment')]
+        return elem
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
@@ -530,6 +562,12 @@ class TargetRelationType(X3Base):
         self.iterMediates = []
         if NN(elem):
             self.deserialize(elem)
+    
+    @property
+    def entity(self): return  self.relationship.text
+    
+    @entity.setter
+    def entity(self, value):  self.relationship.text = value
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
