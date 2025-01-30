@@ -334,6 +334,46 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(testee.nodes[0].relation.text,'R0')
         self.assertEqual(testee.nodes[1].node.text,'N1')
         self.assertEqual(testee.nodes[1].relation.text,'R1')
- 
+
+    def test_t0034(self):
+        '''Path: Ctor'''
+        testee = XC.Path()
+        testee.set('ABC','xyz')
+        self.assertEqual(testee.path,'ABC')
+        self.assertEqual(testee.entity,'xyz')
+
+    def test_t0035(self):
+        '''Path: Serial'''
+        testee = XC.Path()
+        testee.set('ABC','xyz')
+        testee.addComment('a comment')
+        testee.addComment('a comment 2')
+        elem = ET.Element('test')
+
+        testee.serialize(elem)
+
+        self.assertEqual(elem.find('source_relation/relation').text,'ABC')
+        self.assertEqual(elem.find('target_relation/relationship').text,'xyz')
+        comments = elem.findall('comments/comment/rationale')
+        self.assertEqual(len(comments),2)
+        self.assertEqual(comments[0].text,'a comment')
+        self.assertEqual(comments[1].text,'a comment 2')
+
+    def test_t0036(self):
+        '''Path: DeSerial'''
+        elem = ET.Element('test')
+        makeElementsPath(elem,['source_relation','relation']).text='ABC'
+        makeElementsPath(elem,['target_relation','relationship']).text='xyz'
+        makeElementsPath(elem,['comments','comment','rationale']).text='comment 1'
+        makeElementsPath(elem,['comments','comment','rationale']).text='comment 2'
+        testee = XC.Path()
+
+        testee.deserialize(elem)
+        self.assertEqual(testee.sourceRelation.path,'ABC')
+        self.assertEqual(testee.targetRelation.entity,'xyz')
+        self.assertEqual(len(testee.comments),2)
+        self.assertEqual(testee.comments[0].rationale.text,'comment 1')
+        self.assertEqual(testee.comments[1].rationale.text,'comment 2')
+
 if __name__ == '__main__':
     unittest.main()

@@ -319,7 +319,7 @@ class SourceRelation(X3Base):
         if NN(elem):
             self.deserialize(elem)
     @property
-    def path(self): return  self.relation.text
+    def path(self): return self.relation.text
     
     @path.setter
     def path(self, value):  self.relation.text = value
@@ -363,17 +363,17 @@ class Path(X3Base):
     def path(self, value):  self.sourceRelation.path = value
 
     @property
-    def enitity(self): return  self.targetRelation.entity
+    def entity(self): return  self.targetRelation.entity
     
-    @enitity.setter
-    def enitity(self, value):  self.targetRelation.entity = value
+    @entity.setter
+    def entity(self, value):  self.targetRelation.entity = value
 
     def set(self, path, relationship):
         self.path = path
-        self.enitity = relationship
+        self.entity = relationship
 
-    def addComment(s):
-        pass
+    def addComment(self,s):
+        self.comments.append(Comment.create(s))
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
@@ -575,8 +575,7 @@ class TargetRelationType(X3Base):
         rss = elem.findall('relationship')
         self.relationship = Relationship(rss.pop())
         ets = elem.findall('entity')
-        self.iterMediates = [Additional(
-            Entity(e), Relationship(r)) for e, r in zip(ets, rss)]
+        self.iterMediates = [Additional(Entity(e), Relationship(r)) for e, r in zip(ets, rss)]
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
