@@ -47,13 +47,12 @@ class X3Base(Serializer):
         return elem
 
 class SimpleText(X3Base):
-    def __init__(self, elem: ET.Element | None = None):
+    def __init__(self, elem: ET.Element | None = None,**kw):
         super().__init__(elem=None)
-        self.text = ''
-        self.alias = ''
+        self.text = kw.get('text','')
+        self.alias = self.text.replace('lido:', '')
         if NN(elem):
             self.deserialize(elem)
-
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
         if NN(elem.text):
@@ -279,11 +278,22 @@ class Domain(X3Base):
             for x in self.comments:
                 x.serialize(ET.SubElement(cs, 'comment'))
 
-class NR(Serializer):
+class NR(X3Base):
     def __init__(self, node: SimpleText, relation: SimpleText) -> None:
         self.node = node
         self.relation = relation
 
+    def serialize(self, elem: ET.Element):
+        self.node.serialize(ET.SubElement(elem, 'node'))
+        self.relation.serialize(ET.SubElement(elem, 'relation'))
+
+    def deserialize(self, elem: ET.Element):
+        self.node = SimpleText(elem.find('node'))
+        self.relation = SimpleText(elem.find('relation'))
+
+    @staticmethod
+    def create(node:str='',relation:str=''):
+        return NR(SimpleText(text=node),SimpleText(text=relation))
 
 class SourceRelation(X3Base):
     def __init__(self, elem: ET.Element | None = None):
@@ -298,8 +308,7 @@ class SourceRelation(X3Base):
         rs = elem.findall('relation')
         ns = elem.findall('node')
         self.relation = SimpleText(rs.pop(0))
-        self.nodes = [(NR(SimpleText(n), SimpleText(r)))
-                      for n, r in zip(ns, rs)]
+        self.nodes = [NR(SimpleText(n), SimpleText(r)) for n, r in zip(ns, rs)]
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)

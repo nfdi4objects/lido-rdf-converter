@@ -252,5 +252,34 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(elem.find('source_node').text,'ABC')
         self.assertEqual(elem.find('target_node/entity/type').text,'XYZ')
 
+    def test_t0028(self):
+        '''NR: Ctor'''
+        node = XC.SimpleText(text='ABC')
+        relation = XC.SimpleText(text='XYZ')
+        
+        testee = XC.NR(node,relation)
+        self.assertEqual(testee.node.text,'ABC')
+        self.assertEqual(testee.relation.text,'XYZ')
+
+    def test_t0029(self):
+        '''NR: Serial'''
+        testee = XC.NR.create('ABC','XYZ')
+        elem = ET.Element('test')
+
+        testee.serialize(elem)
+        self.assertEqual(elem.find('node').text,'ABC')
+        self.assertEqual(elem.find('relation').text,'XYZ')
+
+    def test_t0030(self):
+        '''NR: Deserial'''
+        elem = ET.Element('test')
+        makeElementsPath(elem,['node']).text = 'ABC'
+        makeElementsPath(elem,['relation']).text = 'XYZ'
+        testee = XC.NR.create()
+        testee.deserialize(elem)
+        self.assertEqual(testee.node.text,'ABC')
+        self.assertEqual(testee.relation.text,'XYZ')
+
+
 if __name__ == '__main__':
     unittest.main()
