@@ -41,9 +41,8 @@ class X3Base(Serializer):
     counter = 0
 
     def __init__(self, elem: ET.Element = None):
-        self.attributes = []
-        if NN(elem):
-            self.deserialize(elem)
+        self.attributes = {}
+        if NN(elem): self.deserialize(elem)
         X3Base.counter += 1
 
     def __del__(self):
@@ -52,29 +51,19 @@ class X3Base(Serializer):
     def __str__(self):
         return f"{ self.__class__.__name__}"
 
-    def getAttr(self, name=None):
-        return next((x.value for x in self.attributes if x.key == name), None)
+    def getAttr(self, name):
+        return self.attributes[name]
 
     def setAttr(self, name, value):
-        a = self.getAttr(name)
-        if a:
-            a.value = value
-        else:
-            a = Attribute(name, value)
-            self.attributes.append(a)
-        return a
+        self.attributes[name] = value
 
     def deserialize(self, elem: ET.Element):
-        for k, v in elem.attrib.items():
-            self.attributes.append(Attribute(k, v))
+        self.attributes = elem.attrib
         return self
 
     def serialize(self, elem: ET.Element):
-        for attr in self.attributes:
-            if NN(attr.value):
-                elem.attrib[attr.key] = attr.value
+        elem.attrib = self.attributes
         return elem
-
 
 class SimpleText(X3Base):
     def __init__(self, elem: ET.Element | None = None):
@@ -248,18 +237,24 @@ class Namespace(X3Base):
     def __init__(self, elem: ET.Element | None = None):
         super().__init__(elem)
 
-    def prefix(self):
-        return self.getAttr('prefix')
+    @property
+    def prefix(self): return self.getAttr('prefix')
+    
+    @prefix.setter
+    def prefix(self, value): self.setAttr('prefix', value)
 
-    def uri(self):
-        return self.getAttr('uri')
+    @property
+    def uri(self): return self.getAttr('uri')
+    
+    @uri.setter
+    def uri(self, value): self.setAttr('uri', value)
 
-    def __eq__(self, other):
-        return self.prefix() == other.prefix()
+    def __eq__(self, other): 
+        return self.prefix == other.prefix
 
     def set(self, p, u):
-        self.setAttr('prefix', p)
-        self.setAttr('uri', u)
+        self.prefix = p
+        self.uri = u
         return self
 
 

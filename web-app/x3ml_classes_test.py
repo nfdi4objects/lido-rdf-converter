@@ -207,8 +207,8 @@ class Test_X3ml_Classes(unittest.TestCase):
         '''Namespace: Ctor, Access'''
         testee = XC.Namespace()
         testee.set('crm','http://cidoc.com')
-        self.assertEqual(testee.prefix(),'crm')
-        self.assertEqual(testee.uri(),'http://cidoc.com')
+        self.assertEqual(testee.prefix,'crm')
+        self.assertEqual(testee.uri,'http://cidoc.com')
 
     def test_t0022(self):
         '''Namespace: Serial'''
@@ -227,8 +227,19 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee = XC.Namespace()
         testee.deserialize(elem)
 
-        self.assertEqual(testee.prefix(),'crm')
-        self.assertEqual(testee.uri(),'http://cidoc.com')
+        self.assertEqual(testee.prefix,'crm')
+        self.assertEqual(testee.uri,'http://cidoc.com')
+
+    def test_t0024(self):
+        '''Namespace: Eq'''
+        ns1 = XC.Namespace()
+        ns2 = XC.Namespace()
+        ns1.set('A','B')
+        ns2.set('A','C')
+        self.assertTrue(ns1==ns2)
+        ns1.set('A','C')
+        ns2.set('C','C')
+        self.assertFalse(ns1==ns2)
 
 if __name__ == '__main__':
     unittest.main()
