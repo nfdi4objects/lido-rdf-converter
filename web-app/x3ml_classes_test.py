@@ -203,6 +203,32 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertIsNotNone(titleElem)
         self.assertEqual(titleElem.text,'title')
         
+    def test_t0021(self):
+        '''Namespace: Ctor, Access'''
+        testee = XC.Namespace()
+        testee.set('crm','http://cidoc.com')
+        self.assertEqual(testee.prefix(),'crm')
+        self.assertEqual(testee.uri(),'http://cidoc.com')
+
+    def test_t0022(self):
+        '''Namespace: Serial'''
+        namespace = XC.Namespace()
+        namespace.set('crm','http://cidoc.com')
+
+        testee = ET.Element('test')
+        testee = namespace.serialize(testee)
+        self.assertEqual(testee.attrib['prefix'],'crm')
+        self.assertEqual(testee.attrib['uri'],'http://cidoc.com')
+
+    def test_t0023(self):
+        '''Namespace: Serial'''
+        elem = ET.Element('test', attrib = {'prefix':'crm','uri':'http://cidoc.com'})
+        
+        testee = XC.Namespace()
+        testee.deserialize(elem)
+
+        self.assertEqual(testee.prefix(),'crm')
+        self.assertEqual(testee.uri(),'http://cidoc.com')
 
 if __name__ == '__main__':
     unittest.main()

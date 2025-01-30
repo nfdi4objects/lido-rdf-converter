@@ -257,9 +257,6 @@ class Namespace(X3Base):
     def __eq__(self, other):
         return self.prefix() == other.prefix()
 
-    def toStr(self, indent=0):
-        return f"{super().toStr(indent)}: {self.getAttr()}"
-
     def set(self, p, u):
         self.setAttr('prefix', p)
         self.setAttr('uri', u)
