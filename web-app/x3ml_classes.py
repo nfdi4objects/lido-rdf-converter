@@ -66,6 +66,10 @@ class SimpleText(X3Base):
     def __str__(self):
         return f"{ self.__class__.__name__}\t{self.text}"
 
+    @staticmethod
+    def create(s:str=''):
+        return SimpleText(text=s)
+
 
 class Source(X3Base):
     def __init__(self, elem: ET.Element | None = None):
@@ -286,10 +290,12 @@ class NR(X3Base):
     def serialize(self, elem: ET.Element):
         self.node.serialize(ET.SubElement(elem, 'node'))
         self.relation.serialize(ET.SubElement(elem, 'relation'))
+        return elem
 
     def deserialize(self, elem: ET.Element):
         self.node = SimpleText(elem.find('node'))
         self.relation = SimpleText(elem.find('relation'))
+        return elem
 
     @staticmethod
     def create(node:str='',relation:str=''):
@@ -309,6 +315,7 @@ class SourceRelation(X3Base):
         ns = elem.findall('node')
         self.relation = SimpleText(rs.pop(0))
         self.nodes = [NR(SimpleText(n), SimpleText(r)) for n, r in zip(ns, rs)]
+        return elem
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
@@ -317,6 +324,12 @@ class SourceRelation(X3Base):
             ns.relation.serialize(ET.SubElement(elem, 'relation'))
             ns.node.serialize(ET.SubElement(elem, 'node'))
         return elem
+
+    @staticmethod
+    def create(s:str=''):
+        sr = SourceRelation()
+        sr.relation = SimpleText.create(s)
+        return sr
 
 class Path(X3Base):
     def __init__(self, elem: ET.Element | None = None):

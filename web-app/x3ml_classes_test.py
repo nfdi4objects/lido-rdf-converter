@@ -218,9 +218,11 @@ class Test_X3ml_Classes(unittest.TestCase):
         '''Namespace: Eq'''
         ns1 = XC.Namespace()
         ns2 = XC.Namespace()
+        
         ns1.set('A','B')
         ns2.set('A','C')
         self.assertTrue(ns1==ns2)
+
         ns1.set('A','C')
         ns2.set('C','C')
         self.assertFalse(ns1==ns2)
@@ -230,16 +232,20 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee = XC.Domain()
         self.assertEqual(testee.path,'')
         self.assertEqual(testee.entity,'')
+
         testee.set('ABC','XYZ')
+        
         self.assertEqual(testee.path,'ABC')
         self.assertEqual(testee.entity,'XYZ')
 
     def test_t0026(self):
-        '''Domain: Deserial'''
+        '''Domain: Ctro, DeSerial'''
         elem = ET.Element('test')
         makeElementsPath(elem,['source_node']).text = 'ABC'
         makeElementsPath(elem,['target_node','entity','type']).text = 'XYZ'
+
         testee = XC.Domain(elem)
+        
         self.assertEqual(testee.path,'ABC')
         self.assertEqual(testee.entity,'XYZ')
 
@@ -248,7 +254,9 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee = XC.Domain()
         testee.set('ABC','XYZ')
         elem = ET.Element('test')
+
         testee.serialize(elem)
+
         self.assertEqual(elem.find('source_node').text,'ABC')
         self.assertEqual(elem.find('target_node/entity/type').text,'XYZ')
 
@@ -258,15 +266,17 @@ class Test_X3ml_Classes(unittest.TestCase):
         relation = XC.SimpleText(text='XYZ')
         
         testee = XC.NR(node,relation)
+
         self.assertEqual(testee.node.text,'ABC')
         self.assertEqual(testee.relation.text,'XYZ')
 
     def test_t0029(self):
         '''NR: Serial'''
-        testee = XC.NR.create('ABC','XYZ')
         elem = ET.Element('test')
+        testee = XC.NR.create('ABC','XYZ')
 
         testee.serialize(elem)
+
         self.assertEqual(elem.find('node').text,'ABC')
         self.assertEqual(elem.find('relation').text,'XYZ')
 
@@ -276,10 +286,54 @@ class Test_X3ml_Classes(unittest.TestCase):
         makeElementsPath(elem,['node']).text = 'ABC'
         makeElementsPath(elem,['relation']).text = 'XYZ'
         testee = XC.NR.create()
+        
         testee.deserialize(elem)
+
         self.assertEqual(testee.node.text,'ABC')
         self.assertEqual(testee.relation.text,'XYZ')
 
+    def test_t0031(self):
+        '''SourceRelation: Ctor'''
+        testee = XC.SourceRelation.create('ABC')
+        self.assertEqual(testee.relation.text,'ABC')
 
+    def test_t0032(self):
+        '''SourceRelation: Serial'''
+        testee = XC.SourceRelation.create('ABC')
+        testee.nodes.append(XC.NR.create('N0','R0'))
+        testee.nodes.append(XC.NR.create('N1','R1'))
+        elem = ET.Element('test')
+
+        testee.serialize(elem)
+
+        rElems = elem.findall('relation')
+        nElems = elem.findall('node')
+        self.assertEqual(len(nElems),2)
+        self.assertEqual(len(rElems),3)
+        self.assertEqual(rElems[0].text,'ABC')
+        self.assertEqual(nElems[0].text,'N0')
+        self.assertEqual(rElems[1].text,'R0')
+        self.assertEqual(nElems[1].text,'N1')
+        self.assertEqual(rElems[2].text,'R1')
+
+    def test_t0033(self):
+        '''SourceRelation: DeSerial'''
+        elem = ET.Element('test')
+        makeElementsPath(elem,['relation']).text = 'ABC'
+        makeElementsPath(elem,['relation']).text = 'R0'
+        makeElementsPath(elem,['relation']).text = 'R1'
+        makeElementsPath(elem,['node']).text = 'N0'
+        makeElementsPath(elem,['node']).text = 'N1'
+        testee = XC.SourceRelation()
+        
+        testee.deserialize(elem)
+
+        self.assertEqual(testee.relation.text,'ABC')
+        self.assertEqual(len(testee.nodes),2)
+        self.assertEqual(testee.nodes[0].node.text,'N0')
+        self.assertEqual(testee.nodes[0].relation.text,'R0')
+        self.assertEqual(testee.nodes[1].node.text,'N1')
+        self.assertEqual(testee.nodes[1].relation.text,'R1')
+ 
 if __name__ == '__main__':
     unittest.main()
