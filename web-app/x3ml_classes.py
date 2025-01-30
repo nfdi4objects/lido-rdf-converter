@@ -209,6 +209,19 @@ class Info(X3Base):
         self.example_data_info = ExampleDataInfo()
         if NN(elem): self.deserialize(elem)
 
+    @property
+    def sSchema(self): return self.source.source_schema.text
+
+    @sSchema.setter
+    def sSchema(self, value): self.source.source_schema.text = value
+
+    @property
+    def tSchema(self): return self.target.target_schema.text
+
+    @tSchema.setter
+    def tSchema(self, value): self.target.target_schema.text = value
+
+
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
         self.title = SimpleText(elem.find('title'))

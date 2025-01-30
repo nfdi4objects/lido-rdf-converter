@@ -13,6 +13,13 @@ def makeElem(name='test'):
     elem.attrib = {'A': 'a', 'B': 2}
     return elem
 
+def makeElementsPath(root:ET.Element,elems:list)->ET.Element|None:
+    if len(elems)==0:
+        return root
+    else: 
+        s = ET.SubElement(root,elems.pop(0))
+        return makeElementsPath(s,elems)
+
 class Test_X3ml_Classes(unittest.TestCase):
 
     def setUp(self):
@@ -82,9 +89,10 @@ class Test_X3ml_Classes(unittest.TestCase):
 
     def test_t0008(self):
         '''SimpleText: Access, Serial, Str'''
-        testee = XC.SimpleText()
         elem = ET.Element('test')
         elem.text = 'lido:event'
+
+        testee = XC.SimpleText()
         testee.deserialize(elem)
         self.assertEqual(testee.text, 'lido:event')
         self.assertEqual(testee.alias, 'event')
@@ -92,11 +100,10 @@ class Test_X3ml_Classes(unittest.TestCase):
 
     def test_t0009(self):
         '''Source: Ctor, Access, Serial'''
-        testee = XC.Source()
         elem = ET.Element('test')
-        subElem = ET.SubElement(ET.SubElement(
-            elem, 'source_info'), 'source_schema')
-        subElem.text = 'schema'
+        makeElementsPath(elem,['source_info','source_schema']).text ='schema'
+
+        testee = XC.Source()
         testee.deserialize(elem)
         self.assertIsNotNone(testee.source_schema)
         self.assertEqual(type(testee.source_schema).__name__, 'SimpleText')
@@ -114,10 +121,10 @@ class Test_X3ml_Classes(unittest.TestCase):
 
     def test_t0011(self):
         '''Target: Ctor, Access, Serial'''
-        testee = XC.Target()
         elem = ET.Element('test')
-        subElem = ET.SubElement(ET.SubElement(elem, 'target_info'), 'target_schema')
-        subElem.text = 'schema'
+        makeElementsPath(elem,['target_info','target_schema']).text ='schema'
+        
+        testee = XC.Target()
         testee.deserialize(elem)
         self.assertIsNotNone(testee.target_schema)
         self.assertEqual(type(testee.target_schema).__name__, 'SimpleText')
@@ -176,12 +183,15 @@ class Test_X3ml_Classes(unittest.TestCase):
     def test_t0019(self):
         '''Info: Deserialize'''
         elem = ET.Element('test')
-        titleElem = ET.SubElement(elem,'title')
-        titleElem.text = 'title'
+        makeElementsPath(elem,['title']).text = 'title'
+        makeElementsPath(elem,['source','source_info','source_schema']).text ='sinfo'
+        makeElementsPath(elem,['target','target_info','target_schema']).text ='tinfo'
 
         testee = XC.Info()
         testee.deserialize(elem)
         self.assertEqual(testee.title.text,'title')
+        self.assertEqual(testee.sSchema,'sinfo')
+        self.assertEqual(testee.tSchema,'tinfo')
 
     def test_t0020(self):
         '''Info: Serialize'''
