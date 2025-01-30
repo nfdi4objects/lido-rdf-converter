@@ -267,9 +267,21 @@ class Domain(X3Base):
         if NN(elem):
             self.deserialize(elem)
 
+    @property
+    def path(self): return  self.sourceNode.text
+    
+    @path.setter
+    def path(self, value):  self.sourceNode.text = value
+
+    @property
+    def entity(self): return  self.targetNode.entity.type
+    
+    @entity.setter
+    def entity(self, value):  self.targetNode.entity.type = value
+
     def set(self, path, entity):
-        self.sourceNode.text = path
-        self.targetNode.entity.type = entity
+        self.path = path
+        self.entity = entity
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)

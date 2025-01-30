@@ -241,5 +241,32 @@ class Test_X3ml_Classes(unittest.TestCase):
         ns2.set('C','C')
         self.assertFalse(ns1==ns2)
 
+    def test_t0025(self):
+        '''Domain: Ctor, Access'''
+        testee = XC.Domain()
+        self.assertEqual(testee.path,'')
+        self.assertEqual(testee.entity,'')
+        testee.set('ABC','XYZ')
+        self.assertEqual(testee.path,'ABC')
+        self.assertEqual(testee.entity,'XYZ')
+
+    def test_t0026(self):
+        '''Domain: Deserial'''
+        elem = ET.Element('test')
+        makeElementsPath(elem,['source_node']).text = 'ABC'
+        makeElementsPath(elem,['target_node','entity','type']).text = 'XYZ'
+        testee = XC.Domain(elem)
+        self.assertEqual(testee.path,'ABC')
+        self.assertEqual(testee.entity,'XYZ')
+
+    def test_t0027(self):
+        '''Domain: Serial'''
+        testee = XC.Domain()
+        testee.set('ABC','XYZ')
+        elem = ET.Element('test')
+        testee.serialize(elem)
+        self.assertEqual(elem.find('source_node').text,'ABC')
+        self.assertEqual(elem.find('target_node/entity/type').text,'XYZ')
+
 if __name__ == '__main__':
     unittest.main()
