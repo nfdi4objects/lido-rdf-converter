@@ -17,25 +17,6 @@ def getText(elem: ET.Element | None) -> str:
     return ''
 
 
-class Attribute(Serializer):
-    def __init__(self, key: str, value: str = ''):
-        self.key = key
-        self.value = value
-
-    def __str__(self):
-        return f"{self.key}:{self.value}"
-
-
-def njoin(v, sep='\n'):
-    return sep.join(filter(None, v))
-
-
-def toStrV(v, indent=0):
-    return njoin([x.toStr(indent) for x in v])
-
-
-Attributes = list[Attribute]
-
 
 class X3Base(Serializer):
     counter = 0
@@ -298,13 +279,6 @@ class Domain(X3Base):
             for x in self.comments:
                 x.serialize(ET.SubElement(cs, 'comment'))
 
-    def toStr(self, indent=0):
-        me = f"{super().toStr(indent)}: { self.getAttr()}"
-        s_s = self.sourceNode.toStr(indent+1)
-        t_s = self.targetNode.toStr(indent+1)
-        return njoin([me, s_s, t_s])
-
-
 class NR(Serializer):
     def __init__(self, node: SimpleText, relation: SimpleText) -> None:
         self.node = node
@@ -335,10 +309,6 @@ class SourceRelation(X3Base):
             ns.node.serialize(ET.SubElement(elem, 'node'))
         return elem
 
-    def toStr(self, indent=0):
-        return f"{super().toStr(indent)} : {self.relation}"
-
-
 class Path(X3Base):
     def __init__(self, elem: ET.Element | None = None):
         super().__init__(elem)
@@ -368,13 +338,6 @@ class Path(X3Base):
                 x.serialize(ET.SubElement(cs, 'comment'))
         return elem
 
-    def toStr(self, indent=0):
-        me = super().toStr(indent)
-        s_s = self.sourceRelation.toStr(indent+1)
-        t_s = self.targetRelation.toStr(indent+1)
-        return njoin([me, s_s, t_s])
-
-
 class Range(X3Base):
     def __init__(self, elem: ET.Element | None = None):
         super().__init__(elem)
@@ -397,13 +360,6 @@ class Range(X3Base):
         self.sourceNode.serialize(ET.SubElement(elem, 'source_node'))
         self.targetNode.serialize(ET.SubElement(elem, 'target_node'))
         return elem
-
-    def toStr(self, indent=0):
-        me = super().toStr(indent)
-        s_s = self.sourceNode.toStr(indent+1)
-        t_s = self.targetNode.toStr(indent+1)
-        return njoin([me, s_s, t_s])
-
 
 class Link(X3Base):
     def __init__(self, elem: ET.Element | None = None):
@@ -428,13 +384,6 @@ class Link(X3Base):
         self.range.serialize(ET.SubElement(elem, 'range'))
         return elem
 
-    def toStr(self, indent=0):
-        me = f"{super().toStr(indent)}: {self.getAttr()}"
-        p_s = self.path.toStr(indent+1)
-        r_s = self.range.toStr(indent+1)
-        return njoin([me, p_s, r_s])
-
-
 class Mapping(X3Base):
     def __init__(self, elem: ET.Element | None = None):
         super().__init__(elem)
@@ -455,12 +404,6 @@ class Mapping(X3Base):
         for link in self.links:
             link.serialize(ET.SubElement(elem, 'link'))
         return elem
-
-    def toStr(self, indent=0):
-        me = f"{super().toStr(indent)}: {self.getAttr()}"
-        d_s = self.domain.toStr(indent+1)
-        l_s = toStrV(self.links, indent+1)
-        return njoin([me, d_s, l_s])
 
     def label(self, n=0):
         return f"Mapping {n}: Domain={self.domain.sourceNode.text}"
@@ -493,13 +436,6 @@ class X3ml(X3Base):
         for m in self.mappings:
             m.serialize(ET.SubElement(mss, 'mapping'))
         return elem
-
-    def toStr(self, indent=0):
-        me = super().toStr(indent)
-        n_s = toStrV(self.namespaces, indent+1)
-        m_s = toStrV(self.mappings, indent+1)
-        return njoin([me, n_s, m_s])
-
 
 class LabelGenerator(X3Base):
     def __init__(self, val=''):
@@ -558,10 +494,6 @@ class Entity(X3Base):
         for x in self.instance_info:
             x.serialize(ET.SubElement(elem, 'instance_info'))
 
-    def toStr(self, indent=0):
-        return f"{super().toStr(indent)} : { self.type }"
-
-
 class Additional(Serializer):
     def __init__(self, entity: Entity, relationShip: Relationship) -> None:
         self.entity = entity
@@ -595,10 +527,6 @@ class TargetRelationType(X3Base):
             x.entity.serialize(ET.SubElement(elem, 'entity'))
             x.relationship.serialize(ET.SubElement(elem, 'relationship'))
 
-    def toStr(self, indent=0):
-        return f"{super().toStr(indent)} : {self.relationship.text}"
-
-
 class RangeTargetNodeType(X3Base):
     def __init__(self, elem: ET.Element | None = None) -> None:
         super().__init__(elem)
@@ -617,12 +545,6 @@ class RangeTargetNodeType(X3Base):
         self.entity.serialize(ET.SubElement(elem, 'entity'))
         for x in self.ifs:
             x.serialize(ET.SubElement(elem, 'if'))
-
-    def toStr(self, indent=0):
-        l = [super().toStr(indent), self.entity.toStr(indent+1)]
-        if w := njoin([x.toStr(indent+1) for x in self.ifs]):
-            l.append(w)
-        return njoin(l)
 
 
 class TargetNode(RangeTargetNodeType):

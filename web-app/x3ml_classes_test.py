@@ -13,12 +13,13 @@ def makeElem(name='test'):
     elem.attrib = {'A': 'a', 'B': 2}
     return elem
 
-def makeElementsPath(root:ET.Element,elems:list)->ET.Element|None:
-    if len(elems)==0:
+def makeElementsPath(root:ET.Element,names:list)->ET.Element|None:
+    '''Creates a nechain of Element '''
+    if len(names)==0:
         return root
     else: 
-        s = ET.SubElement(root,elems.pop(0))
-        return makeElementsPath(s,elems)
+        subElem = ET.SubElement(root,names.pop(0))
+        return makeElementsPath(subElem,names)
 
 class Test_X3ml_Classes(unittest.TestCase):
 
@@ -30,23 +31,6 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee = XC.Serializer()
         testee.y = 5
         self.assertEqual(testee.toJSON(), '{\n  "y": 5\n}')
-
-    def test_t0001(self):
-        '''Attribute: Ctor, Access, JSON'''
-        testee = XC.Attribute('k')
-        self.assertEqual(testee.key, 'k')
-        self.assertEqual(testee.value, '')
-        self.assertEqual(str(testee), 'k:')
-        self.assertEqual(testee.toJSON(), '{\n  "key": "k",\n  "value": ""\n}')
-
-    def test_t0002(self):
-        '''Attribute 2: Ctor, Access, JSON'''
-        testee = XC.Attribute('myKey', 'myValue')
-        self.assertEqual(testee.key, 'myKey')
-        self.assertEqual(testee.value, 'myValue')
-        self.assertEqual(str(testee), 'myKey:myValue')
-        self.assertEqual(
-            testee.toJSON(), '{\n  "key": "myKey",\n  "value": "myValue"\n}')
 
     def test_t0003(self):
         '''X3Base: Ctor, Attributes'''
