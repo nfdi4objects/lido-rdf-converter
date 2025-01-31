@@ -293,12 +293,12 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(testee.relation.text,'XYZ')
 
     def test_t0031(self):
-        '''SourceRelation: Ctor'''
+        '''SourceRelation 1: Ctor'''
         testee = XC.SourceRelation.create('ABC')
         self.assertEqual(testee.relation.text,'ABC')
 
     def test_t0032(self):
-        '''SourceRelation: Serial'''
+        '''SourceRelation 2: Serial'''
         testee = XC.SourceRelation.create('ABC')
         testee.nodes.append(XC.NR.create('N0','R0'))
         testee.nodes.append(XC.NR.create('N1','R1'))
@@ -317,7 +317,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(rElems[2].text,'R1')
 
     def test_t0033(self):
-        '''SourceRelation: DeSerial'''
+        '''SourceRelation 3: DeSerial'''
         elem = ET.Element('test')
         makeElementsPath(elem,['relation']).text = 'ABC'
         makeElementsPath(elem,['relation']).text = 'R0'
@@ -336,14 +336,14 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(testee.nodes[1].relation.text,'R1')
 
     def test_t0034(self):
-        '''Path: Ctor'''
+        '''Path 1: Ctor'''
         testee = XC.Path()
         testee.set('ABC','xyz')
         self.assertEqual(testee.path,'ABC')
         self.assertEqual(testee.entity,'xyz')
 
     def test_t0035(self):
-        '''Path: Serial'''
+        '''Path 2: Serial'''
         testee = XC.Path()
         testee.set('ABC','xyz')
         testee.addComment('a comment')
@@ -360,7 +360,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(comments[1].text,'a comment 2')
 
     def test_t0036(self):
-        '''Path: DeSerial'''
+        '''Path 3: DeSerial'''
         elem = ET.Element('test')
         makeElementsPath(elem,['source_relation','relation']).text='ABC'
         makeElementsPath(elem,['target_relation','relationship']).text='xyz'
@@ -374,6 +374,35 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(len(testee.comments),2)
         self.assertEqual(testee.comments[0].rationale.text,'comment 1')
         self.assertEqual(testee.comments[1].rationale.text,'comment 2')
+
+    def test_t0037(self):
+        '''Range 1: Ctor, Access'''
+        testee = XC.Range()
+        testee.set('ABC','xyz')
+        self.assertEqual(testee.path,'ABC')
+        self.assertEqual(testee.entity,'xyz')
+
+    def test_t0038(self):
+        '''Range 2: Serial'''
+        testee = XC.Range()
+        testee.set('ABC','xyz')
+        elem = ET.Element('test')
+
+        testee.serialize(elem)
+
+        self.assertEqual(elem.find('source_node').text,'ABC')
+        self.assertEqual(elem.find('target_node/entity/type').text,'xyz')
+
+    def test_t0039(self):
+        '''Range 3: DeSerial'''
+        elem = ET.Element('test')
+        makeElementsPath(elem,['source_node']).text='ABC'
+        makeElementsPath(elem,['target_node','entity','type']).text='xyz'
+        testee = XC.Range()
+
+        testee.deserialize(elem)
+        self.assertEqual(testee.path,'ABC')
+        self.assertEqual(testee.entity,'xyz')
 
 if __name__ == '__main__':
     unittest.main()
