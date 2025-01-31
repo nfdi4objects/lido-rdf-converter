@@ -410,5 +410,53 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(testee.path,'ABC')
         self.assertEqual(testee.entity,'xyz')
 
+    def test_t0040(self):
+        '''LogicalOp 1: Ctor, Access'''
+        testee = XC.LogicalOp(None,'aTag')
+        self.assertEqual(testee.tag,'aTag')
+        self.assertEqual(testee.xpath,'')
+
+    def test_t0041(self):
+        '''LogicalOp 2: Serial'''
+        testee = XC.LogicalOp()
+        testee._ifs.append(XC.If())
+        testee._ifs.append(XC.If())
+        elem = ET.Element('test')
+
+        testee.serialize(elem)
+
+        _ifs = elem.findall('if/or')
+        self.assertEqual(len(_ifs),2)
+        #TODO
+
+    def test_t0042(self):
+        '''LogicalOp 3: DeSerial'''
+        elem = ET.Element('test')
+        makeElementsPathS(elem,'if/or')
+        makeElementsPathS(elem,'if/and')
+        testee = XC.LogicalOp()
+
+        testee.deserialize(elem)
+
+        self.assertEqual(len(testee._ifs),2)
+        self.assertIsInstance(testee._ifs[0],XC.If)
+        self.assertIsInstance(testee._ifs[0].op,XC.Or)
+        self.assertIsInstance(testee._ifs[1],XC.If)
+        self.assertIsInstance(testee._ifs[1].op,XC.And)
+        #TODO
+
+    def test_t0043(self):
+        '''Ops: Ctor'''
+        self.assertEqual(XC.Or().tag,'or')
+        self.assertEqual(XC.And().tag,'and')
+        self.assertEqual(XC.Not().tag,'not')
+        self.assertEqual(XC.ExactMatch().tag,'exact_match')
+        self.assertEqual(XC.Broader().tag,'broader')
+        self.assertEqual(XC.Narrower().tag,'narrower')
+        self.assertEqual(XC.Equals().tag,'equals')
+        self.assertEqual(XC.Exists().tag,'exists')
+
+
+
 if __name__ == '__main__':
     unittest.main()

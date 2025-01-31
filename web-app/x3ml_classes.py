@@ -643,50 +643,60 @@ class LogicalOp (X3Base):
         super().deserialize(elem)
         self._ifs = [If(x) for x in elem.findall('if')]
         self.xpath = getText(elem)
+        return elem
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
         elem.text = self.xpath
         for x in self._ifs:
             x.serialize(ET.SubElement(elem, 'if'))
+        return elem
 
 
 class Not(LogicalOp):
-    pass
+    def __init__(self, elem: ET.Element | None = None) -> None:
+        super().__init__(elem,'not')
 
 
 class And (LogicalOp):
-    pass
+    def __init__(self, elem: ET.Element | None = None) -> None:
+        super().__init__(elem,'and')
 
 
 class Or(LogicalOp):
-    pass
+     def __init__(self, elem: ET.Element | None = None) -> None:
+        super().__init__(elem,'or')
 
 
 class ExactMatch(LogicalOp):
-    pass
+     def __init__(self, elem: ET.Element | None = None) -> None:
+        super().__init__(elem,'exact_match')
 
 
 class Broader(LogicalOp):
-    pass
+     def __init__(self, elem: ET.Element | None = None) -> None:
+        super().__init__(elem,'broader')
 
 
 class Narrower(LogicalOp):
-    pass
+    def __init__(self, elem: ET.Element | None = None) -> None:
+        super().__init__(elem,'narrower')
 
 
 class Equals(LogicalOp):
-    pass
+    def __init__(self, elem: ET.Element | None = None) -> None:
+        super().__init__(elem,'equals')
 
 
 class Exists(LogicalOp):
-    pass
+    def __init__(self, elem: ET.Element | None = None) -> None:
+        super().__init__(elem,'exists')
 
 
 class ConditionsType(X3Base):
-    def __init__(self, elem: ET.Element | None = None) -> None:
+    def __init__(self, elem: ET.Element | None = None,**kw) -> None:
         super().__init__(elem)
-        self.text = ''
+        self.text = kw.get('text','')
         self.op = Or()
         if NN(elem):
             self.deserialize(elem)
@@ -696,8 +706,8 @@ class ConditionsType(X3Base):
 
         def choice(tag, cls):
             st = elem.find(tag)
-            if not st is None:
-                self.op = cls(st, tag)
+            if NN(st):
+                self.op = cls(st)
 
         self.text = getText(elem)
         self.op = None
@@ -706,7 +716,7 @@ class ConditionsType(X3Base):
         choice('not', Not)
         choice('narrower', Narrower)
         choice('broader', Broader)
-        choice('exist', Exists)
+        choice('exists', Exists)
         choice('equals', Equals)
         choice('exact_match', ExactMatch)
 
