@@ -14,12 +14,17 @@ def makeElem(name='test'):
     return elem
 
 def makeElementsPath(root:ET.Element,names:list)->ET.Element|None:
-    '''Creates a nechain of Element '''
+    '''Creates a chain of Elements '''
     if len(names)==0:
         return root
     else: 
         subElem = ET.SubElement(root,names.pop(0))
         return makeElementsPath(subElem,names)
+
+def makeElementsPathS(root:ET.Element,path:str)->ET.Element|None:
+    '''Creates a chain of Elements '''
+    names = path.split('/') if len(path) else []
+    return makeElementsPath(root,names)
 
 class Test_X3ml_Classes(unittest.TestCase):
 
@@ -362,10 +367,11 @@ class Test_X3ml_Classes(unittest.TestCase):
     def test_t0036(self):
         '''Path 3: DeSerial'''
         elem = ET.Element('test')
-        makeElementsPath(elem,['source_relation','relation']).text='ABC'
-        makeElementsPath(elem,['target_relation','relationship']).text='xyz'
-        makeElementsPath(elem,['comments','comment','rationale']).text='comment 1'
-        makeElementsPath(elem,['comments','comment','rationale']).text='comment 2'
+        makeElementsPathS(elem,'source_relation/relation').text='ABC'
+        makeElementsPathS(elem,'target_relation/relationship').text='xyz'
+        comsElem = makeElementsPathS(elem,'comments')
+        makeElementsPathS(comsElem,'comment/rationale').text='comment 1'
+        makeElementsPathS(comsElem,'comment/rationale').text='comment 2'
         testee = XC.Path()
 
         testee.deserialize(elem)
@@ -396,8 +402,8 @@ class Test_X3ml_Classes(unittest.TestCase):
     def test_t0039(self):
         '''Range 3: DeSerial'''
         elem = ET.Element('test')
-        makeElementsPath(elem,['source_node']).text='ABC'
-        makeElementsPath(elem,['target_node','entity','type']).text='xyz'
+        makeElementsPathS(elem,'source_node').text='ABC'
+        makeElementsPathS(elem,'target_node/entity/type').text='xyz'
         testee = XC.Range()
 
         testee.deserialize(elem)
