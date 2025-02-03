@@ -530,6 +530,16 @@ class InstanceInfo(X3Base):
         if not elem.find('description') is None:
             self.mode = 'description'
 
+    def serialize(self, elem: ET.Element):
+        match self.mode:
+            case 'constant':
+                ET.SubElement(elem, 'constant')
+            case 'language':
+                ET.SubElement(elem, 'language')
+            case 'description':
+                ET.SubElement(elem, 'description')
+        return elem
+
 
 class Relationship(SimpleText):
     pass
@@ -548,10 +558,9 @@ class Entity(X3Base):
 
     def deserialize(self, elem: ET.Element | None):
         super().deserialize(elem)
-        if elem:
+        if NN(elem):
             self.type = getText(elem.find('type'))
-            self.instance_info = [InstanceInfo(
-                x) for x in elem.findall('instance_info')]
+            self.instance_info = [InstanceInfo(x) for x in elem.findall('instance_info')]
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
@@ -564,6 +573,16 @@ class Additional(Serializer):
     def __init__(self, entity: Entity, relationShip: Relationship) -> None:
         self.entity = entity
         self.relationship = relationShip
+
+    def serialize(self, elem: ET.Element):
+        self.entity.serialize(ET.SubElement(elem, 'entity'))
+        self.relationship.serialize(ET.SubElement(elem, 'relationship'))
+        return elem
+
+    def deserialize(self, elem: ET.Element):    
+        self.entity = Entity(elem.find('entity'))
+        self.relationship = Relationship(elem.find('relationship'))
+        return elem
 
 
 class TargetRelationType(X3Base):
