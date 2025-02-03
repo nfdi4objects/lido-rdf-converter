@@ -710,5 +710,101 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(elem.find('entity/type').text, 'entityType')
         self.assertEqual(len(elem.findall('if')), 1)
 
+    def test_t0066(self):
+        '''Mapping: Ctor, Access'''
+        testee = XC.Mapping()
+        self.assertIsInstance(testee.domain, XC.Domain)
+        self.assertEqual(len(testee.links), 0)
+
+    def test_t0067(self):
+        '''Mapping: Deserialize'''
+        elem = ET.Element('test')
+        domainElem = makeElementsPathS(elem, 'domain')
+        makeElementsPathS(domainElem, 'source_node').text = 'domainPath'
+        makeElementsPathS(domainElem, 'target_node/entity/type').text = 'domainEntity'
+        linkElem = makeElementsPathS(elem, 'link')
+        pathElem = makeElementsPathS(linkElem, 'path')
+        makeElementsPathS(pathElem, 'source_relation/relation').text = 'linkPath'
+        makeElementsPathS(pathElem, 'target_relation/relationship').text = 'linkRelationship'
+        rangeElem = makeElementsPathS(linkElem, 'range')
+        makeElementsPathS(rangeElem, 'source_node').text = 'linkPath'
+        makeElementsPathS(rangeElem, 'target_node/entity/type').text = 'linkEntity'
+
+        testee = XC.Mapping()
+        testee.deserialize(elem)
+
+        self.assertEqual(testee.domain.path, 'domainPath')
+        self.assertEqual(testee.domain.entity, 'domainEntity')
+        self.assertEqual(len(testee.links), 1)
+        self.assertEqual(testee.links[0].path.path, 'linkPath')
+        self.assertEqual(testee.links[0].path.entity, 'linkRelationship')
+        self.assertEqual(testee.links[0].range.path, 'linkPath')
+        self.assertEqual(testee.links[0].range.entity, 'linkEntity')
+
+    def test_t0068(self):
+        '''Mapping: Serialize'''
+        testee = XC.Mapping()
+        testee.domain.set('domainPath', 'domainEntity')
+        link = XC.Link()
+        link.set('linkPath', 'linkRelationship', 'linkEntity')
+        testee.links.append(link)
+
+        elem = ET.Element('test')
+        testee.serialize(elem)
+
+        self.assertEqual(elem.find('domain/source_node').text, 'domainPath')
+        self.assertEqual(elem.find('domain/target_node/entity/type').text, 'domainEntity')
+        self.assertEqual(elem.find('link/path/source_relation/relation').text, 'linkPath')
+        self.assertEqual(elem.find('link/path/target_relation/relationship').text, 'linkRelationship')
+        self.assertEqual(elem.find('link/range/source_node').text, 'linkPath')
+        self.assertEqual(elem.find('link/range/target_node/entity/type').text, 'linkEntity')
+
+    def test_t0069(self):
+        '''X3ml: Ctor, Access'''
+        testee = XC.X3ml()
+        self.assertIsInstance(testee.info, XC.Info)
+        self.assertEqual(len(testee.namespaces), 0)
+        self.assertEqual(len(testee.mappings), 0)
+
+    def test_t0070(self):
+        '''X3ml: Deserialize'''
+        elem = ET.Element('test')
+        makeElementsPathS(elem, 'info/title').text = 'infoTitle'
+        makeElementsPathS(elem, 'namespaces/namespace').attrib = {'prefix': 'nsPrefix', 'uri': 'nsUri'}
+        domainElem = makeElementsPathS(elem, 'mappings/mapping/domain')
+        makeElementsPathS(domainElem, 'source_node').text = 'domainPath'
+        makeElementsPathS(domainElem, 'target_node/entity/type').text = 'domainEntity'
+
+        testee = XC.X3ml()
+        testee.deserialize(elem)
+
+        self.assertEqual(testee.info.title.text, 'infoTitle')
+        self.assertEqual(len(testee.namespaces), 1)
+        self.assertEqual(testee.namespaces[0].prefix, 'nsPrefix')
+        self.assertEqual(testee.namespaces[0].uri, 'nsUri')
+        self.assertEqual(len(testee.mappings), 1)
+        self.assertEqual(testee.mappings[0].domain.path, 'domainPath')
+        self.assertEqual(testee.mappings[0].domain.entity, 'domainEntity')
+
+    def test_t0071(self):
+        '''X3ml: Serialize'''
+        testee = XC.X3ml()
+        testee.info.title.text = 'infoTitle'
+        ns = XC.Namespace()
+        ns.set('nsPrefix', 'nsUri')
+        testee.namespaces.append(ns)
+        mapping = XC.Mapping()
+        mapping.domain.set('domainPath', 'domainEntity')
+        testee.mappings.append(mapping)
+
+        elem = ET.Element('test')
+        testee.serialize(elem)
+
+        self.assertEqual(elem.find('info/title').text, 'infoTitle')
+        self.assertEqual(elem.find('namespaces/namespace').attrib['prefix'], 'nsPrefix')
+        self.assertEqual(elem.find('namespaces/namespace').attrib['uri'], 'nsUri')
+        self.assertEqual(elem.find('mappings/mapping/domain/source_node').text, 'domainPath')
+        self.assertEqual(elem.find('mappings/mapping/domain/target_node/entity/type').text, 'domainEntity')
+
 if __name__ == '__main__':
     unittest.main()
