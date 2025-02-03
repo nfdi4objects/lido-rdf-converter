@@ -600,14 +600,6 @@ class TargetRelationType(X3Base):
     @entity.setter
     def entity(self, value):  self.relationship.text = value
 
-    def deserialize(self, elem: ET.Element):
-        super().deserialize(elem)
-        self.ifs = [If(x) for x in elem.findall('if')]
-        rss = elem.findall('relationship')
-        self.relationship = Relationship(rss.pop())
-        ets = elem.findall('entity')
-        self.iterMediates = [Additional(Entity(e), Relationship(r)) for e, r in zip(ets, rss)]
-
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
         self.relationship.serialize(ET.SubElement(elem, 'relationship'))
@@ -617,6 +609,17 @@ class TargetRelationType(X3Base):
             x.entity.serialize(ET.SubElement(elem, 'entity'))
             x.relationship.serialize(ET.SubElement(elem, 'relationship'))
 
+    def deserialize(self, elem: ET.Element):
+        super().deserialize(elem)
+        self.ifs = [If(x) for x in elem.findall('if')]
+        rsElems = elem.findall('relationship')
+        if len(rsElems) > 0:
+            self.relationship = Relationship(rsElems.pop())
+            enElems = elem.findall('entity')
+            if len(enElems) == len(rsElems):
+                self.iterMediates = [Additional(Entity(e), Relationship(r)) for e, r in zip(enElems, rsElems)]
+
+ 
 class RangeTargetNodeType(X3Base):
     def __init__(self, elem: ET.Element | None = None) -> None:
         super().__init__(elem)

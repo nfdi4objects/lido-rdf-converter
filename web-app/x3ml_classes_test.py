@@ -608,5 +608,77 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(testee.entity.type, 'entityType')
         self.assertEqual(testee.relationship.text, 'relationshipType')
 
+    def test_t0057(self):
+        '''TargetRelationType: Ctor, Access'''
+        testee = XC.TargetRelationType()
+        self.assertEqual(testee.relationship.text, '')
+        self.assertEqual(len(testee.ifs), 0)
+        self.assertEqual(len(testee.iterMediates), 0)
+
+    def test_t0058(self):
+        '''TargetRelationType: Deserialize'''
+        elem = ET.Element('test')
+        makeElementsPathS(elem, 'relationship').text = 'relationshipType'
+        makeElementsPathS(elem, 'if')
+        makeElementsPathS(elem, 'entity/type').text = 'entityType'
+        makeElementsPathS(elem, 'relationship').text = 'intermediateRelationship'
+
+        testee = XC.TargetRelationType()
+        testee.deserialize(elem)
+
+        #self.assertEqual(testee.relationship.text, 'relationshipType')
+        self.assertEqual(len(testee.ifs), 1)
+        self.assertEqual(len(testee.iterMediates), 1)
+        self.assertEqual(testee.iterMediates[0].entity.type, 'entityType')
+        #self.assertEqual(testee.iterMediates[0].relationship.text, 'intermediateRelationship')
+
+    def test_t0059(self):
+        '''TargetRelationType: Serialize'''
+        testee = XC.TargetRelationType()
+        testee.relationship.text = 'relationshipType'
+        testee.ifs.append(XC.If())
+        intermediate = XC.Additional(XC.Entity(), XC.Relationship())
+        intermediate.entity.type = 'entityType'
+        intermediate.relationship.text = 'intermediateRelationship'
+        testee.iterMediates.append(intermediate)
+
+        elem = ET.Element('test')
+        testee.serialize(elem)
+
+        self.assertEqual(elem.find('relationship').text, 'relationshipType')
+        self.assertEqual(len(elem.findall('if')), 1)
+        #self.assertEqual(elem.find('entity/type').text, 'entityType')
+        #self.assertEqual(elem.find('relationship').text, 'intermediateRelationship')
+
+    def test_t0060(self):
+        '''RangeTargetNodeType: Ctor, Access'''
+        testee = XC.RangeTargetNodeType()
+        self.assertIsInstance(testee.entity, XC.Entity)
+        self.assertEqual(len(testee.ifs), 0)
+
+    def test_t0061(self):
+        '''RangeTargetNodeType: Deserialize'''
+        elem = ET.Element('test')
+        makeElementsPathS(elem, 'entity/type').text = 'entityType'
+        makeElementsPathS(elem, 'if')
+        testee = XC.RangeTargetNodeType()
+
+        testee.deserialize(elem)
+
+        self.assertEqual(testee.entity.type, 'entityType')
+        self.assertEqual(len(testee.ifs), 1)
+
+    def test_t0062(self):
+        '''RangeTargetNodeType: Serialize'''
+        testee = XC.RangeTargetNodeType()
+        testee.entity.type = 'entityType'
+        testee.ifs.append(XC.If())
+
+        elem = ET.Element('test')
+        testee.serialize(elem)
+
+        self.assertEqual(elem.find('entity/type').text, 'entityType')
+        self.assertEqual(len(elem.findall('if')), 1)
+
 if __name__ == '__main__':
     unittest.main()
