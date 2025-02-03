@@ -680,5 +680,35 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(elem.find('entity/type').text, 'entityType')
         self.assertEqual(len(elem.findall('if')), 1)
 
+    def test_t0063(self):
+        '''RangeTargetNodeType: Ctor'''
+        testee = XC.RangeTargetNodeType()
+        self.assertIsInstance(testee.entity, XC.Entity)
+        self.assertEqual(len(testee.ifs), 0)
+
+    def test_t0064(self):
+        '''RangeTargetNodeType: Deserialize'''
+        elem = ET.Element('test')
+        makeElementsPathS(elem, 'entity/type').text = 'entityType'
+        makeElementsPathS(elem, 'if')
+        testee = XC.RangeTargetNodeType()
+
+        testee.deserialize(elem)
+
+        self.assertEqual(testee.entity.type, 'entityType')
+        self.assertEqual(len(testee.ifs), 1)
+
+    def test_t0065(self):
+        '''RangeTargetNodeType: Serialize'''
+        testee = XC.RangeTargetNodeType()
+        testee.entity.type = 'entityType'
+        testee.ifs.append(XC.If())
+
+        elem = ET.Element('test')
+        testee.serialize(elem)
+
+        self.assertEqual(elem.find('entity/type').text, 'entityType')
+        self.assertEqual(len(elem.findall('if')), 1)
+
 if __name__ == '__main__':
     unittest.main()
