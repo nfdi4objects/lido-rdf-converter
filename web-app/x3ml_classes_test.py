@@ -491,26 +491,50 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertIsInstance(testee.op,XC.Or)
         self.assertEqual(testee.text,'')
 
+ 
     def test_t0048(self):
-        '''If 2: Serial'''
-        testee = XC.If()
-        testee.conditions.append(XC.ConditionsType(None,text='aText'))
+        '''Link 1: Ctor'''
+        testee = XC.Link()
+        self.assertIsInstance(testee.path,XC.Path)
+        self.assertEqual(testee.path.path,'')
+        self.assertEqual(testee.path.entity,'')
+        self.assertEqual(testee.range.path,'')
+        self.assertEqual(testee.range.entity,'')
+        testee.set('aPath','aRS','anEntity')
+        self.assertEqual(testee.path.path,'aPath')
+        self.assertEqual(testee.range.path,'aPath')
+        self.assertEqual(testee.path.entity,'aRS')
+        self.assertEqual(testee.range.entity,'anEntity')
+
+    def test_t0049(self):
+        '''Link 2: Serial'''
+        testee = XC.Link()
+        testee.set('aPath','aRS','anEntity')
         elem = ET.Element('test')
         testee.serialize(elem)
 
-        self.assertEqual(len(elem.findall('conditions')),1)
-        self.assertEqual(elem.find('conditions').text,'aText')
-    
-    def test_t0049(self):
-        '''If 3: DeSerial'''
+        self.assertEqual(elem.find('path/source_relation/relation').text,'aPath')
+        self.assertEqual(elem.find('path/target_relation/relationship').text,'aRS')
+        self.assertEqual(elem.find('range/source_node').text,'aPath')
+        self.assertEqual(elem.find('range/target_node/entity/type').text,'anEntity')
+
+    def test_t0050(self):
+        '''Link 3: DeSerial'''
         elem = ET.Element('test')
-        makeElementsPathS(elem,'conditions').text='aText'
-        testee = XC.If()
- 
+        pathElem = ET.SubElement(elem,'path')
+        makeElementsPathS(pathElem,'source_relation/relation').text='aPath'
+        makeElementsPathS(pathElem,'target_relation/relationship').text='aRS'
+        rangeElem = ET.SubElement(elem,'range')
+        makeElementsPathS(rangeElem,'source_node').text='aPath'
+        makeElementsPathS(rangeElem,'target_node/entity/type').text='anEntity'
+        testee = XC.Link()
+
         testee.deserialize(elem)
 
-        self.assertEqual(len(testee.conditions),1)
-        self.assertEqual(testee.conditions[0].text,'aText')
+        self.assertEqual(testee.path.path,'aPath')
+        self.assertEqual(testee.range.path,'aPath')
+        self.assertEqual(testee.path.entity,'aRS')
+        self.assertEqual(testee.range.entity,'anEntity')
 
 if __name__ == '__main__':
     unittest.main()
