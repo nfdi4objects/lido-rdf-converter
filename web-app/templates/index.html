@@ -21,7 +21,7 @@
 <body>
 
   <!-- Main dialog Item connected to vue-app -->
-  <div id="app" class="container">
+  <div id="app" class=".container-fluid">
     <!-- Upload X3ml modal dialog -->
     <div class="modal fade" id="uploadX3mlModal" tabindex="-1" aria-labelledby="uploadX3mlModalLabel"
       aria-hidden="true">
@@ -45,7 +45,7 @@
         </div>
       </div>
     </div>
-    <!-- Upload Lidomodal dialog -->
+    <!-- Upload Lido modal dialog -->
     <div class="modal fade" id="uploadLidoModal" tabindex="-1" aria-labelledby="uploadLidoModalLabel"
       aria-hidden="true">
       <div class="modal-dialog">
@@ -74,6 +74,7 @@
         <h4><span class="label label-default">Mappings (x3ml)</span></h4>
         <p>
           <button type="button" class="btn btn-primary btn-sm" @click="addMapping">Add mapping</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" @click="clearMapping">Clear all</button>&nbsp;
           <button type="button" class="btn btn-primary btn-sm" @click="uploadDfltMapping">Reset</button>&nbsp;
           <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
             data-bs-target="#uploadX3mlModal">Upload</button>&nbsp;
@@ -196,6 +197,10 @@
         },
         uploadDfltMapping() {
           post('/uploadMapping', { type: 'uploadMapping', data: null })
+            .then((res) => { this.syncronize(); rdfEditor.setValue(''); });
+        },
+        clearMapping() {
+          post('/clearMappings', { type: 'clearMappings' })
             .then((res) => { this.syncronize(); rdfEditor.setValue(''); });
         },
         uploadLidoFile() {

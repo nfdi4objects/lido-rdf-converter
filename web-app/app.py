@@ -70,7 +70,6 @@ def x3ml():
         except Exception as e:
              response_object['message'] = f'error {e}'
     else:
-        print(workX3ml.mappings[0].domain.sourceNode.text)
         response_object['jsonX3ml'] = workX3ml.toJSON()
     return jsonify(response_object)
 
@@ -97,6 +96,15 @@ def runMappings():
         wmf = storeX3ml(workX3ml,workMappingFile())
         response_object['text'] = processString(parm['data'],wmf)
         response_object['message'] = 'Mappings applied to Lido!'
+    return jsonify(response_object)
+
+@app.route('/clearMappings', methods=['GET', 'POST'])
+def clearMappings():
+    global workX3ml
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
+        workX3ml.mappings = [Mapping.create()]
+        response_object['message'] = 'Mappings deleted!'
     return jsonify(response_object)
 
 @app.route('/addMap', methods=['GET', 'POST'])

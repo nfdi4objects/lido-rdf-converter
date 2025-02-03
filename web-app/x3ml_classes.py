@@ -499,6 +499,11 @@ class Mapping(X3Base):
 
     def label(self, n=0):
         return f"Mapping {n}: Domain={self.domain.sourceNode.text}"
+    @staticmethod
+    def create():
+        m = Mapping()
+        m.domain.path = '//lido:lido'
+        return m
 
 
 class X3ml(X3Base):
