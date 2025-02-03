@@ -536,5 +536,40 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(testee.path.entity,'aRS')
         self.assertEqual(testee.range.entity,'anEntity')
 
+        def test_t0051(self):
+            '''Entity: Ctor, Access'''
+            testee = XC.Entity()
+            self.assertEqual(testee.type, '')
+            self.assertEqual(len(testee.instance_info), 0)
+
+        def test_t0052(self):
+            '''Entity: Deserialize'''
+            elem = ET.Element('test')
+            makeElementsPathS(elem, 'type').text = 'entityType'
+            instance_info_elem = makeElementsPathS(elem, 'instance_info')
+            makeElementsPathS(instance_info_elem, 'constant')
+            
+            testee = XC.Entity()
+            testee.deserialize(elem)
+            
+            self.assertEqual(testee.type, 'entityType')
+            self.assertEqual(len(testee.instance_info), 1)
+            self.assertEqual(testee.instance_info[0].mode, 'constant')
+
+        def test_t0053(self):
+            '''Entity: Serialize'''
+            testee = XC.Entity()
+            testee.type = 'entityType'
+            instance_info = XC.InstanceInfo()
+            instance_info.mode = 'constant'
+            testee.instance_info.append(instance_info)
+            
+            elem = ET.Element('test')
+            testee.serialize(elem)
+            
+            self.assertEqual(elem.find('type').text, 'entityType')
+            self.assertEqual(len(elem.findall('instance_info')), 1)
+            self.assertIsNotNone(elem.find('instance_info/constant'))
+
 if __name__ == '__main__':
     unittest.main()
