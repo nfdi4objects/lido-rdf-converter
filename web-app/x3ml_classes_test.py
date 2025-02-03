@@ -485,5 +485,32 @@ class Test_X3ml_Classes(unittest.TestCase):
 
         self.assertIsInstance(testee.op,XC.Or)
 
+    def test_t0047(self):
+        '''If 1: Ctor'''
+        testee = XC.If()
+        self.assertIsInstance(testee.op,XC.Or)
+        self.assertEqual(testee.text,'')
+
+    def test_t0048(self):
+        '''If 2: Serial'''
+        testee = XC.If()
+        testee.conditions.append(XC.ConditionsType(None,text='aText'))
+        elem = ET.Element('test')
+        testee.serialize(elem)
+
+        self.assertEqual(len(elem.findall('conditions')),1)
+        self.assertEqual(elem.find('conditions').text,'aText')
+    
+    def test_t0049(self):
+        '''If 3: DeSerial'''
+        elem = ET.Element('test')
+        makeElementsPathS(elem,'conditions').text='aText'
+        testee = XC.If()
+ 
+        testee.deserialize(elem)
+
+        self.assertEqual(len(testee.conditions),1)
+        self.assertEqual(testee.conditions[0].text,'aText')
+
 if __name__ == '__main__':
     unittest.main()
