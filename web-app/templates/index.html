@@ -169,6 +169,19 @@
   </div>
 
   <script>
+    var cidocInfo = null
+    fetch('./static/cidoc_label.json')
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (data) {
+            cidocInfo = data;
+        })
+        .catch(function (err) {
+            console.log('error: ' + err);
+        });
+
+
     var app = Vue.createApp({
       data() {
         return { x3ml: {}, lido: '', x3file: null, lidofile: null }
