@@ -165,10 +165,10 @@
 
     function createOptions(optionValues, elementId) {
       var elem = document.getElementById(elementId);
-      optionValues.forEach(function (value) {
+      optionValues.forEach(function (x) {
         option = document.createElement('option');
-        option.label = value;
-        option.value = 'crm:'+value;
+        option.label = x.entity;
+        option.value = x.prefix+':'+x.entity;
         elem.appendChild(option);
       });
     }

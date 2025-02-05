@@ -12,7 +12,22 @@ def read_rdf_file(file_path):
 def split_url(url):
     parts = urlparse(str(url))
     vs = parts.path.split('/')
-    return parts.scheme+'://'+parts.netloc+'/'.join(vs[0:-1]),vs[-1]
+    className = vs[-1]  
+    if parts.fragment:
+        className = parts.fragment
+    return parts.scheme+'://'+parts.netloc+'/'.join(vs[0:-1]),className
+
+class Info():
+    def __init__(self,entity,prefix='crm'):
+        self.entity = entity
+        self.prefix = prefix
+
+    def __lt__(self, value):
+        return self.entity < value.entity
+    
+    def __hash__(self):
+        return hash(self.entity)
+
 
 def findEntities(graph):
     classNames = set()
@@ -26,16 +41,16 @@ def findEntities(graph):
         if not path:
             path = fullPath
         if tO == isProp:
-            propNames.add(entity)
+            propNames.add(Info(entity))
         elif tO == isClass:
-            classNames.add(entity)
+            classNames.add(Info(entity))
     data = {}
     if path:
         data['path'] = path
     if classNames:
-        data['classes'] = [x for x in sorted(classNames)]
+        data['classes'] = [x.__dict__ for x in sorted(classNames)]
     if propNames:
-        data['properties'] = [x for x in sorted(propNames)]
+        data['properties'] = [x.__dict__ for x in sorted(propNames)]
     return data
     
 if __name__ == "__main__":
