@@ -16,15 +16,15 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"></script>
   <script type="text/javascript" src="static/script.js"></script>
   <title>X3ML Editor</title>
+  <datalist id="DLCidocClasses"></datalist>
+  <datalist id="DLCidocProperties"></datalist>
 </head>
 
 <body>
-
   <!-- Main dialog Item connected to vue-app -->
   <div id="app" class=".container-fluid">
     <!-- Upload X3ml modal dialog -->
-    <div class="modal fade" id="uploadX3mlModal" tabindex="-1" aria-labelledby="uploadX3mlModalLabel"
-      aria-hidden="true">
+    <div class="modal fade" id="uploadX3mlModal" tabindex="-1" aria-labelledby="uploadX3mlModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
@@ -46,8 +46,7 @@
       </div>
     </div>
     <!-- Upload Lido modal dialog -->
-    <div class="modal fade" id="uploadLidoModal" tabindex="-1" aria-labelledby="uploadLidoModalLabel"
-      aria-hidden="true">
+    <div class="modal fade" id="uploadLidoModal" tabindex="-1" aria-labelledby="uploadLidoModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
@@ -76,34 +75,28 @@
           <button type="button" class="btn btn-primary btn-sm" @click="addMapping">Add mapping</button>&nbsp;
           <button type="button" class="btn btn-primary btn-sm" @click="clearMapping">Clear all</button>&nbsp;
           <button type="button" class="btn btn-primary btn-sm" @click="uploadDfltMapping">Reset</button>&nbsp;
-          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
-            data-bs-target="#uploadX3mlModal">Upload</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal">Upload</button>&nbsp;
           <a href="/downloadX3ml" target="blank"><button class='btn btn-primary btn-sm'>Download</button></a>&nbsp;
         </p>
         <div id="acc" class="accordion accordion-flush" style="overflow-y: scroll; height:600px">
           <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
             <h2 class="accordion-header" :id="'M' + i">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#C' + i"
-                aria-expanded="false" :aria-controls="'C' + i">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#C' + i" aria-expanded="false" :aria-controls="'C' + i">
                 Mapping ${i+1}$ from: "${mapping.domain.sourceNode.text}$"
               </button>
             </h2>
-            <div :id="'C' + i" class="accordion-collapse collapse hide" :aria-labelledby="'M' + i"
-              data-bs-parent="#acc">
+            <div :id="'C' + i" class="accordion-collapse collapse hide" :aria-labelledby="'M' + i" data-bs-parent="#acc">
               <div class="accordion-body">
 
                 <div class="container-fluid">
                   <label for="fname">Path:</label>
-                  <input class="form-control" type="text" name="S-path" :id="i"
-                    v-model="mapping.domain.sourceNode.text">
+                  <input class="form-control" type="text" name="S-path" :id="i" v-model="mapping.domain.sourceNode.text">
                   <label for="lname">Entity:</label>
-                  <input class="form-control" type="text" name="S-type" :id="i"
-                    v-model="mapping.domain.targetNode.entity.type">
+                  <input class="form-control" list="DLCidocClasses" type="text" name="S-type" :id="i" v-model="mapping.domain.targetNode.entity.type">
                   <br />
                   <p>
                     <button type="button" class="btn btn-primary btn-sm" @click="applyMap" :iM="i">Submit</button>&nbsp;
-                    <button type="button" class="btn btn-primary btn-sm" @click="addLink" :iM="i">Add
-                      Link</button>&nbsp;
+                    <button type="button" class="btn btn-primary btn-sm" @click="addLink" :iM="i">Add Link</button>&nbsp;
                     <button type="button" class="btn btn-danger btn-sm" @click="deleteMap" :iM="i">Delete</button>&nbsp;
                   </p>
                 </div>
@@ -111,29 +104,22 @@
                 <div class="accordion accordion-flush" :id="'LA' + i">
                   <div class="accordion-item" v-for="(link, j) in mapping.links" :key="j">
                     <h2 class="accordion-header" :id="'L' + j">
-                      <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                        :data-bs-target="'#D' + j" aria-expanded="false" :aria-controls="'D' + j">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#D' + j" aria-expanded="false" :aria-controls="'D' + j">
                         Link ${i+1}$-${j+1}$: "${link.path.sourceRelation.relation.text}$"
                       </button>
                     </h2>
-                    <div :id="'D' + j" class="accordion-collapse collapse hide" :aria-labelledby="'L' + j"
-                      :data-bs-parent="'#LA' + i">
+                    <div :id="'D' + j" class="accordion-collapse collapse hide" :aria-labelledby="'L' + j" :data-bs-parent="'#LA' + i">
                       <div class="accordion-body">
                         <form method="post">
                           <label for="fname">Path:</label>
-                          <input class="form-control" type="text" name="P-path" :id="j"
-                            v-model="link.path.sourceRelation.relation.text">
+                          <input class="form-control" type="text" name="P-path" :id="j" v-model="link.path.sourceRelation.relation.text">
                           <label for="lname">Property</label>
-                          <input class="form-control" type="text" name="P-type" :id="j"
-                            v-model="link.path.targetRelation.relationship.text">
+                          <input class="form-control" list="DLCidocProperties" type="text" name="P-type" :id="j" v-model="link.path.targetRelation.relationship.text">
                           <label for="lname">Entity</label>
-                          <input class="form-control" type="text" name="P-type" :id="j"
-                            v-model="link.range.targetNode.entity.type">
+                          <input class="form-control" list="DLCidocClasses" type="text" name="P-type" :id="j" v-model="link.range.targetNode.entity.type">
                           <br />
-                          <button type="button" class="btn btn-primary btn-sm" @click="applyLink" :iM="i"
-                            :iL="j">Submit</button>&nbsp;
-                          <button type="button" class="btn btn-danger btn-sm" @click="deleteLink" :iM="i"
-                            :iL="j">Delete</button>&nbsp;
+                          <button type="button" class="btn btn-primary btn-sm" @click="applyLink" :iM="i" :iL="j">Submit</button>&nbsp;
+                          <button type="button" class="btn btn-danger btn-sm" @click="deleteLink" :iM="i" :iL="j">Delete</button>&nbsp;
                         </form>
                       </div>
                     </div>
@@ -148,8 +134,7 @@
       <div class="col">
         <h4>Lido source (xml)</h4>
         <p>
-          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
-            data-bs-target="#uploadLidoModal">Upload Lido</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadLidoModal">Upload Lido</button>&nbsp;
           <button type="button" class="btn btn-primary btn-sm" onclick="getLido()">Reset</button>&nbsp;
         </p>
         <div id="sourceEditor" style="height:600px"></div>
@@ -170,17 +155,29 @@
 
   <script>
     var cidocInfo = null
-    fetch('./static/cidoc_label.json')
-        .then(function (response) {
-            return response.json();
-        })
-        .then(function (data) {
-            cidocInfo = data;
-        })
-        .catch(function (err) {
-            console.log('error: ' + err);
-        });
 
+    function createOptions(optionValues, elementId) {
+      var elem = document.getElementById(elementId);
+      optionValues.forEach(function (value) {
+        option = document.createElement('option');
+        option.label = value;
+        option.value = 'crm:'+value;
+        elem.appendChild(option);
+      });
+    }
+
+    fetch('./static/cidoc_label.json')
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (data) {
+        cidocInfo = data;
+        createOptions(cidocInfo.classes, 'DLCidocClasses')
+        createOptions(cidocInfo.properties, 'DLCidocProperties')
+      })
+      .catch(function (err) {
+        console.log('error: ' + err);
+      });
 
     var app = Vue.createApp({
       data() {
@@ -234,13 +231,13 @@
         },
         addMapping(event) {
           data = { type: 'addMapping', mIndex: -1 }
-          post('/addMap', data).then(res => {this.syncronize();});
+          post('/addMap', data).then(res => { this.syncronize(); });
         },
         deleteMap(event) {
           attrs = event.target.attributes;
           if (attrs.iM) {
             mIndex = attrs.iM.value;
-            del('/deleteMap/' + mIndex).then(res => {this.syncronize();});
+            del('/deleteMap/' + mIndex).then(res => { this.syncronize(); });
           }
         },
         applyMap(event) {
@@ -254,7 +251,7 @@
               path: mapping.domain.sourceNode.text,
               entity: mapping.domain.targetNode.entity.type
             };
-            post('/x3ml', data).then(res => {this.syncronize();});
+            post('/x3ml', data).then(res => { this.syncronize(); });
           }
         },
         applyLink(event) {
@@ -271,7 +268,7 @@
               relationship: link.path.targetRelation.relationship.text,
               entity: link.range.targetNode.entity.type
             };
-            post('/x3ml', data).then(res => {this.syncronize();});
+            post('/x3ml', data).then(res => { this.syncronize(); });
           }
         },
         deleteLink(event) {
@@ -279,7 +276,7 @@
           if (attrs.iM && attrs.iL) {
             mIndex = attrs.iM.value;
             lIndex = attrs.iL.value;
-            del('/deleteLink/' + mIndex + '/' + lIndex).then(res => {this.syncronize();});
+            del('/deleteLink/' + mIndex + '/' + lIndex).then(res => { this.syncronize(); });
           }
         },
         addLink(event) {
@@ -287,7 +284,14 @@
           if (attrs.iM) {
             mIndex = attrs.iM.value;
             data = { type: 'addLink', mIndex: mIndex, lIndex: -1 };
-            post('/addLink', data).then((res) => {this.syncronize(); });
+            post('/addLink', data).then((res) => { this.syncronize(); });
+          }
+        }
+      },
+      mounted() {
+        document.onreadystatechange = () => {
+          if (document.readyState == "complete") {
+            console.log('ready');
           }
         }
       },
