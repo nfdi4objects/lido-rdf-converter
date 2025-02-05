@@ -93,7 +93,10 @@
                   <input class="form-control" type="text" name="S-path" :id="i" v-model="mapping.domain.sourceNode.text">
                   <label for="lname">Entity:</label>
                   <input class="form-control" list="DLCidocClasses" type="text" name="S-type" :id="i" v-model="mapping.domain.targetNode.entity.type">
-                  <br />
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" :id="'Mapskip' + i" v-model="mapping.skip">
+                    <label class="form-check-label" :for="'Mapskip' + i">Skip</label>
+                  </div>
                   <p>
                     <button type="button" class="btn btn-primary btn-sm" @click="applyMap" :iM="i">Submit</button>&nbsp;
                     <button type="button" class="btn btn-primary btn-sm" @click="addLink" :iM="i">Add Link</button>&nbsp;
@@ -117,7 +120,11 @@
                           <input class="form-control" list="DLCidocProperties" type="text" name="P-type" :id="j" v-model="link.path.targetRelation.relationship.text">
                           <label for="lname">Entity</label>
                           <input class="form-control" list="DLCidocClasses" type="text" name="P-type" :id="j" v-model="link.range.targetNode.entity.type">
-                          <br />
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" :id="'LinkSkip' + i +'-' + j" v-model="link.skip">
+                            <label class="form-check-label" :for="'LinkSkip' + i +'-' + j">Skip</label>
+                          </div>
+                                  <br />
                           <button type="button" class="btn btn-primary btn-sm" @click="applyLink" :iM="i" :iL="j">Submit</button>&nbsp;
                           <button type="button" class="btn btn-danger btn-sm" @click="deleteLink" :iM="i" :iL="j">Delete</button>&nbsp;
                         </form>
@@ -248,6 +255,7 @@
             data = {
               type: 'mapping',
               mIndex: mIndex,
+              skip: mapping.skip,
               path: mapping.domain.sourceNode.text,
               entity: mapping.domain.targetNode.entity.type
             };
@@ -264,6 +272,7 @@
               type: 'link',
               mIndex: mIndex,
               lIndex: lIndex,
+              skip: link.skip,
               path: link.path.sourceRelation.relation.text,
               relationship: link.path.targetRelation.relationship.text,
               entity: link.range.targetNode.entity.type
