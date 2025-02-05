@@ -1,13 +1,44 @@
 {
-   "path": "http://www.cidoc-crm.org/cidoc-crm",
+   "namespaces": {
+      "crm": "http://www.cidoc-crm.org/cidoc-crm/",
+      "skos": "http://www.w3.org/2004/02/skos/core#",
+      "brick": "https://brickschema.org/schema/Brick#",
+      "csvw": "http://www.w3.org/ns/csvw#",
+      "dc": "http://purl.org/dc/elements/1.1/",
+      "dcat": "http://www.w3.org/ns/dcat#",
+      "dcmitype": "http://purl.org/dc/dcmitype/",
+      "dcterms": "http://purl.org/dc/terms/",
+      "dcam": "http://purl.org/dc/dcam/",
+      "doap": "http://usefulinc.com/ns/doap#",
+      "foaf": "http://xmlns.com/foaf/0.1/",
+      "geo": "http://www.opengis.net/ont/geosparql#",
+      "odrl": "http://www.w3.org/ns/odrl/2/",
+      "org": "http://www.w3.org/ns/org#",
+      "prof": "http://www.w3.org/ns/dx/prof/",
+      "prov": "http://www.w3.org/ns/prov#",
+      "qb": "http://purl.org/linked-data/cube#",
+      "schema": "https://schema.org/",
+      "sh": "http://www.w3.org/ns/shacl#",
+      "sosa": "http://www.w3.org/ns/sosa/",
+      "ssn": "http://www.w3.org/ns/ssn/",
+      "time": "http://www.w3.org/2006/time#",
+      "vann": "http://purl.org/vocab/vann/",
+      "void": "http://rdfs.org/ns/void#",
+      "wgs": "https://www.w3.org/2003/01/geo/wgs84_pos#",
+      "owl": "http://www.w3.org/2002/07/owl#",
+      "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+      "xsd": "http://www.w3.org/2001/XMLSchema#",
+      "xml": "http://www.w3.org/XML/1998/namespace"
+   },
    "classes": [
       {
          "entity": "Concept",
-         "prefix": "crm"
+         "prefix": "skos"
       },
       {
          "entity": "ConceptScheme",
-         "prefix": "crm"
+         "prefix": "skos"
       },
       {
          "entity": "E10_Transfer_of_Custody",
@@ -1525,11 +1556,11 @@
       },
       {
          "entity": "hasGeometry",
-         "prefix": "crm"
+         "prefix": "geo"
       },
       {
          "entity": "inScheme",
-         "prefix": "crm"
+         "prefix": "skos"
       }
    ],
    "source": "cidoc-crm.rdf"
