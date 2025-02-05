@@ -48,6 +48,7 @@ if __name__ == "__main__":
         data['source'] = file_path
         print(json.dumps(data, indent=3))
     else:
-        print('Usage: python getCidocLabels.py <rdf_file>')
-        print('Example: python getCidocLabels.py CIDOC_CRM_v7.1.1.rdf')
+        appName = sys.argv[0]
+        print(f'Usage: python {appName} <rdf_file>')
+        print(f'Example: python {appName} CIDOC_CRM_v7.1.1.rdf')
         sys.exit(1)
