@@ -454,6 +454,7 @@ class Link(X3Base):
     '''Model class for link elements'''
     def __init__(self, elem: ET.Element | None = None):
         super().__init__(elem)
+        self.skip = False
         self.path = Path()
         self.range = Range()
         if NN(elem):
@@ -465,11 +466,13 @@ class Link(X3Base):
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
+        self.skip = elem.attrib.get('skip', 'false') == 'true'
         self.path = Path(elem.find('path'))
         self.range = Range(elem.find('range'))
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
+        elem.attrib['skip'] = 'true' if self.skip else 'false'
         self.path.serialize(ET.SubElement(elem, 'path'))
         self.range.serialize(ET.SubElement(elem, 'range'))
         return elem
@@ -479,6 +482,7 @@ class Mapping(X3Base):
     '''Model class for mapping elements'''
     def __init__(self, elem: ET.Element | None = None):
         super().__init__(elem)
+        self.skip = False
         self.domain = Domain()
         self.links = []
         if NN(elem):
@@ -486,12 +490,14 @@ class Mapping(X3Base):
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
+        self.skip = elem.attrib.get('skip', 'false') == 'true'
         self.domain = Domain(elem.find('domain'))
         self.links = [Link(x) for x in elem.findall('link')]
         return self
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
+        elem.attrib['skip'] = 'true' if self.skip else 'false'
         self.domain.serialize(ET.SubElement(elem, 'domain'))
         for link in self.links:
             link.serialize(ET.SubElement(elem, 'link'))
