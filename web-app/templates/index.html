@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://getbootstrap.com/docs/5.3/assets/css/docs.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="{{url_for('static',filename='lidostyle.css')}}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="text/javascript" src="static/script.js"></script>
+  <title>X3ML Editor</title>
+  <datalist id="DLCidocClasses"></datalist>
+  <datalist id="DLCidocProperties"></datalist>
+</head>
+
+<body>
+  <!-- Main dialog Item connected to vue-app -->
+  <div id="app" class=".container-fluid">
+    <!-- Upload X3ml modal dialog -->
+    <div class="modal fade" id="uploadX3mlModal" tabindex="-1" aria-labelledby="uploadX3mlModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="uploadX3mlModalLabel">Uploading X3ml mappings</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form novalidate @submit.prevent="uploadDLFile">
+              <div class="input-group mb-3">
+                <input type="file" class="form-control" @change="addX3mlFile" />&nbsp;
+                <input type="submit" class="btn btn-primary" data-bs-dismiss="modal" value="Open" />
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Upload Lido modal dialog -->
+    <div class="modal fade" id="uploadLidoModal" tabindex="-1" aria-labelledby="uploadLidoModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="uploadLidoModalLabel">Uploading Lido file</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form novalidate @submit.prevent="uploadLidoFile">
+              <div class="input-group mb-3">
+                <input type="file" class="form-control" @change="addLidoFile" />&nbsp;
+                <input type="submit" class="btn btn-primary" data-bs-dismiss="modal" value="Open" />
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Main dialog -->
+    <div class="row">
+      <div class="col">
+        <h4><span class="label label-default">Mappings (x3ml)</span></h4>
+        <p>
+          <button type="button" class="btn btn-primary btn-sm" @click="addMapping">Add mapping</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" @click="clearMapping">Clear all</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" @click="uploadDfltMapping">Reset</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal">Upload</button>&nbsp;
+          <a href="/downloadX3ml" target="blank"><button class='btn btn-primary btn-sm'>Download</button></a>&nbsp;
+        </p>
+        <div id="acc" class="accordion accordion-flush" style="overflow-y: scroll; height:600px">
+          <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
+            <h2 class="accordion-header" :id="'M' + i">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#C' + i" aria-expanded="false" :aria-controls="'C' + i">
+                Mapping ${i+1}$ from: "${mapping.domain.sourceNode.text}$"
+              </button>
+            </h2>
+            <div :id="'C' + i" class="accordion-collapse collapse hide" :aria-labelledby="'M' + i" data-bs-parent="#acc">
+              <div class="accordion-body">
+
+                <div class="container-fluid">
+                  <label for="fname">Path:</label>
+                  <input class="form-control" type="text" name="S-path" :id="i" v-model="mapping.domain.sourceNode.text">
+                  <label for="lname">Entity:</label>
+                  <input class="form-control" list="DLCidocClasses" type="text" name="S-type" :id="i" v-model="mapping.domain.targetNode.entity.type">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" :id="'Mapskip' + i" v-model="mapping.attributes.skip">
+                    <label class="form-check-label" :for="'Mapskip' + i">Skip</label>
+                  </div>
+                  <p>
+                    <button type="button" class="btn btn-primary btn-sm" @click="applyMap" :iM="i">Submit</button>&nbsp;
+                    <button type="button" class="btn btn-primary btn-sm" @click="addLink" :iM="i">Add Link</button>&nbsp;
+                    <button type="button" class="btn btn-danger btn-sm" @click="deleteMap" :iM="i">Delete</button>&nbsp;
+                  </p>
+                </div>
+
+                <div class="accordion accordion-flush" :id="'LA' + i">
+                  <div class="accordion-item" v-for="(link, j) in mapping.links" :key="j">
+                    <h2 class="accordion-header" :id="'L' + j">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#D' + j" aria-expanded="false" :aria-controls="'D' + j">
+                        Link ${i+1}$-${j+1}$: "${link.path.sourceRelation.relation.text}$"
+                      </button>
+                    </h2>
+                    <div :id="'D' + j" class="accordion-collapse collapse hide" :aria-labelledby="'L' + j" :data-bs-parent="'#LA' + i">
+                      <div class="accordion-body">
+                        <form method="post">
+                          <label for="fname">Path:</label>
+                          <input class="form-control" type="text" name="P-path" :id="j" v-model="link.path.sourceRelation.relation.text">
+                          <label for="lname">Property</label>
+                          <input class="form-control" list="DLCidocProperties" type="text" name="P-type" :id="j" v-model="link.path.targetRelation.relationship.text">
+                          <label for="lname">Entity</label>
+                          <input class="form-control" list="DLCidocClasses" type="text" name="P-type" :id="j" v-model="link.range.targetNode.entity.type">
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" :id="'LinkSkip' + i +'-' + j" v-model="link.attributes.skip">
+                            <label class="form-check-label" :for="'LinkSkip' + i +'-' + j">Skip</label>
+                          </div>
+                                  <br />
+                          <button type="button" class="btn btn-primary btn-sm" @click="applyLink" :iM="i" :iL="j">Submit</button>&nbsp;
+                          <button type="button" class="btn btn-danger btn-sm" @click="deleteLink" :iM="i" :iL="j">Delete</button>&nbsp;
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <br />
+      </div>
+      <div class="col">
+        <h4>Lido source (xml)</h4>
+        <p>
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadLidoModal">Upload Lido</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" onclick="getLido()">Reset</button>&nbsp;
+        </p>
+        <div id="sourceEditor" style="height:600px"></div>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h4>RDF Output (ttl)</h4>
+        <p>
+          <button type="button" class="btn btn-success btn-sm" onclick="runMappings()">Apply mappings</button>&nbsp;
+        </p>
+        <div id="rdfEditor"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var cidocInfo = null
+
+    function createOptions(optionValues, elementId) {
+      var elem = document.getElementById(elementId);
+      optionValues.forEach(function (value) {
+        option = document.createElement('option');
+        option.label = value;
+        option.value = 'crm:'+value;
+        elem.appendChild(option);
+      });
+    }
+
+    fetch('./static/cidoc_label.json')
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (data) {
+        cidocInfo = data;
+        createOptions(cidocInfo.classes, 'DLCidocClasses')
+        createOptions(cidocInfo.properties, 'DLCidocProperties')
+      })
+      .catch(function (err) {
+        console.log('error: ' + err);
+      });
+
+    var app = Vue.createApp({
+      data() {
+        return { x3ml: {}, lido: '', x3file: null, lidofile: null }
+      },
+      delimiters: ["${", "}$"], // for global
+      compilerOptions: { delimiters: ["${", "}$"] }, // for standalone
+      methods: {
+        addX3mlFile(event) {
+          this.x3file = event.target.files[0];
+        },
+        addLidoFile(event) {
+          this.lidofile = event.target.files[0];
+        },
+        uploadDLFile() {
+          if (this.x3file) {
+            const pText = this.x3file.text();
+            pText.then((x3mlStr) => {
+              post('/uploadMapping', { type: 'uploadMapping', data: x3mlStr })
+                .then((res) => {
+                  this.x3file = null;
+                  this.syncronize();
+                  rdfEditor.setValue('');
+                });
+            });
+          }
+        },
+        uploadDfltMapping() {
+          post('/uploadMapping', { type: 'uploadMapping', data: null })
+            .then((res) => { this.syncronize(); rdfEditor.setValue(''); });
+        },
+        clearMapping() {
+          post('/clearMappings', { type: 'clearMappings' })
+            .then((res) => { this.syncronize(); rdfEditor.setValue(''); });
+        },
+        uploadLidoFile() {
+          if (this.lidofile) {
+            const pText = this.lidofile.text();
+            pText.then((lidoStr) => {
+              sourceEditor.setValue(lidoStr)
+              rdfEditor.setValue('');
+              this.lidofile = null
+            });
+          }
+        },
+        syncronize() {
+          get("/x3ml")
+            .then((response) => response.json())
+            .then((jsData) => { console.log('sync'); this.x3ml = JSON.parse(jsData.jsonX3ml); })
+            .catch((err) => { console.error(err); });
+        },
+        addMapping(event) {
+          data = { type: 'addMapping', mIndex: -1 }
+          post('/addMap', data).then(res => { this.syncronize(); });
+        },
+        deleteMap(event) {
+          attrs = event.target.attributes;
+          if (attrs.iM) {
+            mIndex = attrs.iM.value;
+            del('/deleteMap/' + mIndex).then(res => { this.syncronize(); });
+          }
+        },
+        applyMap(event) {
+          attrs = event.target.attributes;
+          if (attrs.iM) {
+            mIndex = attrs.iM.value;
+            mapping = this.x3ml.mappings[mIndex];
+            data = {
+              type: 'mapping',
+              mIndex: mIndex,
+              skip: mapping.attributes.skip.toString(),
+              path: mapping.domain.sourceNode.text,
+              entity: mapping.domain.targetNode.entity.type
+            };
+            post('/x3ml', data).then(res => { this.syncronize(); });
+          }
+        },
+        applyLink(event) {
+          attrs = event.target.attributes;
+          if (attrs.iM && attrs.iL) {
+            mIndex = attrs.iM.value;
+            lIndex = attrs.iL.value;
+            link = this.x3ml.mappings[mIndex].links[lIndex];
+            data = {
+              type: 'link',
+              mIndex: mIndex,
+              lIndex: lIndex,
+              skip: link.attributes.skip.toString(),
+              path: link.path.sourceRelation.relation.text,
+              relationship: link.path.targetRelation.relationship.text,
+              entity: link.range.targetNode.entity.type
+            };
+            post('/x3ml', data).then(res => { this.syncronize(); });
+          }
+        },
+        deleteLink(event) {
+          attrs = event.target.attributes;
+          if (attrs.iM && attrs.iL) {
+            mIndex = attrs.iM.value;
+            lIndex = attrs.iL.value;
+            del('/deleteLink/' + mIndex + '/' + lIndex).then(res => { this.syncronize(); });
+          }
+        },
+        addLink(event) {
+          attrs = event.target.attributes;
+          if (attrs.iM) {
+            mIndex = attrs.iM.value;
+            data = { type: 'addLink', mIndex: mIndex, lIndex: -1 };
+            post('/addLink', data).then((res) => { this.syncronize(); });
+          }
+        }
+      },
+      mounted() {
+        document.onreadystatechange = () => {
+          if (document.readyState == "complete") {
+            console.log('ready');
+          }
+        }
+      },
+      created() {
+        this.syncronize();
+        getLido();
+      }
+    }).mount('#app');
+
+    function makeEditor(label, style = "ace/theme/monokai", fmt = "ace/mode/xml") {
+      var ed = ace.edit(label);
+      ed.setTheme(style);
+      ed.session.setMode(fmt);
+      ed.setPrintMarginColumn(-1);
+      return ed;
+    }
+
+    var sourceEditor = makeEditor("sourceEditor");
+    sourceEditor.setValue(app.lido);
+    var rdfEditor = makeEditor("rdfEditor", "", "ace/mode/turtle");
+    //rdfEditor.setOptions({ "readOnly": true });
+
+    function getLido() {
+      get("/loadLido")
+        .then((response) => response.json())
+        .then((jsData) => { sourceEditor.setValue(jsData.lidoData); })
+        .catch((err) => { console.error(err); });
+    };
+
+    function runMappings() {
+      data = { type: '/runMappings', data: sourceEditor.getValue() }
+      post('/runMappings', data)
+        .then(res => res.json())
+        .then(s => rdfEditor.setValue(s.text));
+      app.syncronize();
+    }
+
+  </script>
+</body>
+
+</html>
