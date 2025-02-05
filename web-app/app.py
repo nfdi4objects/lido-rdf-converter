@@ -66,7 +66,7 @@ def x3ml():
                     mapping.domain.set(parm['path'], parm['entity'])
                 case 'link':
                     link = mapping.links[int(parm['lIndex'])]
-                    link.skip = parm['skip'] 
+                    link.skip = parm['skip']
                     link.set(parm['path'],parm['relationship'], parm['entity'])
             response_object['message'] = 'Map changes applied!'
         except Exception as e:

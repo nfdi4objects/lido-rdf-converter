@@ -94,7 +94,7 @@
                   <label for="lname">Entity:</label>
                   <input class="form-control" list="DLCidocClasses" type="text" name="S-type" :id="i" v-model="mapping.domain.targetNode.entity.type">
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" :id="'Mapskip' + i" v-model="mapping.skip">
+                    <input class="form-check-input" type="checkbox" value="" :id="'Mapskip' + i" v-model="mapping.attributes.skip">
                     <label class="form-check-label" :for="'Mapskip' + i">Skip</label>
                   </div>
                   <p>
@@ -121,7 +121,7 @@
                           <label for="lname">Entity</label>
                           <input class="form-control" list="DLCidocClasses" type="text" name="P-type" :id="j" v-model="link.range.targetNode.entity.type">
                           <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" :id="'LinkSkip' + i +'-' + j" v-model="link.skip">
+                            <input class="form-check-input" type="checkbox" value="" :id="'LinkSkip' + i +'-' + j" v-model="link.attributes.skip">
                             <label class="form-check-label" :for="'LinkSkip' + i +'-' + j">Skip</label>
                           </div>
                                   <br />
@@ -255,7 +255,7 @@
             data = {
               type: 'mapping',
               mIndex: mIndex,
-              skip: mapping.skip,
+              skip: mapping.attributes.skip.toString(),
               path: mapping.domain.sourceNode.text,
               entity: mapping.domain.targetNode.entity.type
             };
@@ -272,7 +272,7 @@
               type: 'link',
               mIndex: mIndex,
               lIndex: lIndex,
-              skip: link.skip,
+              skip: link.attributes.skip.toString(),
               path: link.path.sourceRelation.relation.text,
               relationship: link.path.targetRelation.relationship.text,
               entity: link.range.targetNode.entity.type
