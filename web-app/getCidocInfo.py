@@ -30,7 +30,10 @@ class QNameInfo():
     
     def __hash__(self):
         return hash(self.entity)
-
+    
+    def __str__(self):
+        return f'{self.prefix}:{self.entity}'
+    
 ''' Get all entity and property names from the graph '''
 def getQNameInfos(graph,**kw):
     entities = set()
