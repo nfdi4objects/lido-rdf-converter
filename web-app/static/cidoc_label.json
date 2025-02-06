@@ -1,7 +1,6 @@
 {
+   "source": "cidoc-crm.rdf",
    "namespaces": {
-      "crm": "http://www.cidoc-crm.org/cidoc-crm/",
-      "skos": "http://www.w3.org/2004/02/skos/core#",
       "brick": "https://brickschema.org/schema/Brick#",
       "csvw": "http://www.w3.org/ns/csvw#",
       "dc": "http://purl.org/dc/elements/1.1/",
@@ -19,6 +18,7 @@
       "qb": "http://purl.org/linked-data/cube#",
       "schema": "https://schema.org/",
       "sh": "http://www.w3.org/ns/shacl#",
+      "skos": "http://www.w3.org/2004/02/skos/core#",
       "sosa": "http://www.w3.org/ns/sosa/",
       "ssn": "http://www.w3.org/ns/ssn/",
       "time": "http://www.w3.org/2006/time#",
@@ -29,1539 +29,1539 @@
       "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
       "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
       "xsd": "http://www.w3.org/2001/XMLSchema#",
-      "xml": "http://www.w3.org/XML/1998/namespace"
+      "xml": "http://www.w3.org/XML/1998/namespace",
+      "crm": "http://www.cidoc-crm.org/cidoc-crm/"
    },
    "classes": [
       {
-         "entity": "Concept",
-         "prefix": "skos"
+         "prefix": "skos",
+         "entity": "Concept"
       },
       {
-         "entity": "ConceptScheme",
-         "prefix": "skos"
+         "prefix": "skos",
+         "entity": "ConceptScheme"
       },
       {
-         "entity": "E10_Transfer_of_Custody",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E10_Transfer_of_Custody"
       },
       {
-         "entity": "E11_Modification",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E11_Modification"
       },
       {
-         "entity": "E12_Production",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E12_Production"
       },
       {
-         "entity": "E13_Attribute_Assignment",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E13_Attribute_Assignment"
       },
       {
-         "entity": "E14_Condition_Assessment",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E14_Condition_Assessment"
       },
       {
-         "entity": "E15_Identifier_Assignment",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E15_Identifier_Assignment"
       },
       {
-         "entity": "E16_Measurement",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E16_Measurement"
       },
       {
-         "entity": "E17_Type_Assignment",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E17_Type_Assignment"
       },
       {
-         "entity": "E18_Physical_Thing",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E18_Physical_Thing"
       },
       {
-         "entity": "E19_Physical_Object",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E19_Physical_Object"
       },
       {
-         "entity": "E1_CRM_Entity",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E1_CRM_Entity"
       },
       {
-         "entity": "E20_Biological_Object",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E20_Biological_Object"
       },
       {
-         "entity": "E21_Person",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E21_Person"
       },
       {
-         "entity": "E22_Human-Made_Object",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E22_Human-Made_Object"
       },
       {
-         "entity": "E24_Physical_Human-Made_Thing",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E24_Physical_Human-Made_Thing"
       },
       {
-         "entity": "E25_Human-Made_Feature",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E25_Human-Made_Feature"
       },
       {
-         "entity": "E26_Physical_Feature",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E26_Physical_Feature"
       },
       {
-         "entity": "E27_Site",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E27_Site"
       },
       {
-         "entity": "E28_Conceptual_Object",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E28_Conceptual_Object"
       },
       {
-         "entity": "E29_Design_or_Procedure",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E29_Design_or_Procedure"
       },
       {
-         "entity": "E2_Temporal_Entity",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E2_Temporal_Entity"
       },
       {
-         "entity": "E30_Right",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E30_Right"
       },
       {
-         "entity": "E31_Document",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E31_Document"
       },
       {
-         "entity": "E33_E41_Linguistic_Appellation",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E33_E41_Linguistic_Appellation"
       },
       {
-         "entity": "E33_Linguistic_Object",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E33_Linguistic_Object"
       },
       {
-         "entity": "E34_Inscription",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E34_Inscription"
       },
       {
-         "entity": "E35_Title",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E35_Title"
       },
       {
-         "entity": "E36_Visual_Item",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E36_Visual_Item"
       },
       {
-         "entity": "E37_Mark",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E37_Mark"
       },
       {
-         "entity": "E39_Actor",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E39_Actor"
       },
       {
-         "entity": "E3_Condition_State",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E3_Condition_State"
       },
       {
-         "entity": "E41_Appellation",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E41_Appellation"
       },
       {
-         "entity": "E42_Identifier",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E42_Identifier"
       },
       {
-         "entity": "E4_Period",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E4_Period"
       },
       {
-         "entity": "E52_Time-Span",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E52_Time-Span"
       },
       {
-         "entity": "E53_Place",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E53_Place"
       },
       {
-         "entity": "E54_Dimension",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E54_Dimension"
       },
       {
-         "entity": "E56_Language",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E56_Language"
       },
       {
-         "entity": "E57_Material",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E57_Material"
       },
       {
-         "entity": "E58_Measurement_Unit",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E58_Measurement_Unit"
       },
       {
-         "entity": "E5_Event",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E5_Event"
       },
       {
-         "entity": "E63_Beginning_of_Existence",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E63_Beginning_of_Existence"
       },
       {
-         "entity": "E64_End_of_Existence",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E64_End_of_Existence"
       },
       {
-         "entity": "E65_Creation",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E65_Creation"
       },
       {
-         "entity": "E66_Formation",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E66_Formation"
       },
       {
-         "entity": "E67_Birth",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E67_Birth"
       },
       {
-         "entity": "E68_Dissolution",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E68_Dissolution"
       },
       {
-         "entity": "E69_Death",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E69_Death"
       },
       {
-         "entity": "E6_Destruction",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E6_Destruction"
       },
       {
-         "entity": "E70_Thing",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E70_Thing"
       },
       {
-         "entity": "E71_Human-Made_Thing",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E71_Human-Made_Thing"
       },
       {
-         "entity": "E72_Legal_Object",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E72_Legal_Object"
       },
       {
-         "entity": "E73_Information_Object",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E73_Information_Object"
       },
       {
-         "entity": "E74_Group",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E74_Group"
       },
       {
-         "entity": "E77_Persistent_Item",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E77_Persistent_Item"
       },
       {
-         "entity": "E78_Curated_Holding",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E78_Curated_Holding"
       },
       {
-         "entity": "E79_Part_Addition",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E79_Part_Addition"
       },
       {
-         "entity": "E7_Activity",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E7_Activity"
       },
       {
-         "entity": "E80_Part_Removal",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E80_Part_Removal"
       },
       {
-         "entity": "E81_Transformation",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E81_Transformation"
       },
       {
-         "entity": "E83_Type_Creation",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E83_Type_Creation"
       },
       {
-         "entity": "E85_Joining",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E85_Joining"
       },
       {
-         "entity": "E86_Leaving",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E86_Leaving"
       },
       {
-         "entity": "E87_Curation_Activity",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E87_Curation_Activity"
       },
       {
-         "entity": "E89_Propositional_Object",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E89_Propositional_Object"
       },
       {
-         "entity": "E8_Acquisition",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E8_Acquisition"
       },
       {
-         "entity": "E90_Symbolic_Object",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E90_Symbolic_Object"
       },
       {
-         "entity": "E92_Spacetime_Volume",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E92_Spacetime_Volume"
       },
       {
-         "entity": "E93_Presence",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E93_Presence"
       },
       {
-         "entity": "E96_Purchase",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E96_Purchase"
       },
       {
-         "entity": "E97_Monetary_Amount",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E97_Monetary_Amount"
       },
       {
-         "entity": "E98_Currency",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E98_Currency"
       },
       {
-         "entity": "E99_Product_Type",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E99_Product_Type"
       },
       {
-         "entity": "E9_Move",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "E9_Move"
       }
    ],
    "properties": [
       {
-         "entity": "P100_was_death_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P100_was_death_of"
       },
       {
-         "entity": "P100i_died_in",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P100i_died_in"
       },
       {
-         "entity": "P101_had_as_general_use",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P101_had_as_general_use"
       },
       {
-         "entity": "P101i_was_use_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P101i_was_use_of"
       },
       {
-         "entity": "P102_has_title",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P102_has_title"
       },
       {
-         "entity": "P102i_is_title_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P102i_is_title_of"
       },
       {
-         "entity": "P103_was_intended_for",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P103_was_intended_for"
       },
       {
-         "entity": "P103i_was_intention_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P103i_was_intention_of"
       },
       {
-         "entity": "P104_is_subject_to",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P104_is_subject_to"
       },
       {
-         "entity": "P104i_applies_to",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P104i_applies_to"
       },
       {
-         "entity": "P105_right_held_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P105_right_held_by"
       },
       {
-         "entity": "P105i_has_right_on",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P105i_has_right_on"
       },
       {
-         "entity": "P106_is_composed_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P106_is_composed_of"
       },
       {
-         "entity": "P106i_forms_part_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P106i_forms_part_of"
       },
       {
-         "entity": "P107_has_current_or_former_member",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P107_has_current_or_former_member"
       },
       {
-         "entity": "P107i_is_current_or_former_member_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P107i_is_current_or_former_member_of"
       },
       {
-         "entity": "P108_has_produced",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P108_has_produced"
       },
       {
-         "entity": "P108i_was_produced_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P108i_was_produced_by"
       },
       {
-         "entity": "P109_has_current_or_former_curator",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P109_has_current_or_former_curator"
       },
       {
-         "entity": "P109i_is_current_or_former_curator_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P109i_is_current_or_former_curator_of"
       },
       {
-         "entity": "P10_falls_within",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P10_falls_within"
       },
       {
-         "entity": "P10i_contains",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P10i_contains"
       },
       {
-         "entity": "P110_augmented",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P110_augmented"
       },
       {
-         "entity": "P110i_was_augmented_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P110i_was_augmented_by"
       },
       {
-         "entity": "P111_added",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P111_added"
       },
       {
-         "entity": "P111i_was_added_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P111i_was_added_by"
       },
       {
-         "entity": "P112_diminished",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P112_diminished"
       },
       {
-         "entity": "P112i_was_diminished_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P112i_was_diminished_by"
       },
       {
-         "entity": "P113_removed",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P113_removed"
       },
       {
-         "entity": "P113i_was_removed_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P113i_was_removed_by"
       },
       {
-         "entity": "P11_had_participant",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P11_had_participant"
       },
       {
-         "entity": "P11i_participated_in",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P11i_participated_in"
       },
       {
-         "entity": "P121_overlaps_with",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P121_overlaps_with"
       },
       {
-         "entity": "P122_borders_with",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P122_borders_with"
       },
       {
-         "entity": "P123_resulted_in",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P123_resulted_in"
       },
       {
-         "entity": "P123i_resulted_from",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P123i_resulted_from"
       },
       {
-         "entity": "P124_transformed",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P124_transformed"
       },
       {
-         "entity": "P124i_was_transformed_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P124i_was_transformed_by"
       },
       {
-         "entity": "P125_used_object_of_type",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P125_used_object_of_type"
       },
       {
-         "entity": "P125i_was_type_of_object_used_in",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P125i_was_type_of_object_used_in"
       },
       {
-         "entity": "P126_employed",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P126_employed"
       },
       {
-         "entity": "P126i_was_employed_in",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P126i_was_employed_in"
       },
       {
-         "entity": "P128_carries",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P128_carries"
       },
       {
-         "entity": "P128i_is_carried_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P128i_is_carried_by"
       },
       {
-         "entity": "P129_is_about",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P129_is_about"
       },
       {
-         "entity": "P129i_is_subject_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P129i_is_subject_of"
       },
       {
-         "entity": "P12_occurred_in_the_presence_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P12_occurred_in_the_presence_of"
       },
       {
-         "entity": "P12i_was_present_at",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P12i_was_present_at"
       },
       {
-         "entity": "P130_shows_features_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P130_shows_features_of"
       },
       {
-         "entity": "P130i_features_are_also_found_on",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P130i_features_are_also_found_on"
       },
       {
-         "entity": "P132_spatiotemporally_overlaps_with",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P132_spatiotemporally_overlaps_with"
       },
       {
-         "entity": "P133_is_spatiotemporally_separated_from",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P133_is_spatiotemporally_separated_from"
       },
       {
-         "entity": "P134_continued",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P134_continued"
       },
       {
-         "entity": "P134i_was_continued_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P134i_was_continued_by"
       },
       {
-         "entity": "P135_created_type",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P135_created_type"
       },
       {
-         "entity": "P135i_was_created_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P135i_was_created_by"
       },
       {
-         "entity": "P136_was_based_on",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P136_was_based_on"
       },
       {
-         "entity": "P136i_supported_type_creation",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P136i_supported_type_creation"
       },
       {
-         "entity": "P137_exemplifies",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P137_exemplifies"
       },
       {
-         "entity": "P137i_is_exemplified_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P137i_is_exemplified_by"
       },
       {
-         "entity": "P138_represents",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P138_represents"
       },
       {
-         "entity": "P138i_has_representation",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P138i_has_representation"
       },
       {
-         "entity": "P139_has_alternative_form",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P139_has_alternative_form"
       },
       {
-         "entity": "P139i_is_alternative_form_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P139i_is_alternative_form_of"
       },
       {
-         "entity": "P13_destroyed",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P13_destroyed"
       },
       {
-         "entity": "P13i_was_destroyed_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P13i_was_destroyed_by"
       },
       {
-         "entity": "P140_assigned_attribute_to",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P140_assigned_attribute_to"
       },
       {
-         "entity": "P140i_was_attributed_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P140i_was_attributed_by"
       },
       {
-         "entity": "P141_assigned",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P141_assigned"
       },
       {
-         "entity": "P141i_was_assigned_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P141i_was_assigned_by"
       },
       {
-         "entity": "P142_used_constituent",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P142_used_constituent"
       },
       {
-         "entity": "P142i_was_used_in",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P142i_was_used_in"
       },
       {
-         "entity": "P143_joined",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P143_joined"
       },
       {
-         "entity": "P143i_was_joined_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P143i_was_joined_by"
       },
       {
-         "entity": "P144_joined_with",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P144_joined_with"
       },
       {
-         "entity": "P144i_gained_member_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P144i_gained_member_by"
       },
       {
-         "entity": "P145_separated",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P145_separated"
       },
       {
-         "entity": "P145i_left_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P145i_left_by"
       },
       {
-         "entity": "P146_separated_from",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P146_separated_from"
       },
       {
-         "entity": "P146i_lost_member_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P146i_lost_member_by"
       },
       {
-         "entity": "P147_curated",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P147_curated"
       },
       {
-         "entity": "P147i_was_curated_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P147i_was_curated_by"
       },
       {
-         "entity": "P148_has_component",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P148_has_component"
       },
       {
-         "entity": "P148i_is_component_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P148i_is_component_of"
       },
       {
-         "entity": "P14_carried_out_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P14_carried_out_by"
       },
       {
-         "entity": "P14i_performed",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P14i_performed"
       },
       {
-         "entity": "P150_defines_typical_parts_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P150_defines_typical_parts_of"
       },
       {
-         "entity": "P150i_defines_typical_wholes_for",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P150i_defines_typical_wholes_for"
       },
       {
-         "entity": "P151_was_formed_from",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P151_was_formed_from"
       },
       {
-         "entity": "P151i_participated_in",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P151i_participated_in"
       },
       {
-         "entity": "P152_has_parent",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P152_has_parent"
       },
       {
-         "entity": "P152i_is_parent_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P152i_is_parent_of"
       },
       {
-         "entity": "P156_occupies",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P156_occupies"
       },
       {
-         "entity": "P156i_is_occupied_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P156i_is_occupied_by"
       },
       {
-         "entity": "P157_is_at_rest_relative_to",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P157_is_at_rest_relative_to"
       },
       {
-         "entity": "P157i_provides_reference_space_for",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P157i_provides_reference_space_for"
       },
       {
-         "entity": "P15_was_influenced_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P15_was_influenced_by"
       },
       {
-         "entity": "P15i_influenced",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P15i_influenced"
       },
       {
-         "entity": "P160_has_temporal_projection",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P160_has_temporal_projection"
       },
       {
-         "entity": "P160i_is_temporal_projection_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P160i_is_temporal_projection_of"
       },
       {
-         "entity": "P161_has_spatial_projection",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P161_has_spatial_projection"
       },
       {
-         "entity": "P161i_is_spatial_projection_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P161i_is_spatial_projection_of"
       },
       {
-         "entity": "P164_is_temporally_specified_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P164_is_temporally_specified_by"
       },
       {
-         "entity": "P164i_temporally_specifies",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P164i_temporally_specifies"
       },
       {
-         "entity": "P165_incorporates",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P165_incorporates"
       },
       {
-         "entity": "P165i_is_incorporated_in",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P165i_is_incorporated_in"
       },
       {
-         "entity": "P166_was_a_presence_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P166_was_a_presence_of"
       },
       {
-         "entity": "P166i_had_presence",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P166i_had_presence"
       },
       {
-         "entity": "P167_was_within",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P167_was_within"
       },
       {
-         "entity": "P167i_includes",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P167i_includes"
       },
       {
-         "entity": "P169i_spacetime_volume_is_defined_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P169i_spacetime_volume_is_defined_by"
       },
       {
-         "entity": "P16_used_specific_object",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P16_used_specific_object"
       },
       {
-         "entity": "P16i_was_used_for",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P16i_was_used_for"
       },
       {
-         "entity": "P170i_time_is_defined_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P170i_time_is_defined_by"
       },
       {
-         "entity": "P171_at_some_place_within",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P171_at_some_place_within"
       },
       {
-         "entity": "P172_contains",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P172_contains"
       },
       {
-         "entity": "P173_starts_before_or_with_the_end_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P173_starts_before_or_with_the_end_of"
       },
       {
-         "entity": "P173i_ends_after_or_with_the_start_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P173i_ends_after_or_with_the_start_of"
       },
       {
-         "entity": "P174_starts_before_the_end_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P174_starts_before_the_end_of"
       },
       {
-         "entity": "P174i_ends_after_the_start_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P174i_ends_after_the_start_of"
       },
       {
-         "entity": "P175_starts_before_or_with_the_start_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P175_starts_before_or_with_the_start_of"
       },
       {
-         "entity": "P175i_starts_after_or_with_the_start_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P175i_starts_after_or_with_the_start_of"
       },
       {
-         "entity": "P176_starts_before_the_start_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P176_starts_before_the_start_of"
       },
       {
-         "entity": "P176i_starts_after_the_start_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P176i_starts_after_the_start_of"
       },
       {
-         "entity": "P177_assigned_property_of_type",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P177_assigned_property_of_type"
       },
       {
-         "entity": "P177i_is_type_of_property_assigned",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P177i_is_type_of_property_assigned"
       },
       {
-         "entity": "P179_had_sales_price",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P179_had_sales_price"
       },
       {
-         "entity": "P179i_was_sales_price_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P179i_was_sales_price_of"
       },
       {
-         "entity": "P17_was_motivated_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P17_was_motivated_by"
       },
       {
-         "entity": "P17i_motivated",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P17i_motivated"
       },
       {
-         "entity": "P180_has_currency",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P180_has_currency"
       },
       {
-         "entity": "P180i_was_currency_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P180i_was_currency_of"
       },
       {
-         "entity": "P182_ends_before_or_with_the_start_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P182_ends_before_or_with_the_start_of"
       },
       {
-         "entity": "P182i_starts_after_or_with_the_end_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P182i_starts_after_or_with_the_end_of"
       },
       {
-         "entity": "P183_ends_before_the_start_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P183_ends_before_the_start_of"
       },
       {
-         "entity": "P183i_starts_after_the_end_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P183i_starts_after_the_end_of"
       },
       {
-         "entity": "P184_ends_before_or_with_the_end_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P184_ends_before_or_with_the_end_of"
       },
       {
-         "entity": "P184i_ends_with_or_after_the_end_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P184i_ends_with_or_after_the_end_of"
       },
       {
-         "entity": "P185_ends_before_the_end_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P185_ends_before_the_end_of"
       },
       {
-         "entity": "P185i_ends_after_the_end_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P185i_ends_after_the_end_of"
       },
       {
-         "entity": "P186_produced_thing_of_product_type",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P186_produced_thing_of_product_type"
       },
       {
-         "entity": "P186i_is_produced_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P186i_is_produced_by"
       },
       {
-         "entity": "P187_has_production_plan",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P187_has_production_plan"
       },
       {
-         "entity": "P187i_is_production_plan_for",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P187i_is_production_plan_for"
       },
       {
-         "entity": "P188_requires_production_tool",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P188_requires_production_tool"
       },
       {
-         "entity": "P188i_is_production_tool_for",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P188i_is_production_tool_for"
       },
       {
-         "entity": "P189_approximates",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P189_approximates"
       },
       {
-         "entity": "P189i_is_approximated_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P189i_is_approximated_by"
       },
       {
-         "entity": "P190_has_symbolic_content",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P190_has_symbolic_content"
       },
       {
-         "entity": "P191_had_duration",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P191_had_duration"
       },
       {
-         "entity": "P191i_was_duration_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P191i_was_duration_of"
       },
       {
-         "entity": "P195_was_a_presence_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P195_was_a_presence_of"
       },
       {
-         "entity": "P195i_had_presence",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P195i_had_presence"
       },
       {
-         "entity": "P196_defines",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P196_defines"
       },
       {
-         "entity": "P196i_is_defined_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P196i_is_defined_by"
       },
       {
-         "entity": "P197_covered_parts_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P197_covered_parts_of"
       },
       {
-         "entity": "P197i_was_partially_covered_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P197i_was_partially_covered_by"
       },
       {
-         "entity": "P198_holds_or_supports",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P198_holds_or_supports"
       },
       {
-         "entity": "P198i_is_held_or_supported_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P198i_is_held_or_supported_by"
       },
       {
-         "entity": "P19_was_intended_use_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P19_was_intended_use_of"
       },
       {
-         "entity": "P19i_was_made_for",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P19i_was_made_for"
       },
       {
-         "entity": "P1_is_identified_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P1_is_identified_by"
       },
       {
-         "entity": "P1i_identifies",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P1i_identifies"
       },
       {
-         "entity": "P20_had_specific_purpose",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P20_had_specific_purpose"
       },
       {
-         "entity": "P20i_was_purpose_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P20i_was_purpose_of"
       },
       {
-         "entity": "P21_had_general_purpose",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P21_had_general_purpose"
       },
       {
-         "entity": "P21i_was_purpose_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P21i_was_purpose_of"
       },
       {
-         "entity": "P22_transferred_title_to",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P22_transferred_title_to"
       },
       {
-         "entity": "P22i_acquired_title_through",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P22i_acquired_title_through"
       },
       {
-         "entity": "P23_transferred_title_from",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P23_transferred_title_from"
       },
       {
-         "entity": "P23i_surrendered_title_through",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P23i_surrendered_title_through"
       },
       {
-         "entity": "P24_transferred_title_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P24_transferred_title_of"
       },
       {
-         "entity": "P24i_changed_ownership_through",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P24i_changed_ownership_through"
       },
       {
-         "entity": "P25_moved",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P25_moved"
       },
       {
-         "entity": "P25i_moved_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P25i_moved_by"
       },
       {
-         "entity": "P26_moved_to",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P26_moved_to"
       },
       {
-         "entity": "P26i_was_destination_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P26i_was_destination_of"
       },
       {
-         "entity": "P27_moved_from",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P27_moved_from"
       },
       {
-         "entity": "P27i_was_origin_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P27i_was_origin_of"
       },
       {
-         "entity": "P28_custody_surrendered_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P28_custody_surrendered_by"
       },
       {
-         "entity": "P28i_surrendered_custody_through",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P28i_surrendered_custody_through"
       },
       {
-         "entity": "P29_custody_received_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P29_custody_received_by"
       },
       {
-         "entity": "P29i_received_custody_through",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P29i_received_custody_through"
       },
       {
-         "entity": "P2_has_type",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P2_has_type"
       },
       {
-         "entity": "P2i_is_type_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P2i_is_type_of"
       },
       {
-         "entity": "P30_transferred_custody_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P30_transferred_custody_of"
       },
       {
-         "entity": "P30i_custody_transferred_through",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P30i_custody_transferred_through"
       },
       {
-         "entity": "P31_has_modified",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P31_has_modified"
       },
       {
-         "entity": "P31i_was_modified_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P31i_was_modified_by"
       },
       {
-         "entity": "P32_used_general_technique",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P32_used_general_technique"
       },
       {
-         "entity": "P32i_was_technique_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P32i_was_technique_of"
       },
       {
-         "entity": "P33_used_specific_technique",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P33_used_specific_technique"
       },
       {
-         "entity": "P33i_was_used_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P33i_was_used_by"
       },
       {
-         "entity": "P34_concerned",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P34_concerned"
       },
       {
-         "entity": "P34i_was_assessed_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P34i_was_assessed_by"
       },
       {
-         "entity": "P35_has_identified",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P35_has_identified"
       },
       {
-         "entity": "P35i_was_identified_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P35i_was_identified_by"
       },
       {
-         "entity": "P37_assigned",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P37_assigned"
       },
       {
-         "entity": "P37i_was_assigned_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P37i_was_assigned_by"
       },
       {
-         "entity": "P38_deassigned",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P38_deassigned"
       },
       {
-         "entity": "P38i_was_deassigned_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P38i_was_deassigned_by"
       },
       {
-         "entity": "P39_measured",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P39_measured"
       },
       {
-         "entity": "P39i_was_measured_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P39i_was_measured_by"
       },
       {
-         "entity": "P3_has_note",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P3_has_note"
       },
       {
-         "entity": "P40_observed_dimension",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P40_observed_dimension"
       },
       {
-         "entity": "P40i_was_observed_in",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P40i_was_observed_in"
       },
       {
-         "entity": "P41_classified",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P41_classified"
       },
       {
-         "entity": "P41i_was_classified_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P41i_was_classified_by"
       },
       {
-         "entity": "P42_assigned",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P42_assigned"
       },
       {
-         "entity": "P42i_was_assigned_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P42i_was_assigned_by"
       },
       {
-         "entity": "P43_has_dimension",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P43_has_dimension"
       },
       {
-         "entity": "P43i_is_dimension_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P43i_is_dimension_of"
       },
       {
-         "entity": "P44_has_condition",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P44_has_condition"
       },
       {
-         "entity": "P44i_is_condition_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P44i_is_condition_of"
       },
       {
-         "entity": "P45_consists_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P45_consists_of"
       },
       {
-         "entity": "P45i_is_incorporated_in",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P45i_is_incorporated_in"
       },
       {
-         "entity": "P46_is_composed_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P46_is_composed_of"
       },
       {
-         "entity": "P46i_forms_part_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P46i_forms_part_of"
       },
       {
-         "entity": "P48_has_preferred_identifier",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P48_has_preferred_identifier"
       },
       {
-         "entity": "P48i_is_preferred_identifier_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P48i_is_preferred_identifier_of"
       },
       {
-         "entity": "P49_has_former_or_current_keeper",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P49_has_former_or_current_keeper"
       },
       {
-         "entity": "P49i_is_former_or_current_keeper_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P49i_is_former_or_current_keeper_of"
       },
       {
-         "entity": "P4_has_time-span",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P4_has_time-span"
       },
       {
-         "entity": "P4i_is_time-span_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P4i_is_time-span_of"
       },
       {
-         "entity": "P50_has_current_keeper",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P50_has_current_keeper"
       },
       {
-         "entity": "P50i_is_current_keeper_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P50i_is_current_keeper_of"
       },
       {
-         "entity": "P51_has_former_or_current_owner",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P51_has_former_or_current_owner"
       },
       {
-         "entity": "P51i_is_former_or_current_owner_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P51i_is_former_or_current_owner_of"
       },
       {
-         "entity": "P52_has_current_owner",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P52_has_current_owner"
       },
       {
-         "entity": "P52i_is_current_owner_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P52i_is_current_owner_of"
       },
       {
-         "entity": "P53_has_former_or_current_location",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P53_has_former_or_current_location"
       },
       {
-         "entity": "P53i_is_former_or_current_location_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P53i_is_former_or_current_location_of"
       },
       {
-         "entity": "P54_has_current_permanent_location",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P54_has_current_permanent_location"
       },
       {
-         "entity": "P54i_is_current_permanent_location_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P54i_is_current_permanent_location_of"
       },
       {
-         "entity": "P55_has_current_location",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P55_has_current_location"
       },
       {
-         "entity": "P55i_currently_holds",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P55i_currently_holds"
       },
       {
-         "entity": "P56_bears_feature",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P56_bears_feature"
       },
       {
-         "entity": "P56i_is_found_on",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P56i_is_found_on"
       },
       {
-         "entity": "P57_has_number_of_parts",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P57_has_number_of_parts"
       },
       {
-         "entity": "P59_has_section",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P59_has_section"
       },
       {
-         "entity": "P59i_is_located_on_or_within",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P59i_is_located_on_or_within"
       },
       {
-         "entity": "P5_consists_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P5_consists_of"
       },
       {
-         "entity": "P5i_forms_part_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P5i_forms_part_of"
       },
       {
-         "entity": "P62_depicts",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P62_depicts"
       },
       {
-         "entity": "P62i_is_depicted_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P62i_is_depicted_by"
       },
       {
-         "entity": "P65_shows_visual_item",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P65_shows_visual_item"
       },
       {
-         "entity": "P65i_is_shown_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P65i_is_shown_by"
       },
       {
-         "entity": "P67_refers_to",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P67_refers_to"
       },
       {
-         "entity": "P67i_is_referred_to_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P67i_is_referred_to_by"
       },
       {
-         "entity": "P68_foresees_use_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P68_foresees_use_of"
       },
       {
-         "entity": "P68i_use_foreseen_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P68i_use_foreseen_by"
       },
       {
-         "entity": "P69_has_association_with",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P69_has_association_with"
       },
       {
-         "entity": "P69i_is_associated_with",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P69i_is_associated_with"
       },
       {
-         "entity": "P70_documents",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P70_documents"
       },
       {
-         "entity": "P70i_is_documented_in",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P70i_is_documented_in"
       },
       {
-         "entity": "P72_has_language",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P72_has_language"
       },
       {
-         "entity": "P72i_is_language_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P72i_is_language_of"
       },
       {
-         "entity": "P73_has_translation",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P73_has_translation"
       },
       {
-         "entity": "P73i_is_translation_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P73i_is_translation_of"
       },
       {
-         "entity": "P74_has_current_or_former_residence",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P74_has_current_or_former_residence"
       },
       {
-         "entity": "P74i_is_current_or_former_residence_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P74i_is_current_or_former_residence_of"
       },
       {
-         "entity": "P75_possesses",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P75_possesses"
       },
       {
-         "entity": "P75i_is_possessed_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P75i_is_possessed_by"
       },
       {
-         "entity": "P76_has_contact_point",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P76_has_contact_point"
       },
       {
-         "entity": "P76i_provides_access_to",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P76i_provides_access_to"
       },
       {
-         "entity": "P79_beginning_is_qualified_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P79_beginning_is_qualified_by"
       },
       {
-         "entity": "P7_took_place_at",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P7_took_place_at"
       },
       {
-         "entity": "P7i_witnessed",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P7i_witnessed"
       },
       {
-         "entity": "P80_end_is_qualified_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P80_end_is_qualified_by"
       },
       {
-         "entity": "P81_ongoing_throughout",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P81_ongoing_throughout"
       },
       {
-         "entity": "P81a_end_of_the_begin",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P81a_end_of_the_begin"
       },
       {
-         "entity": "P81b_begin_of_the_end",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P81b_begin_of_the_end"
       },
       {
-         "entity": "P82_at_some_time_within",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P82_at_some_time_within"
       },
       {
-         "entity": "P82a_begin_of_the_begin",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P82a_begin_of_the_begin"
       },
       {
-         "entity": "P82b_end_of_the_end",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P82b_end_of_the_end"
       },
       {
-         "entity": "P86_falls_within",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P86_falls_within"
       },
       {
-         "entity": "P86i_contains",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P86i_contains"
       },
       {
-         "entity": "P89_falls_within",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P89_falls_within"
       },
       {
-         "entity": "P89i_contains",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P89i_contains"
       },
       {
-         "entity": "P8_took_place_on_or_within",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P8_took_place_on_or_within"
       },
       {
-         "entity": "P8i_witnessed",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P8i_witnessed"
       },
       {
-         "entity": "P90_has_value",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P90_has_value"
       },
       {
-         "entity": "P90a_has_lower_value_limit",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P90a_has_lower_value_limit"
       },
       {
-         "entity": "P90b_has_upper_value_limit",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P90b_has_upper_value_limit"
       },
       {
-         "entity": "P91_has_unit",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P91_has_unit"
       },
       {
-         "entity": "P91i_is_unit_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P91i_is_unit_of"
       },
       {
-         "entity": "P92_brought_into_existence",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P92_brought_into_existence"
       },
       {
-         "entity": "P92i_was_brought_into_existence_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P92i_was_brought_into_existence_by"
       },
       {
-         "entity": "P93_took_out_of_existence",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P93_took_out_of_existence"
       },
       {
-         "entity": "P93i_was_taken_out_of_existence_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P93i_was_taken_out_of_existence_by"
       },
       {
-         "entity": "P94_has_created",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P94_has_created"
       },
       {
-         "entity": "P94i_was_created_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P94i_was_created_by"
       },
       {
-         "entity": "P95_has_formed",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P95_has_formed"
       },
       {
-         "entity": "P95i_was_formed_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P95i_was_formed_by"
       },
       {
-         "entity": "P96_by_mother",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P96_by_mother"
       },
       {
-         "entity": "P96i_gave_birth",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P96i_gave_birth"
       },
       {
-         "entity": "P97_from_father",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P97_from_father"
       },
       {
-         "entity": "P97i_was_father_for",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P97i_was_father_for"
       },
       {
-         "entity": "P98_brought_into_life",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P98_brought_into_life"
       },
       {
-         "entity": "P98i_was_born",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P98i_was_born"
       },
       {
-         "entity": "P99_dissolved",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P99_dissolved"
       },
       {
-         "entity": "P99i_was_dissolved_by",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P99i_was_dissolved_by"
       },
       {
-         "entity": "P9_consists_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P9_consists_of"
       },
       {
-         "entity": "P9i_forms_part_of",
-         "prefix": "crm"
+         "prefix": "crm",
+         "entity": "P9i_forms_part_of"
       },
       {
-         "entity": "hasGeometry",
-         "prefix": "geo"
+         "prefix": "geo",
+         "entity": "hasGeometry"
       },
       {
-         "entity": "inScheme",
-         "prefix": "skos"
+         "prefix": "skos",
+         "entity": "inScheme"
       }
-   ],
-   "source": "cidoc-crm.rdf"
+   ]
 }

@@ -1,47 +1,29 @@
 import rdflib, json,sys
 
-from urllib.parse import urlparse
+''' Read RDF file and return graph '''
+def graphFromFile(file_path):
+    graph = rdflib.Graph()
+    graph.namespace_manager.bind('crm', rdflib.URIRef('http://www.cidoc-crm.org/cidoc-crm/'))
+    graph.namespace_manager.bind('skos', rdflib.URIRef('http://www.w3.org/2004/02/skos/core#'))
+    graph.parse(file_path)
+    return graph
 
+''' Get all namespaces from the graph '''
+def namespaces2dict(graph):
+    return {k: v for k, v in graph.namespaces() if not k.isdigit()}
 
-NAMESPACES = [{'crm': 'http://www.cidoc-crm.org/cidoc-crm/'},
-              {'skos': 'http://www.w3.org/2004/02/skos/core#'},]
-
-def get_prefixes(graph):
-    prefixes = {}
-    for ns in NAMESPACES:
-        for k,v in ns.items():
-            prefixes[k] = v
-    for prefix, uri in graph.namespaces():
-        prefixes[prefix] = uri
-    return prefixes
-
-def prefix(qname,prefixes):
-    for k,v in prefixes.items():
-        if qname.startswith(v):
-            return qname.replace(v,k+':')
-    return qname
-
-def read_rdf_file(file_path):
-    g = rdflib.Graph()
-    g.parse(file_path)
-    return g
-
-def splitQname(qname):
-    if qname.startswith('http'):    
-        enitity=qname
-        ns = ''
-    else:
-        vx = qname.split(':')
-        if len(vx) == 2:
-            ns,enitity = vx
+''' Class to store entity information '''
+class QNameInfo():
+    def __init__(self,qname):
+        if qname.startswith('http'): # Handle URLs 
+            self.entity = qname
+            self.prefix = ''
         else:
-            ns,enitity = '',vx[-1]
-    return enitity,ns
-
-class Info():
-    def __init__(self,entity,prefix=''):
-        self.entity = entity
-        self.prefix = prefix
+            vx = qname.split(':') # Handle qnames
+            if len(vx) == 2:
+                self.prefix,self.entity = vx
+            else:
+                self.prefix,self.enitity = '',vx[-1]
 
     def __lt__(self, other):
         return self.entity < other.entity
@@ -49,29 +31,28 @@ class Info():
     def __hash__(self):
         return hash(self.entity)
 
-
-def findEntities(graph):
-    classNames = set()
-    propNames = set()
-    isProp =rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#Property')
-    tP = rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
-    isClass = rdflib.term.URIRef('http://www.w3.org/2000/01/rdf-schema#Class')
-    prefixes = get_prefixes(graph)
-    for tS,tO in graph.subject_objects(tP):
-        qname = prefix(tS,prefixes) 
-        entity, ns = splitQname(qname)
-        info = Info(entity,ns)
-        if tO == isProp:
-            propNames.add(info)
-        elif tO == isClass:
-            classNames.add(info)
-    data = {}
-    data['namespaces'] = prefixes
-    if classNames:
-        data['classes'] = [x.__dict__ for x in sorted(classNames)]
-    if propNames:
-        data['properties'] = [x.__dict__ for x in sorted(propNames)]
-    return data
+''' Get all entity and property names from the graph '''
+def getQNameInfos(graph,**kw):
+    entities = set()
+    properties = set()
+    rdfProperty =rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#Property')
+    rdfClass = rdflib.term.URIRef('http://www.w3.org/2000/01/rdf-schema#Class')
+    predicate = rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
+    # Get all classes and properties
+    for subject,object in graph.subject_objects(predicate):
+        info = QNameInfo(graph.qname(subject))
+        if object == rdfProperty:
+            properties.add(info)
+        elif object == rdfClass:
+            entities.add(info)
+    # Return the compiled data
+    sortedDictList = lambda aList: [x.__dict__ for x in sorted(aList)]
+    return {
+        'source': kw.get('source',''),
+        'namespaces': namespaces2dict(graph),
+        'classes': sortedDictList(entities),
+        'properties': sortedDictList(properties)
+    }
 
   
 if __name__ == "__main__":
@@ -79,9 +60,8 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     if len(args) > 0:
         file_path = args[0]
-        graph = read_rdf_file(file_path)
-        data = findEntities(graph)
-        data['source'] = file_path
+        graph = graphFromFile(file_path)
+        data = getQNameInfos(graph,source=file_path)
         print(json.dumps(data, indent=3))
     else:
         appName = sys.argv[0]
