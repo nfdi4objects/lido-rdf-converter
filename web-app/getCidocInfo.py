@@ -1,6 +1,10 @@
-import rdflib, json,sys
+import rdflib
+import json
+import sys
 
 ''' Read RDF file and return graph '''
+
+
 def graphFromFile(file_path):
     graph = rdflib.Graph()
     graph.namespace_manager.bind('crm', rdflib.URIRef('http://www.cidoc-crm.org/cidoc-crm/'))
@@ -8,63 +12,72 @@ def graphFromFile(file_path):
     graph.parse(file_path)
     return graph
 
+
 ''' Get all namespaces from the graph '''
+
+
 def namespaces2dict(graph):
     return {k: v for k, v in graph.namespaces() if not k.isdigit()}
 
+
 ''' Class to store entity information '''
+
+
 class QNameInfo():
-    def __init__(self,qname):
-        if qname.startswith('http'): # Handle URLs 
+    def __init__(self, qname):
+        if qname.startswith('http'):  # Handle URLs
             self.entity = qname
             self.prefix = ''
         else:
-            vx = qname.split(':') # Handle qnames
+            vx = qname.split(':')  # Handle qnames
             if len(vx) == 2:
-                self.prefix,self.entity = vx
+                self.prefix, self.entity = vx
             else:
-                self.prefix,self.enitity = '',vx[-1]
+                self.prefix, self.enitity = '', vx[-1]
 
     def __lt__(self, other):
         return self.entity < other.entity
-    
+
     def __hash__(self):
         return hash(self.entity)
-    
+
     def __str__(self):
         return f'{self.prefix}:{self.entity}'
-    
+
+
 ''' Get all entity and property names from the graph '''
-def getQNameInfos(graph,**kw):
+
+
+def getQNameInfos(graph, **kw):
     entities = set()
     properties = set()
-    rdfProperty =rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#Property')
+    rdfProperty = rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#Property')
     rdfClass = rdflib.term.URIRef('http://www.w3.org/2000/01/rdf-schema#Class')
     predicate = rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
     # Get all classes and properties
-    for subject,object in graph.subject_objects(predicate):
+    for subject, object in graph.subject_objects(predicate):
         info = QNameInfo(graph.qname(subject))
         if object == rdfProperty:
             properties.add(info)
         elif object == rdfClass:
             entities.add(info)
     # Return the compiled data
-    sortedDictList = lambda aList: [x.__dict__ for x in sorted(aList)]
+    def sortedDictList(aList): return [x.__dict__ for x in sorted(aList)]
     return {
-        'source': kw.get('source',''),
+        'source': kw.get('source', ''),
         'namespaces': namespaces2dict(graph),
         'classes': sortedDictList(entities),
         'properties': sortedDictList(properties)
     }
 
-  
+
 if __name__ == "__main__":
     file_path = 'CIDOC_CRM_v7.1.1.rdf'
     args = sys.argv[1:]
     if len(args) > 0:
         file_path = args[0]
         graph = graphFromFile(file_path)
-        data = getQNameInfos(graph,source=file_path)
+        data = getQNameInfos(graph, source=file_path)
         print(json.dumps(data, indent=3))
     else:
         appName = sys.argv[0]
