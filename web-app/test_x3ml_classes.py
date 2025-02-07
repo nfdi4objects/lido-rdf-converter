@@ -30,6 +30,22 @@ def makeElementsPathS(root: ET.Element, path: str) -> ET.Element | None:
     names = path.split('/') if len(path) else []
     return makeElementsPath(root, names)
 
+class testOpTrue(XC.Or):
+
+    def isValid(self, elem):
+        return True
+
+
+class testOpFalse(XC.Or):
+
+    def isValid(self, elem):
+        return False
+
+def makeIfOr(trueFalse):
+    tIf = XC.If()
+    tIf.op = testOpTrue() if trueFalse else testOpFalse()
+    return tIf
+
 
 class Test_X3ml_Classes(unittest.TestCase):
 
@@ -464,19 +480,14 @@ class Test_X3ml_Classes(unittest.TestCase):
     def test_ConditionsType_1(self):
         '''ConditionsType: Ctor, Access'''
         testee = XC.ConditionsType(None)
-        self.assertEqual(testee.text, '')
-        self.assertIsInstance(testee.op, XC.Or)
-        testee = XC.ConditionsType(None, text='aText')
-        self.assertEqual(testee.text, 'aText')
         self.assertIsInstance(testee.op, XC.Or)
 
     def test_ConditionsType_2(self):
         '''ConditionsType: Serial'''
-        testee = XC.ConditionsType(None, text='aText')
+        testee = XC.ConditionsType(None)
         elem = ET.Element('test')
         testee.serialize(elem)
 
-        self.assertEqual(elem.text, 'aText')
         self.assertEqual(len(elem.findall('or')), 1)
         self.assertIsNotNone(elem.find('or').tag, 'or')
 
@@ -489,12 +500,90 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee.deserialize(elem)
 
         self.assertIsInstance(testee.op, XC.Or)
+    
+    def test_OR_1(self):
+        elem = ET.Element('test')
+        testee = XC.Or()
+
+        testee._ifs = [makeIfOr(False),makeIfOr(False)]
+        self.assertFalse(testee.isValid(elem))
+
+        testee._ifs = [makeIfOr(False),makeIfOr(True)]
+        self.assertTrue(testee.isValid(elem))
+
+        testee._ifs = [makeIfOr(True),makeIfOr(False)]
+        self.assertTrue(testee.isValid(elem))
+
+        testee._ifs = [makeIfOr(True),makeIfOr(True)]
+        self.assertTrue(testee.isValid(elem))
+
+    def test_OR_2(self):
+        '''OR: serialize'''
+        elem = ET.Element('or')
+        testee = XC.Or()
+        if1 = testee.append(XC.If())
+        op1 = if1.setOp(XC.Equals())
+        op1.value ='value1'
+        op1.xpath ='xpath1'
+        if2 =testee.append(XC.If())
+        op2 = if2.setOp(XC.Equals())
+        op2.value ='value2'
+        op2.xpath ='xpath2'
+      
+        testee.serialize(elem)
+        subElems = elem.findall('if/equals')
+        self.assertEqual(len(subElems),2)
+        self.assertEqual(subElems[0].get('value'),'value1')
+        self.assertEqual(subElems[0].text,'xpath1')
+        self.assertEqual(subElems[1].get('value'),'value2')
+        self.assertEqual(subElems[1].text,'xpath2')
+
+    def test_OR_3(self):
+        '''OR: deserialize'''
+        data = '<or><if><equals value="value1">xpath1</equals></if><if><equals value="value2">xpath2</equals></if></or>'
+        testee = XC.Or( ET.XML(data))
+        self.assertEqual(len(testee._ifs),2)
+        for n in range(2):
+            ifn = testee._ifs[n]
+            self.assertIsInstance(ifn,XC.If)
+            op = ifn.op
+            self.assertIsInstance(op,XC.Equals)
+            self.assertEqual(len(op._ifs),0)
+            self.assertEqual(op.value,f'value{n+1}')
+            self.assertEqual(op.xpath,f'xpath{n+1}')
+    
+
+    def test_AND_1(self):
+        elem = ET.Element('test')
+        testee = XC.And()
+
+        testee._ifs = [makeIfOr(False),makeIfOr(False)]
+        self.assertFalse(testee.isValid(elem))
+
+        testee._ifs = [makeIfOr(False),makeIfOr(True)]
+        self.assertFalse(testee.isValid(elem))
+
+        testee._ifs = [makeIfOr(True),makeIfOr(False)]
+        self.assertFalse(testee.isValid(elem))
+
+        testee._ifs = [makeIfOr(True),makeIfOr(True)]
+        self.assertTrue(testee.isValid(elem))
 
     def test_IF_1(self):
         '''If: Ctor'''
         testee = XC.If()
         self.assertIsInstance(testee.op, XC.Or)
-        self.assertEqual(testee.text, '')
+
+    def test_IF_2(self):
+        '''If: logic'''
+        testee = XC.If()
+        self.assertFalse(testee.isValid(None))
+        elem = ET.Element('test')
+        testee.op = testOpTrue()
+        self.assertTrue(testee.isValid(elem))
+        testee.op = testOpFalse()
+        self.assertFalse(testee.isValid(elem))
+
 
     def test_Link_1(self):
         '''Link: Ctor'''

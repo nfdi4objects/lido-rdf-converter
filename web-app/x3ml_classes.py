@@ -719,22 +719,50 @@ class LogicalOp (X3Base):
         super().__init__(elem)
         self.tag = tag
         self.xpath = ''
+        self.value=''
         self._ifs = []
         if NN(elem):
             self.deserialize(elem)
 
+    def append(self, objIf):
+        if isinstance(objIf,If):
+            self._ifs.append(objIf)
+            return objIf
+    
+    def reset(self):
+        self.xpath = ''
+        self.value = ''
+        self._ifs = []
+
     def deserialize(self, elem: ET.Element | None):
         super().deserialize(elem)
-        self._ifs = [If(x) for x in elem.findall('if')]
-        self.xpath = getText(elem)
+        self.reset()
+        if children := elem.findall('if'):
+            self._ifs = [If(x) for x in children]
+        else:
+            self.xpath = elem.text
+            self.value = elem.get('value','')
         return elem
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
-        elem.text = self.xpath
-        for x in self._ifs:
-            x.serialize(ET.SubElement(elem, 'if'))
+        if self._ifs:
+            for x in self._ifs:
+                x.serialize(ET.SubElement(elem, 'if'))
+        else:
+            if self.xpath: elem.text = self.xpath
+            if self.value: elem.set('value',self.value)
         return elem
+    
+    def validPath(self,elem):
+        if NN(elem):
+            if self.xpath and self.value:
+                pathValues = [x.text for x in elem.findall(self.xpath)]
+                return self.value in pathValues
+        return False
+
+    def isValid(self,elem):
+        return self.validPath(elem)
 
 
 class Not(LogicalOp):
@@ -748,12 +776,24 @@ class And (LogicalOp):
     def __init__(self, elem: ET.Element | None = None) -> None:
         super().__init__(elem, 'and')
 
+    def isValid(self,elem):
+        if NN(elem):
+            if self._ifs:
+                return all([x.isValid(elem) for x in self._ifs])
+            return self.validPath(elem)
+        return False
 
 class Or(LogicalOp):
     '''Model class for or elements'''
     def __init__(self, elem: ET.Element | None = None) -> None:
         super().__init__(elem, 'or')
 
+    def isValid(self,elem):
+        if NN(elem):
+            if self._ifs:
+                return any([x.isValid(elem) for x in self._ifs])
+            return self.validPath(elem)
+        return False
 
 class ExactMatch(LogicalOp):
     '''Model class for exact-match elements'''
@@ -789,11 +829,15 @@ class ConditionsType(X3Base):
     '''Model class for conditions type elements'''
     def __init__(self, elem: ET.Element | None = None, **kw) -> None:
         super().__init__(elem)
-        self.text = kw.get('text', '')
         self.op = Or()
         if NN(elem):
             self.deserialize(elem)
 
+    def setOp(self, op):
+        if isinstance(op,LogicalOp):
+            self.op = op
+            return op
+        
     def deserialize(self, elem: ET.Element | None):
         super().deserialize(elem)
 
@@ -802,7 +846,6 @@ class ConditionsType(X3Base):
             if NN(st):
                 self.op = cls(st)
 
-        self.text = getText(elem)
         self.op = None
         choice('or', Or)
         choice('and', And)
@@ -815,9 +858,14 @@ class ConditionsType(X3Base):
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
-        elem.text = self.text
         if self.op:
             self.op.serialize(ET.SubElement(elem, self.op.tag))
+
+    def isValid(self,elem):
+        if NN(self.op) and NN(elem):
+            return self.op.isValid(elem)
+        return False
+        
 
 
 class If(ConditionsType):
