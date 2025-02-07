@@ -540,7 +540,10 @@ class Test_X3ml_Classes(unittest.TestCase):
 
     def test_OR_3(self):
         '''OR: deserialize'''
-        data = '<or><if><equals value="value1">xpath1</equals></if><if><equals value="value2">xpath2</equals></if></or>'
+        data = '''<or>
+                     <if><equals value="value1">xpath1</equals></if>
+                     <if><equals value="value2">xpath2</equals></if>
+                  </or>'''
         testee = XC.Or( ET.XML(data))
         self.assertEqual(len(testee._ifs),2)
         for n in range(2):
@@ -552,8 +555,26 @@ class Test_X3ml_Classes(unittest.TestCase):
             self.assertEqual(op.value,f'value{n+1}')
             self.assertEqual(op.xpath,f'xpath{n+1}')
     
+    def test_OR_4(self):
+        '''OR: validate element'''
+        data = '''<or>
+                     <if><equals value="valueÖ">a/b/c/text()</equals></if>
+                     <if><equals value="value2">a/b/c/text()</equals></if>
+                  </or>'''
+        testee = XC.Or( ET.XML(data))
+
+        self.assertIsInstance(testee,XC.Or)
+        self.assertEqual(len(testee._ifs),2)
+        
+        elem =  ET.XML('<x><a><b><c>valueÖ</c></b></a></x>')
+        self.assertTrue(testee.isValid(elem))
+        elem =  ET.XML('<x><a><b><c>value2</c></b></a></x>')
+        self.assertTrue(testee.isValid(elem))
+        elem =  ET.XML('<x><a><b><c>value3</c></b></a></x>')
+        self.assertFalse(testee.isValid(elem))
 
     def test_AND_1(self):
+        '''And: validate dummy'''
         elem = ET.Element('test')
         testee = XC.And()
 

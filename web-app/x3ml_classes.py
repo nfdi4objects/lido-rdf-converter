@@ -757,7 +757,8 @@ class LogicalOp (X3Base):
     def validPath(self,elem):
         if NN(elem):
             if self.xpath and self.value:
-                pathValues = [x.text for x in elem.findall(self.xpath)]
+                correctedPath = self.xpath.replace('/text()', '')
+                pathValues = [x.text for x in elem.findall(correctedPath)]
                 return self.value in pathValues
         return False
 
@@ -791,7 +792,8 @@ class Or(LogicalOp):
     def isValid(self,elem):
         if NN(elem):
             if self._ifs:
-                return any([x.isValid(elem) for x in self._ifs])
+                pathValues = [x.isValid(elem) for x in self._ifs]
+                return any(pathValues)
             return self.validPath(elem)
         return False
 
