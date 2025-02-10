@@ -48,6 +48,7 @@ def makeIfOr(trueFalse):
 
 
 class Test_X3ml_Classes(unittest.TestCase):
+    """Test suite for the X3ML classes in the x3ml_classes module."""
 
     def setUp(self):
         pass
@@ -153,7 +154,6 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee = XC.MappingInfo()
         elem = testee.serialize(ET.Element('test'))
         self.assertIsNotNone(elem.find('mapping_created_by_org'))
-        self.assertIsNotNone(elem.find('mapping_created_by_org'))
         self.assertIsNotNone(elem.find('in_collaboration_with'))
 
         testee = XC.Comment()
@@ -202,7 +202,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(testee.title.text, 'title')
         self.assertEqual(testee.sSchema, 'sinfo')
         self.assertEqual(testee.tSchema, 'tinfo')
-
+        
     def test_Info_3(self):
         '''Info: Serialize'''
         info = XC.Info()
@@ -265,7 +265,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(testee.entity, 'XYZ')
 
     def test_Domain_2(self):
-        '''Domain: Ctro, DeSerial'''
+        '''Domain: Ctor, DeSerial'''
         elem = ET.Element('test')
         makeElementsPath(elem, ['source_node']).text = 'ABC'
         makeElementsPath(elem, ['target_node', 'entity', 'type']).text = 'XYZ'
@@ -708,21 +708,21 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(len(elem.findall('instance_info')), 1)
         self.assertIsNotNone(elem.find('instance_info/constant'))
 
-    def test_TargetExtenion_1(self):
-        '''TargetExtenion: Ctor, Access'''
+    def test_TargetExtension_1(self):
+        '''TargetExtension: Ctor, Access'''
         entity = XC.Entity()
         relationship = XC.Relationship()
-        testee = XC.TargetExtenion(entity, relationship)
+        testee = XC.TargetExtension(entity, relationship)
         self.assertIsInstance(testee.entity, XC.Entity)
         self.assertIsInstance(testee.relationship, XC.Relationship)
 
-    def test_TargetExtenion_2(self):
-        '''TargetExtenion: Serialize'''
+    def test_TargetExtension_2(self):
+        '''TargetExtension: Serialize'''
         entity = XC.Entity()
         entity.type = 'entityType'
         relationship = XC.Relationship()
         relationship.text = 'relationshipType'
-        testee = XC.TargetExtenion(entity, relationship)
+        testee = XC.TargetExtension(entity, relationship)
 
         elem = ET.Element('test')
         testee.serialize(elem)
@@ -730,27 +730,27 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(elem.find('entity/type').text, 'entityType')
         self.assertEqual(elem.find('relationship').text, 'relationshipType')
 
-    def test_TargetExtenion_3(self):
-        '''TargetExtenion: Deserialize'''
+    def test_TargetExtension_3(self):
+        '''TargetExtension: Deserialize'''
         elem = ET.Element('test')
         makeElementsPathS(elem, 'entity/type').text = 'entityType'
         makeElementsPathS(elem, 'relationship').text = 'relationshipType'
                 
-        testee = XC.TargetExtenion(XC.Entity(), XC.Relationship())
+        testee = XC.TargetExtension(XC.Entity(), XC.Relationship())
         testee.deserialize(elem)
                 
         self.assertEqual(testee.entity.type, 'entityType')
         self.assertEqual(testee.relationship.text, 'relationshipType')
 
     def test_TargetRelationType_1(self):
-        '''TargetRelationType: Ctor, Access'''
+        '''TargetRelation: Ctor, Access'''
         testee = XC.TargetRelation()
         self.assertEqual(testee.relationship.text, '')
         self.assertEqual(len(testee.conditionIFs), 0)
         self.assertEqual(len(testee.extensions), 0)
 
     def test_TargetRelationType_2(self):
-        '''TargetRelationType: Deserialize'''
+        '''TargetRelation: Deserialize'''
         elem = ET.Element('test')
         makeElementsPathS(elem, 'relationship').text = 'relationshipType'
         makeElementsPathS(elem, 'if')
@@ -760,18 +760,16 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee = XC.TargetRelation()
         testee.deserialize(elem)
 
-        #self.assertEqual(testee.relationship.text, 'relationshipType')
         self.assertEqual(len(testee.conditionIFs), 1)
         self.assertEqual(len(testee.extensions), 1)
         self.assertEqual(testee.extensions[0].entity.type, 'entityType')
-        #self.assertEqual(testee.iterMediates[0].relationship.text, 'intermediateRelationship')
 
     def test_TargetRelationType_3(self):
-        '''TargetRelationType: Serialize'''
+        '''TargetRelation: Serialize'''
         testee = XC.TargetRelation()
         testee.relationship.text = 'relationshipType'
         testee.conditionIFs.append(XC.If())
-        intermediate = XC.TargetExtenion(XC.Entity(), XC.Relationship())
+        intermediate = XC.TargetExtension(XC.Entity(), XC.Relationship())
         intermediate.entity.type = 'entityType'
         intermediate.relationship.text = 'intermediateRelationship'
         testee.extensions.append(intermediate)
@@ -781,16 +779,15 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(elem.find('relationship').text, 'relationshipType')
         self.assertEqual(len(elem.findall('if')), 1)
         self.assertEqual(elem.find('entity/type').text, 'entityType')
-        #self.assertEqual(elem.find('relationship').text, 'intermediateRelationship')
 
     def test_RangeTargetNodeType_1(self):
-        '''RangeTargetNodeType: Ctor, Access'''
+        '''RangeTargetNode: Ctor, Access'''
         testee = XC.RangeTargetNodeType()
         self.assertIsInstance(testee.entity, XC.Entity)
         self.assertEqual(len(testee.conditionIFs), 0)
 
     def test_RangeTargetNodeType_2(self):
-        '''RangeTargetNodeType: Deserialize'''
+        '''RangeTargetNode: Deserialize'''
         elem = ET.Element('test')
         makeElementsPathS(elem, 'entity/type').text = 'entityType'
         makeElementsPathS(elem, 'if')
@@ -802,7 +799,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(len(testee.conditionIFs), 1)
 
     def test_RangeTargetNodeType_3(self):
-        '''RangeTargetNodeType: Serialize'''
+        '''RangeTargetNode: Serialize'''
         testee = XC.RangeTargetNodeType()
         testee.entity.type = 'entityType'
         testee.conditionIFs.append(XC.If())
@@ -813,25 +810,14 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(len(elem.findall('if')), 1)
 
     def test_RangeTargetNodeType_4(self):
-        '''RangeTargetNodeType: Ctor'''
+        '''RangeTargetNode: Ctor'''
         testee = XC.RangeTargetNodeType()
         self.assertIsInstance(testee.entity, XC.Entity)
         self.assertEqual(len(testee.conditionIFs), 0)
 
+
     def test_RangeTargetNodeType_5(self):
-        '''RangeTargetNodeType: Deserialize'''
-        elem = ET.Element('test')
-        makeElementsPathS(elem, 'entity/type').text = 'entityType'
-        makeElementsPathS(elem, 'if')
-        testee = XC.RangeTargetNodeType()
-
-        testee.deserialize(elem)
-
-        self.assertEqual(testee.entity.type, 'entityType')
-        self.assertEqual(len(testee.conditionIFs), 1)
-
-    def test_RangeTargetNodeType_6(self):
-        '''RangeTargetNodeType: Serialize'''
+        '''RangeTargetNode: Serialize'''
         testee = XC.RangeTargetNodeType()
         testee.entity.type = 'entityType'
         testee.conditionIFs.append(XC.If())

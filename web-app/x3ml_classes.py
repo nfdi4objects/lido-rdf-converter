@@ -627,7 +627,7 @@ class Entity(X3Base):
             x.serialize(ET.SubElement(elem, 'instance_info'))
 
 
-class TargetExtenion(Serializer):
+class TargetExtension(Serializer):
     '''Model class for TargetExtenion elements'''
     def __init__(self, entity: Entity, relationShip: Relationship) -> None:
         self.entity = entity
@@ -681,7 +681,7 @@ class TargetRelation(X3Base):
             self.relationship = Relationship(rsElems.pop())
             enElems = elem.findall('entity')
             if len(enElems) == len(rsElems):
-                self.extensions = [TargetExtenion(Entity(e), Relationship(r)) for e, r in zip(enElems, rsElems)]
+                self.extensions = [TargetExtension(Entity(e), Relationship(r)) for e, r in zip(enElems, rsElems)]
         return elem
 
 
