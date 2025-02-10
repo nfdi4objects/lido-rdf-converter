@@ -202,7 +202,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         self.assertEqual(testee.title.text, 'title')
         self.assertEqual(testee.sSchema, 'sinfo')
         self.assertEqual(testee.tSchema, 'tinfo')
-        
+
     def test_Info_3(self):
         '''Info: Serialize'''
         info = XC.Info()
@@ -746,7 +746,6 @@ class Test_X3ml_Classes(unittest.TestCase):
         '''TargetRelation: Ctor, Access'''
         testee = XC.TargetRelation()
         self.assertEqual(testee.relationship.text, '')
-        self.assertEqual(len(testee.conditionIFs), 0)
         self.assertEqual(len(testee.extensions), 0)
 
     def test_TargetRelationType_2(self):
@@ -760,7 +759,6 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee = XC.TargetRelation()
         testee.deserialize(elem)
 
-        self.assertEqual(len(testee.conditionIFs), 1)
         self.assertEqual(len(testee.extensions), 1)
         self.assertEqual(testee.extensions[0].entity.type, 'entityType')
 
@@ -768,7 +766,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         '''TargetRelation: Serialize'''
         testee = XC.TargetRelation()
         testee.relationship.text = 'relationshipType'
-        testee.conditionIFs.append(XC.If())
+        testee.conditionIF =XC.If()
         intermediate = XC.TargetExtension(XC.Entity(), XC.Relationship())
         intermediate.entity.type = 'entityType'
         intermediate.relationship.text = 'intermediateRelationship'

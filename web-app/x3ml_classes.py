@@ -648,7 +648,7 @@ class TargetRelation(X3Base):
     '''Model class for target relation type elements'''
     def __init__(self, elem: ET.Element | None = None) -> None:
         super().__init__(elem)
-        self.conditionIFs = []
+        self.conditionIF = If()
         self.relationship = Relationship(None)
         self.extensions = []
         if NN(elem):
@@ -661,13 +661,12 @@ class TargetRelation(X3Base):
     def entity(self, value):  self.relationship.text = value
 
     def validate(self,elem): 
-        return all( (x.validate(elem) for x in self.conditionIFs) )
+        return self.conditionIF.validate(elem)
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
         self.relationship.serialize(ET.SubElement(elem, 'relationship'))
-        for x in self.conditionIFs:
-            x.serialize(ET.SubElement(elem, 'if'))
+        self.conditionIF.serialize(ET.SubElement(elem, 'if'))
         for x in self.extensions:
             x.entity.serialize(ET.SubElement(elem, 'entity'))
             x.relationship.serialize(ET.SubElement(elem, 'relationship'))
@@ -675,7 +674,7 @@ class TargetRelation(X3Base):
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
-        self.conditionIFs = [If(x) for x in elem.findall('if')]
+        self.conditionIF = If(elem.find('if'))
         rsElems = elem.findall('relationship')
         if len(rsElems) > 0:
             self.relationship = Relationship(rsElems.pop())
@@ -766,11 +765,14 @@ class LogicalOp (X3Base):
     
     def validPath(self,elem):
         if NN(elem):
-            if self.xpath and self.value:
+            if self.xpath.endswith('/text()'):
                 correctedPath = self.xpath.replace('/text()', '')
                 pathValues = [x.text for x in elem.findall(correctedPath)]
                 return self.value in pathValues
-            return True
+            elif self.xpath == 'lido:type':
+                return elem.get('type','') == self.value #TODO Tests
+            else:
+                return True
         return False
 
     def validate(self,elem):
