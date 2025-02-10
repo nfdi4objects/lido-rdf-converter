@@ -32,18 +32,18 @@ def makeElementsPathS(root: ET.Element, path: str) -> ET.Element | None:
 
 class testOpTrue(XC.Or):
 
-    def isValid(self, elem):
+    def validate(self, elem):
         return True
 
 
 class testOpFalse(XC.Or):
 
-    def isValid(self, elem):
+    def validate(self, elem):
         return False
 
 def makeIfOr(trueFalse):
     tIf = XC.If()
-    tIf.op = testOpTrue() if trueFalse else testOpFalse()
+    tIf.logicOp = testOpTrue() if trueFalse else testOpFalse()
     return tIf
 
 
@@ -440,14 +440,14 @@ class Test_X3ml_Classes(unittest.TestCase):
     def test_LogicalOp_2(self):
         '''LogicalOp: Serial'''
         testee = XC.LogicalOp()
-        testee._ifs.append(XC.If())
-        testee._ifs.append(XC.If())
+        testee.conditionIFs.append(XC.If())
+        testee.conditionIFs.append(XC.If())
         elem = ET.Element('test')
 
         testee.serialize(elem)
 
-        _ifs = elem.findall('if/or')
-        self.assertEqual(len(_ifs), 2)
+        ifs = elem.findall('if/or')
+        self.assertEqual(len(ifs), 2)
         # TODO
 
     def test_LogicalOp_3(self):
@@ -459,11 +459,11 @@ class Test_X3ml_Classes(unittest.TestCase):
 
         testee.deserialize(elem)
 
-        self.assertEqual(len(testee._ifs), 2)
-        self.assertIsInstance(testee._ifs[0], XC.If)
-        self.assertIsInstance(testee._ifs[0].op, XC.Or)
-        self.assertIsInstance(testee._ifs[1], XC.If)
-        self.assertIsInstance(testee._ifs[1].op, XC.And)
+        self.assertEqual(len(testee.conditionIFs), 2)
+        self.assertIsInstance(testee.conditionIFs[0], XC.If)
+        self.assertIsInstance(testee.conditionIFs[0].logicOp, XC.Or)
+        self.assertIsInstance(testee.conditionIFs[1], XC.If)
+        self.assertIsInstance(testee.conditionIFs[1].logicOp, XC.And)
         # TODO
 
     def test_OPS(self):
@@ -480,7 +480,7 @@ class Test_X3ml_Classes(unittest.TestCase):
     def test_ConditionsType_1(self):
         '''ConditionsType: Ctor, Access'''
         testee = XC.ConditionsType(None)
-        self.assertIsInstance(testee.op, XC.Or)
+        self.assertIsInstance(testee.logicOp, XC.Or)
 
     def test_ConditionsType_2(self):
         '''ConditionsType: Serial'''
@@ -499,23 +499,23 @@ class Test_X3ml_Classes(unittest.TestCase):
 
         testee.deserialize(elem)
 
-        self.assertIsInstance(testee.op, XC.Or)
+        self.assertIsInstance(testee.logicOp, XC.Or)
     
     def test_OR_1(self):
         elem = ET.Element('test')
         testee = XC.Or()
 
-        testee._ifs = [makeIfOr(False),makeIfOr(False)]
-        self.assertFalse(testee.isValid(elem))
+        testee.conditionIFs = [makeIfOr(False),makeIfOr(False)]
+        self.assertFalse(testee.validate(elem))
 
-        testee._ifs = [makeIfOr(False),makeIfOr(True)]
-        self.assertTrue(testee.isValid(elem))
+        testee.conditionIFs = [makeIfOr(False),makeIfOr(True)]
+        self.assertTrue(testee.validate(elem))
 
-        testee._ifs = [makeIfOr(True),makeIfOr(False)]
-        self.assertTrue(testee.isValid(elem))
+        testee.conditionIFs = [makeIfOr(True),makeIfOr(False)]
+        self.assertTrue(testee.validate(elem))
 
-        testee._ifs = [makeIfOr(True),makeIfOr(True)]
-        self.assertTrue(testee.isValid(elem))
+        testee.conditionIFs = [makeIfOr(True),makeIfOr(True)]
+        self.assertTrue(testee.validate(elem))
 
     def test_OR_2(self):
         '''OR: serialize'''
@@ -545,13 +545,13 @@ class Test_X3ml_Classes(unittest.TestCase):
                      <if><equals value="value2">xpath2</equals></if>
                   </or>'''
         testee = XC.Or( ET.XML(data))
-        self.assertEqual(len(testee._ifs),2)
+        self.assertEqual(len(testee.conditionIFs),2)
         for n in range(2):
-            ifn = testee._ifs[n]
+            ifn = testee.conditionIFs[n]
             self.assertIsInstance(ifn,XC.If)
-            op = ifn.op
+            op = ifn.logicOp
             self.assertIsInstance(op,XC.Equals)
-            self.assertEqual(len(op._ifs),0)
+            self.assertEqual(len(op.conditionIFs),0)
             self.assertEqual(op.value,f'value{n+1}')
             self.assertEqual(op.xpath,f'xpath{n+1}')
     
@@ -564,66 +564,69 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee = XC.Or( ET.XML(rules))
 
         self.assertIsInstance(testee,XC.Or)
-        self.assertEqual(len(testee._ifs),2)
+        self.assertEqual(len(testee.conditionIFs),2)
         
         elem =  ET.XML('<x><a><b><c>valueÖ</c></b></a></x>')
-        self.assertTrue(testee.isValid(elem))
+        self.assertTrue(testee.validate(elem))
         elem =  ET.XML('<x><a><b><c>value2</c></b></a></x>')
-        self.assertTrue(testee.isValid(elem))
+        self.assertTrue(testee.validate(elem))
         elem =  ET.XML('<x><a><b><c>value3</c></b></a></x>')
-        self.assertFalse(testee.isValid(elem))
+        self.assertFalse(testee.validate(elem))
 
     def test_AND_1(self):
         '''And: validate dummy'''
         elem = ET.Element('test')
         testee = XC.And()
 
-        testee._ifs = [makeIfOr(False),makeIfOr(False)]
-        self.assertFalse(testee.isValid(elem))
+        testee.conditionIFs = [makeIfOr(False),makeIfOr(False)]
+        self.assertFalse(testee.validate(elem))
 
-        testee._ifs = [makeIfOr(False),makeIfOr(True)]
-        self.assertFalse(testee.isValid(elem))
+        testee.conditionIFs = [makeIfOr(False),makeIfOr(True)]
+        self.assertFalse(testee.validate(elem))
 
-        testee._ifs = [makeIfOr(True),makeIfOr(False)]
-        self.assertFalse(testee.isValid(elem))
+        testee.conditionIFs = [makeIfOr(True),makeIfOr(False)]
+        self.assertFalse(testee.validate(elem))
 
-        testee._ifs = [makeIfOr(True),makeIfOr(True)]
-        self.assertTrue(testee.isValid(elem))
+        testee.conditionIFs = [makeIfOr(True),makeIfOr(True)]
+        self.assertTrue(testee.validate(elem))
 
     def test_AND_2(self):
         '''AND: validate element'''
-        rules = '''<or>
+        rules = '''<and>
                      <if><equals value="valueÖ">a/b/c/text()</equals></if>
                      <if><equals value="value2">a/b/d/text()</equals></if>
-                  </or>'''
+                  </and>'''
         testee = XC.And( ET.XML(rules))
 
         self.assertIsInstance(testee,XC.And)
-        self.assertEqual(len(testee._ifs),2)
+        self.assertEqual(len(testee.conditionIFs),2)
         
         elem =  ET.XML('<x><a><b> <c>valueÖ</c> <d>value2</d> </b></a></x>')
-        self.assertTrue(testee.isValid(elem))
+        self.assertTrue(testee.validate(elem))
+        elem =  ET.XML('<x><a><b> <d>value2</d> <c>valueÖ</c> </b></a></x>')
+        self.assertTrue(testee.validate(elem))
+        
         elem =  ET.XML('<x><a><b> <c>value</c> <d>value2</d> </b></a></x>')
-        self.assertFalse(testee.isValid(elem))
+        self.assertFalse(testee.validate(elem))
         elem =  ET.XML('<x><a><b> <c>valueÖ</c> <d>value</d> </b></a></x>')
-        self.assertFalse(testee.isValid(elem))
+        self.assertFalse(testee.validate(elem))
         elem =  ET.XML('<x><a><b> <c>valueX</c> <d>valueY</d> </b></a></x>')
-        self.assertFalse(testee.isValid(elem))
+        self.assertFalse(testee.validate(elem))
 
     def test_IF_1(self):
         '''If: Ctor'''
         testee = XC.If()
-        self.assertIsInstance(testee.op, XC.Or)
+        self.assertIsInstance(testee.logicOp, XC.Or)
 
     def test_IF_2(self):
         '''If: logic'''
         testee = XC.If()
-        self.assertFalse(testee.isValid(None))
+        self.assertFalse(testee.validate(None))
         elem = ET.Element('test')
-        testee.op = testOpTrue()
-        self.assertTrue(testee.isValid(elem))
-        testee.op = testOpFalse()
-        self.assertFalse(testee.isValid(elem))
+        testee.logicOp = testOpTrue()
+        self.assertTrue(testee.validate(elem))
+        testee.logicOp = testOpFalse()
+        self.assertFalse(testee.validate(elem))
 
 
     def test_Link_1(self):
@@ -741,9 +744,9 @@ class Test_X3ml_Classes(unittest.TestCase):
 
     def test_TargetRelationType_1(self):
         '''TargetRelationType: Ctor, Access'''
-        testee = XC.TargetRelationType()
+        testee = XC.TargetRelation()
         self.assertEqual(testee.relationship.text, '')
-        self.assertEqual(len(testee.ifs), 0)
+        self.assertEqual(len(testee.conditionIFs), 0)
         self.assertEqual(len(testee.extensions), 0)
 
     def test_TargetRelationType_2(self):
@@ -754,20 +757,20 @@ class Test_X3ml_Classes(unittest.TestCase):
         makeElementsPathS(elem, 'entity/type').text = 'entityType'
         makeElementsPathS(elem, 'relationship').text = 'intermediateRelationship'
 
-        testee = XC.TargetRelationType()
+        testee = XC.TargetRelation()
         testee.deserialize(elem)
 
         #self.assertEqual(testee.relationship.text, 'relationshipType')
-        self.assertEqual(len(testee.ifs), 1)
+        self.assertEqual(len(testee.conditionIFs), 1)
         self.assertEqual(len(testee.extensions), 1)
         self.assertEqual(testee.extensions[0].entity.type, 'entityType')
         #self.assertEqual(testee.iterMediates[0].relationship.text, 'intermediateRelationship')
 
     def test_TargetRelationType_3(self):
         '''TargetRelationType: Serialize'''
-        testee = XC.TargetRelationType()
+        testee = XC.TargetRelation()
         testee.relationship.text = 'relationshipType'
-        testee.ifs.append(XC.If())
+        testee.conditionIFs.append(XC.If())
         intermediate = XC.TargetExtenion(XC.Entity(), XC.Relationship())
         intermediate.entity.type = 'entityType'
         intermediate.relationship.text = 'intermediateRelationship'
@@ -784,7 +787,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         '''RangeTargetNodeType: Ctor, Access'''
         testee = XC.RangeTargetNodeType()
         self.assertIsInstance(testee.entity, XC.Entity)
-        self.assertEqual(len(testee.ifs), 0)
+        self.assertEqual(len(testee.conditionIFs), 0)
 
     def test_RangeTargetNodeType_2(self):
         '''RangeTargetNodeType: Deserialize'''
@@ -796,13 +799,13 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee.deserialize(elem)
 
         self.assertEqual(testee.entity.type, 'entityType')
-        self.assertEqual(len(testee.ifs), 1)
+        self.assertEqual(len(testee.conditionIFs), 1)
 
     def test_RangeTargetNodeType_3(self):
         '''RangeTargetNodeType: Serialize'''
         testee = XC.RangeTargetNodeType()
         testee.entity.type = 'entityType'
-        testee.ifs.append(XC.If())
+        testee.conditionIFs.append(XC.If())
 
         elem = testee.serialize(ET.Element('test'))
 
@@ -813,7 +816,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         '''RangeTargetNodeType: Ctor'''
         testee = XC.RangeTargetNodeType()
         self.assertIsInstance(testee.entity, XC.Entity)
-        self.assertEqual(len(testee.ifs), 0)
+        self.assertEqual(len(testee.conditionIFs), 0)
 
     def test_RangeTargetNodeType_5(self):
         '''RangeTargetNodeType: Deserialize'''
@@ -825,13 +828,13 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee.deserialize(elem)
 
         self.assertEqual(testee.entity.type, 'entityType')
-        self.assertEqual(len(testee.ifs), 1)
+        self.assertEqual(len(testee.conditionIFs), 1)
 
     def test_RangeTargetNodeType_6(self):
         '''RangeTargetNodeType: Serialize'''
         testee = XC.RangeTargetNodeType()
         testee.entity.type = 'entityType'
-        testee.ifs.append(XC.If())
+        testee.conditionIFs.append(XC.If())
 
         elem = testee.serialize(ET.Element('test'))
 

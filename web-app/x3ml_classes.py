@@ -371,7 +371,7 @@ class Path(X3Base):
     def __init__(self, elem: ET.Element | None = None):
         super().__init__(elem)
         self.sourceRelation = SourceRelation()
-        self.targetRelation = TargetRelationType()
+        self.targetRelation = TargetRelation()
         self.comments = []
         if NN(elem):
             self.deserialize(elem)
@@ -385,6 +385,7 @@ class Path(X3Base):
     @property
     def entity(self): return self.targetRelation.entity
 
+
     @entity.setter
     def entity(self, value):  self.targetRelation.entity = value
 
@@ -392,13 +393,16 @@ class Path(X3Base):
         self.path = path
         self.entity = relationship
 
+    def validate(self,elem):
+        return self.targetRelation.validate(elem)
+
     def addComment(self, s):
         self.comments.append(Comment.create(s))
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
         self.sourceRelation = SourceRelation(elem.find('source_relation'))
-        self.targetRelation = TargetRelationType(elem.find('target_relation'))
+        self.targetRelation = TargetRelation(elem.find('target_relation'))
         self.comments = [Comment(x) for x in elem.findall('comments/comment')]
         return elem
 
@@ -469,6 +473,9 @@ class Link(X3Base):
     def set(self, path, relationship, entity):
         self.path.set(path, relationship)
         self.range.set(path, entity)
+
+    def validate(self,elem):
+        return self.path.validate(elem)
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
@@ -637,11 +644,11 @@ class TargetExtenion(Serializer):
         return elem
 
 
-class TargetRelationType(X3Base):
+class TargetRelation(X3Base):
     '''Model class for target relation type elements'''
     def __init__(self, elem: ET.Element | None = None) -> None:
         super().__init__(elem)
-        self.ifs = []
+        self.conditionIFs = []
         self.relationship = Relationship(None)
         self.extensions = []
         if NN(elem):
@@ -653,10 +660,13 @@ class TargetRelationType(X3Base):
     @entity.setter
     def entity(self, value):  self.relationship.text = value
 
+    def validate(self,elem): 
+        return all( (x.validate(elem) for x in self.conditionIFs) )
+
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
         self.relationship.serialize(ET.SubElement(elem, 'relationship'))
-        for x in self.ifs:
+        for x in self.conditionIFs:
             x.serialize(ET.SubElement(elem, 'if'))
         for x in self.extensions:
             x.entity.serialize(ET.SubElement(elem, 'entity'))
@@ -665,7 +675,7 @@ class TargetRelationType(X3Base):
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
-        self.ifs = [If(x) for x in elem.findall('if')]
+        self.conditionIFs = [If(x) for x in elem.findall('if')]
         rsElems = elem.findall('relationship')
         if len(rsElems) > 0:
             self.relationship = Relationship(rsElems.pop())
@@ -680,20 +690,20 @@ class RangeTargetNodeType(X3Base):
     def __init__(self, elem: ET.Element | None = None) -> None:
         super().__init__(elem)
         self.entity = Entity()
-        self.ifs = []
+        self.conditionIFs = []
         if NN(elem):
             self.deserialize(elem)
 
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
         self.entity = Entity(elem.find('entity'))
-        self.ifs = [If(x) for x in elem.findall('if')]
+        self.conditionIFs = [If(x) for x in elem.findall('if')]
         return elem
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
         self.entity.serialize(ET.SubElement(elem, 'entity'))
-        for x in self.ifs:
+        for x in self.conditionIFs:
             x.serialize(ET.SubElement(elem, 'if'))
         return elem
 
@@ -720,25 +730,25 @@ class LogicalOp (X3Base):
         self.tag = tag
         self.xpath = ''
         self.value=''
-        self._ifs = []
+        self.conditionIFs = []
         if NN(elem):
             self.deserialize(elem)
 
     def append(self, objIf):
         if isinstance(objIf,If):
-            self._ifs.append(objIf)
+            self.conditionIFs.append(objIf)
             return objIf
     
     def reset(self):
         self.xpath = ''
         self.value = ''
-        self._ifs = []
+        self.conditionIFs = []
 
     def deserialize(self, elem: ET.Element | None):
         super().deserialize(elem)
         self.reset()
         if children := elem.findall('if'):
-            self._ifs = [If(x) for x in children]
+            self.conditionIFs = [If(x) for x in children]
         else:
             self.xpath = elem.text
             self.value = elem.get('value','')
@@ -746,8 +756,8 @@ class LogicalOp (X3Base):
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
-        if self._ifs:
-            for x in self._ifs:
+        if self.conditionIFs:
+            for x in self.conditionIFs:
                 x.serialize(ET.SubElement(elem, 'if'))
         else:
             if self.xpath: elem.text = self.xpath
@@ -760,9 +770,10 @@ class LogicalOp (X3Base):
                 correctedPath = self.xpath.replace('/text()', '')
                 pathValues = [x.text for x in elem.findall(correctedPath)]
                 return self.value in pathValues
+            return True
         return False
 
-    def isValid(self,elem):
+    def validate(self,elem):
         return self.validPath(elem)
 
 
@@ -777,10 +788,10 @@ class And (LogicalOp):
     def __init__(self, elem: ET.Element | None = None) -> None:
         super().__init__(elem, 'and')
 
-    def isValid(self,elem):
+    def validate(self,elem):
         if NN(elem):
-            if self._ifs:
-                return all([x.isValid(elem) for x in self._ifs])
+            if self.conditionIFs:
+                return all([x.validate(elem) for x in self.conditionIFs])
             return self.validPath(elem)
         return False
 
@@ -789,11 +800,11 @@ class Or(LogicalOp):
     def __init__(self, elem: ET.Element | None = None) -> None:
         super().__init__(elem, 'or')
 
-    def isValid(self,elem):
+    def validate(self,elem):
         if NN(elem):
-            if self._ifs:
-                pathValues = [x.isValid(elem) for x in self._ifs]
-                return any(pathValues)
+            if self.conditionIFs:
+                validFlags = [x.validate(elem) for x in self.conditionIFs]
+                return any(validFlags)
             return self.validPath(elem)
         return False
 
@@ -831,13 +842,13 @@ class ConditionsType(X3Base):
     '''Model class for conditions type elements'''
     def __init__(self, elem: ET.Element | None = None, **kw) -> None:
         super().__init__(elem)
-        self.op = Or()
+        self.logicOp = Or()
         if NN(elem):
             self.deserialize(elem)
 
     def setOp(self, op):
         if isinstance(op,LogicalOp):
-            self.op = op
+            self.logicOp = op
             return op
         
     def deserialize(self, elem: ET.Element | None):
@@ -846,9 +857,9 @@ class ConditionsType(X3Base):
         def choice(tag, cls):
             st = elem.find(tag)
             if NN(st):
-                self.op = cls(st)
+                self.logicOp = cls(st)
 
-        self.op = None
+        self.logicOp = None
         choice('or', Or)
         choice('and', And)
         choice('not', Not)
@@ -860,12 +871,12 @@ class ConditionsType(X3Base):
 
     def serialize(self, elem: ET.Element):
         super().serialize(elem)
-        if self.op:
-            self.op.serialize(ET.SubElement(elem, self.op.tag))
+        if self.logicOp:
+            self.logicOp.serialize(ET.SubElement(elem, self.logicOp.tag))
 
-    def isValid(self,elem):
-        if NN(self.op) and NN(elem):
-            return self.op.isValid(elem)
+    def validate(self,elem):
+        if NN(self.logicOp) and NN(elem):
+            return self.logicOp.validate(elem)
         return False
         
 
