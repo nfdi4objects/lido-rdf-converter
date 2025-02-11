@@ -1,27 +1,5 @@
-.black-button { /* Black background */
-  color: black;  
-  background-color: #f0f0f0;          /* White text */
-  padding: 10px 20px;        /* Padding */
-  text-align: center;        /* Center the text */
-  text-decoration: none;     /* Remove underline */
-  display: inline-flex;      /* Flexbox for alignment */
-  align-items: center;       /* Center the content vertically */
-  font-size: 14px;  
-  font-weight: bold;         /* Font size */        /* Bold text */
-  margin: 4px 0;             /* Margin */
-  cursor: pointer;           /* Pointer/hand icon */
-  border-radius: 5px;        /* Rounded corners */
-  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transitions */
-}
-
-.black-button:active {
-  background-color: #333333; /* Dark gray background on click */
-  color: #ffffff;            /* White text on click */
-  transform: scale(0.98);    /* Slightly shrink the button on click */
-}
-
 .container {
-  width: 100%; 
+  width: 90%; 
 }
 
 #sourceEditor {
@@ -44,45 +22,3 @@
     font-size: 12px;
     font-family: monospace;
   }
-
-   /* Remove default bullets */
-ul, #myUL {
-  list-style-type: none;
-  font-size: 20px;
-}
-
-/* Remove margins and padding from the parent ul */
-#myUL {
-  margin: 0;
-  padding: 0;
-}
-
-/* Style the caret/arrow */
-.caret {
-  cursor: pointer;
-  user-select: none; /* Prevent text selection */
-}
-
-/* Create the caret/arrow with a unicode, and style it */
-.caret::before {
-  content: "\25B6";
-  color: black;
-  display: inline-block;
-  margin-right: 6px;
-}
-
-/* Rotate the caret/arrow icon when clicked on (using JavaScript) */
-.caret-down::before {
-  transform: rotate(90deg);
-}
-
-/* Hide the nested list */
-.nested {
-  display: none;
-}
-
-/* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
-.active {
-  display: block;
-} 
-  

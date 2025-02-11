@@ -69,7 +69,8 @@
     </div>
     <!-- Main dialog -->
     <div class="row">
-      <div class="col">
+      <div class="col-2"></div>
+      <div class="col-8">
         <h4><span class="label label-default">Mappings (x3ml)</span></h4>
         <p>
           <button type="button" class="btn btn-primary btn-sm" @click="addMapping">Add mapping</button>&nbsp;
@@ -78,14 +79,14 @@
           <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal">Upload</button>&nbsp;
           <a href="/downloadX3ml" target="blank"><button class='btn btn-primary btn-sm'>Download</button></a>&nbsp;
         </p>
-        <div id="acc" class="accordion accordion-flush" style="overflow-y: scroll; height:600px">
+        <div id="acc" class="accordion accordion-flush" style="overflow-y: scroll; height:600px; width: 100%;">
           <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
             <h2 class="accordion-header" :id="'M' + i">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#C' + i" aria-expanded="false" :aria-controls="'C' + i">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#C' + i" aria-expanded="false" :aria-controls="'C' + i">
                 Mapping ${i+1}$ from: "${mapping.domain.sourceNode.text}$"
               </button>
             </h2>
-            <div :id="'C' + i" class="accordion-collapse collapse hide" :aria-labelledby="'M' + i" data-bs-parent="#acc">
+            <div :id="'C' + i" class="accordion-collapse collapse" :aria-labelledby="'M' + i" data-bs-parent="#acc">
               <div class="accordion-body">
 
                 <div class="container-fluid">
@@ -124,7 +125,7 @@
                             <input class="form-check-input" type="checkbox" value="" :id="'LinkSkip' + i +'-' + j" v-model="link.attributes.skip">
                             <label class="form-check-label" :for="'LinkSkip' + i +'-' + j">Skip</label>
                           </div>
-                                  <br />
+                          <br />
                           <button type="button" class="btn btn-primary btn-sm" @click="applyLink" :iM="i" :iL="j">Submit</button>&nbsp;
                           <button type="button" class="btn btn-danger btn-sm" @click="deleteLink" :iM="i" :iL="j">Delete</button>&nbsp;
                         </form>
@@ -136,8 +137,10 @@
             </div>
           </div>
         </div>
-        <br />
       </div>
+      <div class="col-2"></div>
+    </div>
+    <div class="row">
       <div class="col">
         <h4>Lido source (xml)</h4>
         <p>
@@ -146,10 +149,6 @@
         </p>
         <div id="sourceEditor" style="height:600px"></div>
       </div>
-    </div>
-  </div>
-  <div class="container">
-    <div class="row">
       <div class="col">
         <h4>RDF Output (ttl)</h4>
         <p>
@@ -168,7 +167,7 @@
       optionValues.forEach(function (x) {
         option = document.createElement('option');
         option.label = x.entity;
-        option.value = x.prefix+':'+x.entity;
+        option.value = x.prefix + ':' + x.entity;
         elem.appendChild(option);
       });
     }
