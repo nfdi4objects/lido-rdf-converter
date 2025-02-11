@@ -116,9 +116,9 @@
                         <form method="post">
                           <label for="fname">Path:</label>
                           <input class="form-control" type="text" name="P-path" :id="j" v-model="link.path.sourceRelation.relation.text">
-                          <label for="lname">Property</label>
+                          <label for="lname">Property:</label>
                           <input class="form-control" list="DLCidocProperties" type="text" name="P-type" :id="j" v-model="link.path.targetRelation.relationship.text">
-                          <label for="lname">Entity</label>
+                          <label for="lname">Entity:</label>
                           <input class="form-control" list="DLCidocClasses" type="text" name="P-type" :id="j" v-model="link.range.targetNode.entity.type">
                           <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="" :id="'LinkSkip' + i +'-' + j" v-model="link.attributes.skip">

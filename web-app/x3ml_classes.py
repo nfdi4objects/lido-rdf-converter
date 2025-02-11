@@ -259,18 +259,17 @@ class Namespace(X3Base):
     def __eq__(self, other):
         return self.prefix == other.prefix
 
-    def set(self, p, u):
-        self.prefix = p
-        self.uri = u
+    def set(self, prefix, uri):
+        self.prefix = prefix
+        self.uri = uri
         return self
-
 
 class Domain(X3Base):
     '''Model class for domain elements''' 
     def __init__(self, elem: ET.Element | None = None):
         super().__init__(elem)
         self.sourceNode = SourceNode()
-        self.targetNode = DomainTargetNodeType()
+        self.targetNode = TargetNode()
         self.comments = []
         if NN(elem):
             self.deserialize(elem)
@@ -294,7 +293,7 @@ class Domain(X3Base):
     def deserialize(self, elem: ET.Element):
         super().deserialize(elem)
         self.sourceNode = SourceNode(elem.find('source_node'))
-        self.targetNode = DomainTargetNodeType(elem.find('target_node'))
+        self.targetNode = TargetNode(elem.find('target_node'))
         self.comments = [Comment(x) for x in elem.findall('comments/comment')]
 
     def serialize(self, elem: ET.Element):
@@ -657,8 +656,26 @@ class TargetRelation(X3Base):
     @property
     def entity(self): return self.relationship.text
 
+    @property
+    def ifops(self): return self.conditionIF.op.ifs
+
+    @property
+    def N(self): return len(self.ifops)
+
     @entity.setter
     def entity(self, value):  self.relationship.text = value
+
+    def delOp(self,n):
+        if n in range(0,self.N):
+            self.ifops.pop(n)
+
+    def setOp(self,n,op):
+        if n in range(0,self.N):
+            self.ifops[n] = op
+
+    def appendOp(self,op):
+        self.ifops.append(op) 
+  
 
     def validate(self,elem): 
         return self.conditionIF.validate(elem)
@@ -710,12 +727,6 @@ class RangeTargetNodeType(X3Base):
 class TargetNode(RangeTargetNodeType):
     '''Model class for target node elements'''
     pass
-
-
-class DomainTargetNodeType(RangeTargetNodeType):
-    '''Model class for domain target node type elements'''
-    pass
-
 
 class SourceNode(SimpleText):
     '''Model class for source node elements'''
