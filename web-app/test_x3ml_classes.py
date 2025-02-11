@@ -613,6 +613,26 @@ class Test_X3ml_Classes(unittest.TestCase):
         elem =  ET.XML('<x><a><b> <c>valueX</c> <d>valueY</d> </b></a></x>')
         self.assertFalse(testee.validate(elem))
 
+    def test_AND_2(self):
+        '''AND: validate element'''
+        data = '''<or>
+                     <if><equals value="valueÖ">a/b/c/text()</equals></if>
+                     <if><equals value="value2">a/b/d/text()</equals></if>
+                  </or>'''
+        testee = XC.And( ET.XML(data))
+
+        self.assertIsInstance(testee,XC.And)
+        self.assertEqual(len(testee._ifs),2)
+        
+        elem =  ET.XML('<x><a><b> <c>valueÖ</c> <d>value2</d> </b></a></x>')
+        self.assertTrue(testee.isValid(elem))
+        elem =  ET.XML('<x><a><b> <c>value</c> <d>value2</d> </b></a></x>')
+        self.assertFalse(testee.isValid(elem))
+        elem =  ET.XML('<x><a><b> <c>valueÖ</c> <d>value</d> </b></a></x>')
+        self.assertFalse(testee.isValid(elem))
+        elem =  ET.XML('<x><a><b> <c>valueX</c> <d>valueY</d> </b></a></x>')
+        self.assertFalse(testee.isValid(elem))
+
     def test_IF_1(self):
         '''If: Ctor'''
         testee = XC.If()
