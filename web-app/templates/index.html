@@ -127,6 +127,7 @@
                           </div>
                           <br />
                           <button type="button" class="btn btn-primary btn-sm" @click="applyLink" :iM="i" :iL="j">Submit</button>&nbsp;
+                          <button type="button" class="btn btn-primary btn-sm" @click="showLinkCondition" :iM="i" :iL="j">Conditions</button>&nbsp;
                           <button type="button" class="btn btn-danger btn-sm" @click="deleteLink" :iM="i" :iL="j">Delete</button>&nbsp;
                         </form>
                       </div>
@@ -287,6 +288,16 @@
             del('/deleteLink/' + mIndex + '/' + lIndex).then(res => { this.syncronize(); });
           }
         },
+        showLinkCondition(event) {
+          attrs = event.target.attributes;
+          if (attrs.iM) {
+            mIndex = attrs.iM.value;
+            lIndex = attrs.iL.value;
+            path = this.x3ml.mappings[mIndex].links[lIndex].path
+            predicates = path.targetRelation.condition.predicate.predicates;
+            showModal(predicates)
+          }
+        },
         addLink(event) {
           attrs = event.target.attributes;
           if (attrs.iM) {
@@ -335,6 +346,36 @@
         .then(res => res.json())
         .then(s => rdfEditor.setValue(s.text));
       app.syncronize();
+    }
+
+    function showModal(predicates) {
+      const modal = document.createElement('div');
+      p0 = predicates[0]
+      console.log(p0)
+      modal.innerHTML = `
+        <div class="modal fade" id="dynamicModal" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Mapping ${p0.predicate.value}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">Link ${p0.predicate.xpath}</div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      const modalInstance = new bootstrap.Modal(document.getElementById('dynamicModal'));
+      modalInstance.show();
+
+      // Clean up after hiding
+      modal.addEventListener('hidden.bs.modal', function () {
+        document.body.removeChild(modal);
+      });
     }
 
   </script>

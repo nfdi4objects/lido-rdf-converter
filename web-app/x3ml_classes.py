@@ -868,17 +868,17 @@ class PredicateVariant(X3Base, Predicate):
     '''Model class for conditions type elements'''
     def __init__(self, elem: Element | None = None, **kw) -> None:
         super().__init__(elem)
-        self._logicOp = Or()
+        self.predicate = Or()
         if NN(elem):
             self.deserialize(elem)
 
     @property
-    def op(self): return self._logicOp
+    def op(self): return self.predicate
 
     @op.setter
     def op(self, value):
         if isinstance(value, ComposedPredicate):
-            self._logicOp = value
+            self.predicate = value
 
     def deserialize(self, elem: Element | None):
         super().deserialize(elem)
