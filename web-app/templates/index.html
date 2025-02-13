@@ -23,7 +23,35 @@
 <body>
   <!-- Main dialog Item connected to vue-app -->
   <div id="app" class=".container-fluid">
-    <!-- Upload X3ml modal dialog -->
+    <!-- Condition editor dialog (modal )-->
+    <div class="modal fade" ref="modal" id="conditionEditor" data-keyboard="false" data-backdrop="static">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Condition editor</h5>
+          </div>
+          <div class="modal-body">
+            <div v-for="(item, i) in predicates">
+              <div class="row">
+                <div class="col">                  
+                  Path ${i+1}$:<input class="form-control" type="text" v-model="item.predicate.xpath">
+                </div>
+                <div class="col">
+                  Value ${i+1}$:<input class="form-control" type="text" v-model="item.predicate.value">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <form novalidate @submit.prevent="applyConditions">
+                <input type="submit" class="btn btn-primary" data-bs-dismiss="modal" value="Apply"/>
+            </form> 
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Upload dialog for X3ML files (modal)-->
     <div class="modal fade" id="uploadX3mlModal" tabindex="-1" aria-labelledby="uploadX3mlModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -45,7 +73,7 @@
         </div>
       </div>
     </div>
-    <!-- Upload Lido modal dialog -->
+    <!-- Upload dialog for Lido files (modal) -->
     <div class="modal fade" id="uploadLidoModal" tabindex="-1" aria-labelledby="uploadLidoModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -127,7 +155,7 @@
                           </div>
                           <br />
                           <button type="button" class="btn btn-primary btn-sm" @click="applyLink" :iM="i" :iL="j">Submit</button>&nbsp;
-                          <button type="button" class="btn btn-primary btn-sm" @click="showLinkCondition" :iM="i" :iL="j">Conditions</button>&nbsp;
+                          <button type="button" class="btn btn-primary btn-sm" @click="editCondition" :iM="i" :iL="j">Conditions</button>&nbsp;
                           <button type="button" class="btn btn-danger btn-sm" @click="deleteLink" :iM="i" :iL="j">Delete</button>&nbsp;
                         </form>
                       </div>
@@ -188,7 +216,7 @@
 
     var app = Vue.createApp({
       data() {
-        return { x3ml: {}, lido: '', x3file: null, lidofile: null }
+        return { x3ml: {}, lido: '', x3file: null, lidofile: null, activeM:-1, activeL:-1, predicates:[] }
       },
       delimiters: ["${", "}$"], // for global
       compilerOptions: { delimiters: ["${", "}$"] }, // for standalone
@@ -210,6 +238,15 @@
                   rdfEditor.setValue('');
                 });
             });
+          }
+        },
+        applyConditions() {
+          if (this.predicates.length > 0) {
+            console.log(this.predicates);
+            //Reset data
+            this.activeL = -1;
+            this.activeM = -1;
+            this.predicates = [];
           }
         },
         uploadDfltMapping() {
@@ -262,6 +299,16 @@
             post('/x3ml', data).then(res => { this.syncronize(); });
           }
         },
+        editCondition(event) {
+          attrs = event.target.attributes;
+          if (attrs.iM && attrs.iL) {
+            this.activeM = parseInt(attrs.iM.value);
+            this.activeL = parseInt(attrs.iL.value);
+            link = this.x3ml.mappings[this.activeM].links[this.activeL]
+            this.predicates = clone(link.path.targetRelation.condition.predicate.predicates);
+            $('#conditionEditor').modal('show');
+          }
+        },
         applyLink(event) {
           attrs = event.target.attributes;
           if (attrs.iM && attrs.iL) {
@@ -286,16 +333,6 @@
             mIndex = attrs.iM.value;
             lIndex = attrs.iL.value;
             del('/deleteLink/' + mIndex + '/' + lIndex).then(res => { this.syncronize(); });
-          }
-        },
-        showLinkCondition(event) {
-          attrs = event.target.attributes;
-          if (attrs.iM) {
-            mIndex = attrs.iM.value;
-            lIndex = attrs.iL.value;
-            path = this.x3ml.mappings[mIndex].links[lIndex].path
-            predicates = path.targetRelation.condition.predicate.predicates;
-            showModal(predicates)
           }
         },
         addLink(event) {
@@ -346,36 +383,6 @@
         .then(res => res.json())
         .then(s => rdfEditor.setValue(s.text));
       app.syncronize();
-    }
-
-    function showModal(predicates) {
-      const modal = document.createElement('div');
-      p0 = predicates[0]
-      console.log(p0)
-      modal.innerHTML = `
-        <div class="modal fade" id="dynamicModal" tabindex="-1">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title">Mapping ${p0.predicate.value}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-              </div>
-              <div class="modal-body">Link ${p0.predicate.xpath}</div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modal);
-      const modalInstance = new bootstrap.Modal(document.getElementById('dynamicModal'));
-      modalInstance.show();
-
-      // Clean up after hiding
-      modal.addEventListener('hidden.bs.modal', function () {
-        document.body.removeChild(modal);
-      });
     }
 
   </script>
