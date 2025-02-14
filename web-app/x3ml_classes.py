@@ -1,4 +1,4 @@
-from xml.etree.ElementTree import Element, SubElement, parse
+from xml.etree.ElementTree import Element, ElementTree, indent, SubElement, parse
 import json
 
 class Predicate():

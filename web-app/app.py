@@ -3,6 +3,7 @@ sys.path.insert(0, '..')
 import os
 from flask import Flask, render_template, request, url_for, flash, redirect, send_file, jsonify
 from x3ml_classes import loadX3ml, storeX3ml, Namespace, Mapping,Link
+import x3ml_classes as XC
 from lidoEditor import makeWorkspace, processString,workMappingFile
 import copy
 
@@ -144,7 +145,6 @@ def deleteMap(mapId):
     global workX3ml
     response_object = {'status': 'success'}
     if request.method == 'DELETE':
-        print(f'delete map {mapId}')
         workX3ml.mappings.pop(mapId)
         response_object['message'] = 'Map removed!'
     return jsonify(response_object)
@@ -154,10 +154,24 @@ def deleteLink(mapId,linkId):
     global workX3ml
     answer = {'status': 'success'}
     if request.method == 'DELETE':
-        print(f'delete link {linkId} of map {mapId}')
         workX3ml.mappings[mapId].links.pop(linkId)
         answer['message'] = 'Link removed!'
     return jsonify(answer)
+
+@app.route('/applyCondition',methods=['POST'])
+def applyCondition():
+    response_object = {'status': 'success'}
+    parm = request.get_json()
+    m = workX3ml.mappings[int(parm['mIndex'])]
+    l = m.links[int(parm['lIndex'])]
+    def createEquals(x): 
+        r = XC.PredicateVariant()
+        r.op = XC.Equals.simple(x['xpath'],x['value'])
+        return r
+    predicates = [ createEquals(x['predicate']) for x in parm['predicates']]
+    l.path.targetRelation.condition.op.predicates = predicates
+    response_object['message'] = 'Conditions applied!'
+    return jsonify(response_object)
 
 def fromFile(fname):
     with open(fname,'r') as fid:

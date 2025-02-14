@@ -242,7 +242,14 @@
         },
         applyConditions() {
           if (this.predicates.length > 0) {
-            console.log(this.predicates);
+            //Post data
+            data = { 
+              type: 'applyCondition', 
+              predicates: this.predicates, 
+              mIndex : this.activeM, 
+              lIndex: this.activeL 
+            }
+            post('/applyCondition', data).then(res => { this.syncronize(); });
             //Reset data
             this.activeL = -1;
             this.activeM = -1;
