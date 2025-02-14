@@ -751,10 +751,11 @@ class ComposedPredicate(X3Base,Predicate):
             self.deserialize(elem)
 
     @classmethod
-    def simple(cls, xp, val):
+    def byValues(cls, xp, val):
         t = cls(None)
-        t.xpath = xp
-        t.value = val
+        if isinstance(xp,str) and isinstance(val,str):
+            t.xpath = xp
+            t.value = val
         return t
     
     def append(self, objIf):
@@ -871,6 +872,13 @@ class PredicateVariant(X3Base, Predicate):
         self.predicate = Or()
         if NN(elem):
             self.deserialize(elem)
+
+    @classmethod
+    def withOp(cls, predicate):
+        t = cls(None)
+        if isinstance(predicate,Predicate):
+            t.predicate = predicate
+        return t
 
     @property
     def op(self): return self.predicate

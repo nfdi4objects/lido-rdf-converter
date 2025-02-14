@@ -162,14 +162,11 @@ def deleteLink(mapId,linkId):
 def applyCondition():
     response_object = {'status': 'success'}
     parm = request.get_json()
-    m = workX3ml.mappings[int(parm['mIndex'])]
-    l = m.links[int(parm['lIndex'])]
-    def createEquals(x): 
-        r = XC.PredicateVariant()
-        r.op = XC.Equals.simple(x['xpath'],x['value'])
-        return r
+    mapping = workX3ml.mappings[int(parm['mIndex'])]
+    link = mapping.links[int(parm['lIndex'])]
+    createEquals = lambda x: XC.PredicateVariant.withOp(XC.Equals.byValues(x['xpath'],x['value']))
     predicates = [ createEquals(x['predicate']) for x in parm['predicates']]
-    l.path.targetRelation.condition.op.predicates = predicates
+    link.path.targetRelation.condition.op.predicates = predicates
     response_object['message'] = 'Conditions applied!'
     return jsonify(response_object)
 

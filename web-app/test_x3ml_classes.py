@@ -512,9 +512,9 @@ class Test_X3ml_Classes(unittest.TestCase):
         elem = Element('or')
         testee = XC.Or()
         if1 = testee.append(XC.PredicateVariant())
-        if1.op = XC.Equals.simple('xpath1','value1')
+        if1.op = XC.Equals.byValues('xpath1','value1')
         if2 =testee.append(XC.PredicateVariant())
-        if2.op = XC.Equals.simple('xpath2','value2')
+        if2.op = XC.Equals.byValues('xpath2','value2')
       
         testee.serialize(elem)
         subElems = elem.findall('if/equals')
