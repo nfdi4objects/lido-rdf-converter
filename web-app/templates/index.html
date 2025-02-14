@@ -36,8 +36,11 @@
                 <div class="col">                  
                   Path ${i+1}$:<input class="form-control" type="text" v-model="item.predicate.xpath">
                 </div>
-                <div class="col">
+                <div class="col">  
                   Value ${i+1}$:<input class="form-control" type="text" v-model="item.predicate.value">
+                </div>
+                <div class="col">  
+                  <button type="button" class="btn btn-danger btn-sm" @click="predicates.splice(i, 1)">Delete</button>
                 </div>
               </div>
             </div>
