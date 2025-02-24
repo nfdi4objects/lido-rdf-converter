@@ -22,34 +22,37 @@
 
 <body>
   <!-- Main dialog Item connected to vue-app -->
-  <div id="app" class=".container-fluid">
+  <div id="app" class=".container-fluid" >
     <!-- Condition editor dialog (modal )-->
-    <div class="modal fade" ref="modal" id="conditionEditor" data-keyboard="false" data-backdrop="static">
+    <div class="modal fade" ref="modal" id="conditionEditor" data-keyboard="false" data-backdrop="static" style="overflow-y: scroll; height:400px; width: 100%;">
       <div class="modal-dialog modal-xl">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Condition editor</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <div v-for="(item, i) in predicates">
-              <div class="row">
-                <div class="col">                  
-                  Path ${i+1}$:<input class="form-control" type="text" v-model="item.predicate.xpath">
+              <div class="row  no-gutters">
+                <div class="col-sm-2">Condition path-value:</div>
+                <div class="col-sm-7">                  
+                  <input class="form-control" type="text" v-model="item.predicate.xpath">
                 </div>
-                <div class="col">  
-                  Value ${i+1}$:<input class="form-control" type="text" v-model="item.predicate.value">
+                <div class="col-sm-2">  
+                  <input class="form-control" type="text" v-model="item.predicate.value">
                 </div>
-                <div class="col">  
+                <div class="col-sm-1">  
                   <button type="button" class="btn btn-danger btn-sm" @click="predicates.splice(i, 1)">Delete</button>
                 </div>
               </div>
             </div>
+            <button type="button" class="btn btn-secondary" onclick="addCondition(app.predicates)">Add condition</button>
           </div>
           <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Dimiss</button>
             <form novalidate @submit.prevent="applyConditions">
                 <input type="submit" class="btn btn-primary" data-bs-dismiss="modal" value="Apply"/>
             </form> 
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           </div>
         </div>
       </div>
@@ -395,6 +398,14 @@
       app.syncronize();
     }
 
+    function addCondition(conditions) 
+    {
+      condition= {attributes:{}, predicate : {attributes:{}, predicates:[], tag: "equals", value: "todo", xpath: "todo"}}
+      if (conditions.length > 0) {
+        condition = clone(conditions[0]);
+      }
+      conditions.push(condition);
+    }
   </script>
 </body>
 
