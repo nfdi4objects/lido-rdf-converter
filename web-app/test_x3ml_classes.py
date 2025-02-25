@@ -54,15 +54,15 @@ class Test_X3ml_Classes(unittest.TestCase):
         '''X3Base: Ctor, De/Serial, Attributes'''
         testee = XC.X3Base()
         testee.deserialize(XML('<test A="44" B="ZZ"/>'))
-        self.assertEqual(testee.getAttr('A'), '44')
-        self.assertEqual(testee.getAttr('B'), 'ZZ')
+        self.assertEqual(testee['A'], '44')
+        self.assertEqual(testee['B'], 'ZZ')
  
     def test_X3Base_2(self):
         '''X3Base: Ctor, Attributes'''
         testee = XC.X3Base()
         testee.deserialize(XML('<test A="44" B="ZZ"/>'))
-        self.assertEqual(testee.getAttr('A'), '44')
-        self.assertEqual(testee.getAttr('B'), 'ZZ')
+        self.assertEqual(testee['A'], '44')
+        self.assertEqual(testee['B'], 'ZZ')
 
     def test_SimpleText_1(self):
         '''SimpleText: Access,Serial'''

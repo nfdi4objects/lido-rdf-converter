@@ -31,7 +31,7 @@ def findNS(prefix) -> Namespace|None:
 
 def getNSdata(id):
     ns = workX3ml.namespaces[id]
-    return { 'id': id, 'title':f"{ns.getAttr('prefix')}",'content':f"{ns.getAttr('uri')}"}
+    return { 'id': id, 'title':f"{ns['prefix']}",'content':f"{ns['uri']}"}
 
 app = Flask(__name__)
 
@@ -63,11 +63,11 @@ def x3ml():
             mapping = workX3ml.mappings[int(parm['mIndex'])]
             match parm['type']:
                 case 'mapping':
-                    mapping.skip = parm['skip']
+                    mapping['skip'] = parm['skip']
                     mapping.domain.set(parm['path'], parm['entity'])
                 case 'link':
                     link = mapping.links[int(parm['lIndex'])]
-                    link.skip = parm['skip']
+                    link['skip'] = parm['skip']
                     link.set(parm['path'],parm['relationship'], parm['entity'])
             response_object['message'] = 'Map changes applied!'
         except Exception as e:

@@ -1,5 +1,4 @@
 from xml.etree.ElementTree import Element, ElementTree, indent, SubElement, parse
-import xml.etree.ElementTree as ET
 import json
 
 class Predicate():
@@ -11,7 +10,6 @@ class Serializer:
     def toJSON(self, indent=2):
         return json.dumps(self, default=lambda o: o.__dict__,  sort_keys=True, indent=int(indent))
 
-
 def NN(elem: Element):
     '''Returns True if elem is not None'''
     return not elem is None
@@ -22,9 +20,8 @@ def getText(elem: Element | None) -> str:
         return str(elem.text)
     return ''
 
-
 class X3Base(Serializer):
-    '''Base class for X3ML classes'''
+    '''Base class for X3ML classes. Handles attributes (dicts)'''
     counter = 0
 
     def __init__(self):
@@ -34,14 +31,14 @@ class X3Base(Serializer):
     def __del__(self):
         X3Base.counter -= 1
 
+    def __getitem__(self,key):
+        return self.attributes[key]
+    
+    def __setitem__(self, key, value):
+        self.attributes[key] = value
+
     def __str__(self):
         return f"{ self.__class__.__name__}"
-
-    def getAttr(self, name):
-        return self.attributes[name]
-
-    def setAttr(self, name, value):
-        self.attributes[name] = value
 
     def deserialize(self, elem: Element):
         if NN(elem):
@@ -52,7 +49,6 @@ class X3Base(Serializer):
         if NN(elem):
             elem.attrib = self.attributes
         return elem
-
 
 class SimpleText(X3Base):
     '''Model class for simple text elements'''
@@ -256,16 +252,16 @@ class Namespace(X3Base):
         super().deserialize(elem)
 
     @property
-    def prefix(self): return self.getAttr('prefix')
+    def prefix(self): return self['prefix']
 
     @prefix.setter
-    def prefix(self, value): self.setAttr('prefix', value)
+    def prefix(self, value): self['prefix']= value
 
     @property
-    def uri(self): return self.getAttr('uri')
+    def uri(self): return self['uri']
 
     @uri.setter
-    def uri(self, value): self.setAttr('uri', value)
+    def uri(self, value): self['uri']= value
 
     def __eq__(self, other):
         return self.prefix == other.prefix
@@ -476,16 +472,10 @@ class Link(X3Base,Predicate):
     '''Model class for link elements'''
     def __init__(self, elem: Element | None = None):
         super().__init__()
-        self.setAttr('skip', 'false')
+        self['skip'] ='false'
         self.path = Path()
         self.range = Range()
         self.deserialize(elem)
-
-    @property
-    def skip(self): return self.getAttr('skip')
-
-    @skip.setter
-    def skip(self, value):  self.setAttr('skip', value)
 
     def set(self, path, relationship, entity):
         self.path.set(path, relationship)
@@ -513,16 +503,10 @@ class Mapping(X3Base):
     '''Model class for mapping elements'''
     def __init__(self, elem: Element | None = None):
         super().__init__()
-        self.setAttr('skip', 'false')
+        self['skip']= 'false'
         self.domain = Domain()
         self.links = []
         self.deserialize(elem)
-
-    @property
-    def skip(self): return self.getAttr('skip')
-
-    @skip.setter
-    def skip(self, value):  self.setAttr('skip', value)
 
     def deserialize(self, elem: Element):
         if NN(elem):
