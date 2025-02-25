@@ -1,4 +1,5 @@
 from xml.etree.ElementTree import Element, ElementTree, indent, SubElement, parse
+import xml.etree.ElementTree as ET
 import json
 
 class Predicate():
@@ -437,7 +438,7 @@ class Range(X3Base):
     def __init__(self, elem: Element | None = None):
         super().__init__()
         self.sourceNode = SourceNode()
-        self.targetNode = TargetNode()
+        self.targetNode = TargetNode(None,enable=True)
         self.deserialize(elem)
 
     @property
@@ -730,17 +731,21 @@ class TargetRelation(X3Base,Predicate):
 
 class TargetNode(X3Base):
     '''Model class for target node elements'''
-    def __init__(self, elem: Element | None = None) -> None:
+    def __init__(self, elem: Element | None = None,**kw) -> None:
         super().__init__()
         self.entity = Entity()
         self.condition = PredicateVariant()
+        self.enableC = kw.get('enable', True)
         self.deserialize(elem)
 
-    def deserialize(self, elem: Element):
+    def deserialize(self, elem: Element,**kw):
         if NN(elem):
             super().deserialize(elem)
             self.entity = Entity(elem.find('entity'))
-            self.condition = PredicateVariant(elem.find('if'))
+            if bool(self.enableC):
+                self.condition = PredicateVariant(elem.find('if'))
+            else:
+                self.condition = PredicateVariant()
         return self
 
     def serialize(self, elem: Element):

@@ -223,7 +223,7 @@
 
     var app = Vue.createApp({
       data() {
-        return { x3ml: {}, lido: '', x3file: null, lidofile: null, activeM:-1, activeL:-1, predicates:[] }
+        return { x3ml: {}, lido: '', x3file: null, lidofile: null, activeM:-1, activeL:-1, predicates:[], mode:-1 }
       },
       delimiters: ["${", "}$"], // for global
       compilerOptions: { delimiters: ["${", "}$"] }, // for standalone
@@ -254,10 +254,12 @@
               type: 'applyCondition', 
               predicates: this.predicates, 
               mIndex : this.activeM, 
-              lIndex: this.activeL 
+              lIndex: this.activeL,
+              mode: this.mode 
             }
             post('/applyCondition', data).then(res => { this.syncronize(); });
             //Reset data
+            this.mode = ''
             this.activeL = -1;
             this.activeM = -1;
             this.predicates = [];
@@ -284,7 +286,7 @@
         syncronize() {
           get("/x3ml")
             .then((response) => response.json())
-            .then((jsData) => { console.log('sync'); this.x3ml = JSON.parse(jsData.jsonX3ml); })
+            .then((jsData) => { this.x3ml = JSON.parse(jsData.jsonX3ml); })
             .catch((err) => { console.error(err); });
         },
         addMapping(event) {
@@ -316,6 +318,7 @@
         editLinkCondition(event) {
           attrs = event.target.attributes;
           if (attrs.iM && attrs.iL) {
+            this.mode = 'link';
             this.activeM = parseInt(attrs.iM.value);
             this.activeL = parseInt(attrs.iL.value);
             link = this.x3ml.mappings[this.activeM].links[this.activeL]
@@ -325,10 +328,11 @@
         },
         editMapCondition(event) {
           attrs = event.target.attributes;
-          if (attrs.iM && attrs.iL) {
+          if (attrs.iM) {
+            this.mode = 'map';
             this.activeM = parseInt(attrs.iM.value);
             domain = this.x3ml.mappings[this.activeM].domain
-            this.predicates = clone(domain.targetNode);
+            this.predicates = clone(domain.targetNode.condition.predicate.predicates);
             $('#conditionEditor').modal('show');
           }
         },
