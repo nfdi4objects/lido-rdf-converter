@@ -134,6 +134,7 @@
                   </div>
                   <p>
                     <button type="button" class="btn btn-primary btn-sm" @click="applyMap" :iM="i">Submit</button>&nbsp;
+                    <button type="button" class="btn btn-primary btn-sm" @click="editMapCondition" :iM="i">Conditions</button>&nbsp;
                     <button type="button" class="btn btn-primary btn-sm" @click="addLink" :iM="i">Add Link</button>&nbsp;
                     <button type="button" class="btn btn-danger btn-sm" @click="deleteMap" :iM="i">Delete</button>&nbsp;
                   </p>
@@ -161,7 +162,7 @@
                           </div>
                           <br />
                           <button type="button" class="btn btn-primary btn-sm" @click="applyLink" :iM="i" :iL="j">Submit</button>&nbsp;
-                          <button type="button" class="btn btn-primary btn-sm" @click="editCondition" :iM="i" :iL="j">Conditions</button>&nbsp;
+                          <button type="button" class="btn btn-primary btn-sm" @click="editLinkCondition" :iM="i" :iL="j">Conditions</button>&nbsp;
                           <button type="button" class="btn btn-danger btn-sm" @click="deleteLink" :iM="i" :iL="j">Delete</button>&nbsp;
                         </form>
                       </div>
@@ -312,13 +313,22 @@
             post('/x3ml', data).then(res => { this.syncronize(); });
           }
         },
-        editCondition(event) {
+        editLinkCondition(event) {
           attrs = event.target.attributes;
           if (attrs.iM && attrs.iL) {
             this.activeM = parseInt(attrs.iM.value);
             this.activeL = parseInt(attrs.iL.value);
             link = this.x3ml.mappings[this.activeM].links[this.activeL]
             this.predicates = clone(link.path.targetRelation.condition.predicate.predicates);
+            $('#conditionEditor').modal('show');
+          }
+        },
+        editMapCondition(event) {
+          attrs = event.target.attributes;
+          if (attrs.iM && attrs.iL) {
+            this.activeM = parseInt(attrs.iM.value);
+            domain = this.x3ml.mappings[this.activeM].domain
+            this.predicates = clone(domain.targetNode);
             $('#conditionEditor').modal('show');
           }
         },

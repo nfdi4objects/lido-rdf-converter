@@ -26,10 +26,8 @@ class X3Base(Serializer):
     '''Base class for X3ML classes'''
     counter = 0
 
-    def __init__(self, elem: Element = None):
+    def __init__(self):
         self.attributes = {}
-        if NN(elem):
-            self.deserialize(elem)
         X3Base.counter += 1
 
     def __del__(self):
@@ -45,34 +43,37 @@ class X3Base(Serializer):
         self.attributes[name] = value
 
     def deserialize(self, elem: Element):
-        self.attributes = elem.attrib
+        if NN(elem):
+            self.attributes = elem.attrib
         return self
 
     def serialize(self, elem: Element) -> Element:
-        elem.attrib = self.attributes
+        if NN(elem):
+            elem.attrib = self.attributes
         return elem
 
 
 class SimpleText(X3Base):
     '''Model class for simple text elements'''
     def __init__(self, elem: Element | None = None, **kw):
-        super().__init__(elem=None)
+        super().__init__()
         self.text = kw.get('text', '')
-        if NN(elem):
-            self.deserialize(elem)
+        self.deserialize(elem)
 
     def alias(self):
         return self.text.replace('lido:', '')
     
     def deserialize(self, elem: Element):
-        super().deserialize(elem)
-        if NN(elem.text):
-            self.text = elem.text
+        if NN(elem):
+            super().deserialize(elem)
+            if NN(elem.text):
+                self.text = elem.text
         return self
 
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        elem.text = self.text
+        if NN(elem):
+            super().serialize(elem)
+            elem.text = self.text
         return elem
 
     def __str__(self):
@@ -86,20 +87,21 @@ class SimpleText(X3Base):
 class Source(X3Base):
     '''Model class for source schema elements'''
     def __init__(self, elem: Element | None = None):
-        super().__init__(elem)
+        super().__init__()
         self.source_schema = SimpleText()
-        if NN(elem):
-            self.deserialize(elem)
+        self.deserialize(elem)
 
     def deserialize(self, elem: Element):
-        super().deserialize(elem)
-        self.source_schema = SimpleText(elem.find('source_info/source_schema'))
-        return elem
+        if NN(elem):
+            super().deserialize(elem)
+            self.source_schema = SimpleText(elem.find('source_info/source_schema'))
+        return self
 
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        subElem = SubElement(elem, 'source_info')
-        self.source_schema.serialize(SubElement(subElem, 'source_schema'))
+        if NN(elem):
+            super().serialize(elem)
+            subElem = SubElement(elem, 'source_info')
+            self.source_schema.serialize(SubElement(subElem, 'source_schema'))
         return elem
 
     def set(self, schema):
@@ -109,66 +111,67 @@ class Source(X3Base):
 class Target(X3Base):
     '''Model class for target schema elements'''
     def __init__(self, elem: Element | None = None):
-        super().__init__(elem)
+        super().__init__()
         self.target_schema = SimpleText()
-        if NN(elem):
-            self.deserialize(elem)
+        self.deserialize(elem)
 
     def deserialize(self, elem: Element):
-        super().deserialize(elem)
-        self.target_schema = SimpleText(elem.find('target_info/target_schema'))
-        return elem
+        if NN(elem):
+            super().deserialize(elem)
+            self.target_schema = SimpleText(elem.find('target_info/target_schema'))
+        return self
 
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        subElem = SubElement(elem, 'target_info')
-        self.target_schema.serialize(SubElement(subElem, 'target_schema'))
+        if NN(elem):
+            super().serialize(elem)
+            subElem = SubElement(elem, 'target_info')
+            self.target_schema.serialize(SubElement(subElem, 'target_schema'))
         return elem
 
     def set(self, schema):
         self.target_schema.text = schema
 
 
-class MappingInfo(X3Base):
+class MappingInfo():
     '''Model class for mapping info elements'''
     def __init__(self, elem: Element | None = None):
-        super().__init__(elem)
+        pass
 
     def deserialize(self, elem: Element):
-        super().deserialize(elem)
-        return elem
+        return self
 
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        SubElement(elem, 'mapping_created_by_org')
-        SubElement(elem, 'mapping_created_by_person')
-        SubElement(elem, 'in_collaboration_with')
+        if NN(elem):
+            SubElement(elem, 'mapping_created_by_org')
+            SubElement(elem, 'mapping_created_by_person')
+            SubElement(elem, 'in_collaboration_with')
         return elem
 
 
 class Comment(X3Base):
     '''Model class for comment elements'''
     def __init__(self, elem: Element | None = None):
-        super().__init__(elem)
+        super().__init__()
         self.rationale = SimpleText()
-        if NN(elem):
-            self.deserialize(elem)
+        self.deserialize(elem)
 
     def deserialize(self, elem: Element):
-        super().deserialize(elem)
-        self.rationale = SimpleText(elem.find('rationale'))
-        return elem
+        if NN(elem):
+            super().deserialize(elem)
+            self.rationale = SimpleText(elem.find('rationale'))
+        return self
 
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        self.rationale.serialize(SubElement(elem, 'rationale'))
-        SubElement(elem, 'alternatives')
-        SubElement(elem, 'typical_mistakes')
-        SubElement(elem, 'local_habits')
-        SubElement(elem, 'link_to_cook_book')
-        ex = SubElement(elem, 'example')
-        SubElement(ex, 'example_source')
-        SubElement(ex, 'example_target')
+        if NN(elem):
+            super().serialize(elem)
+            self.rationale.serialize(SubElement(elem, 'rationale'))
+            SubElement(elem, 'alternatives')
+            SubElement(elem, 'typical_mistakes')
+            SubElement(elem, 'local_habits')
+            SubElement(elem, 'link_to_cook_book')
+            ex = SubElement(elem, 'example')
+            SubElement(ex, 'example_source')
+            SubElement(ex, 'example_target')
         return elem
 
     @staticmethod
@@ -178,38 +181,36 @@ class Comment(X3Base):
         return t
 
 
-class ExampleDataInfo(X3Base):
+class ExampleDataInfo():
     '''Model class for example data elements'''
     def __init__(self, elem: Element | None = None):
-        super().__init__(elem)
+        pass
 
     def deserialize(self, elem: Element):
-        super().deserialize(elem)
-        return elem
+        return self
 
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        SubElement(elem, 'example_data_from')
-        SubElement(elem, 'example_data_contact_person')
-        SubElement(elem, 'example_data_source_record')
-        SubElement(elem, 'generator_policy_info')
-        SubElement(elem, 'example_data_target_record')
-        SubElement(elem, 'thesaurus_info')
+        if NN(elem):
+            SubElement(elem, 'example_data_from')
+            SubElement(elem, 'example_data_contact_person')
+            SubElement(elem, 'example_data_source_record')
+            SubElement(elem, 'generator_policy_info')
+            SubElement(elem, 'example_data_target_record')
+            SubElement(elem, 'thesaurus_info')
         return elem
 
 
 class Info(X3Base):
     '''Model class for info elements'''
     def __init__(self, elem: Element | None = None):
-        super().__init__(elem)
+        super().__init__()
         self.title = SimpleText()
         self.general_description = SimpleText()
         self.source = Source()
         self.target = Target()
         self.mapping_info = MappingInfo()
         self.example_data_info = ExampleDataInfo()
-        if NN(elem):
-            self.deserialize(elem)
+        self.deserialize(elem)
 
     @property
     def sSchema(self): return self.source.source_schema.text
@@ -224,31 +225,34 @@ class Info(X3Base):
     def tSchema(self, value): self.target.target_schema.text = value
 
     def deserialize(self, elem: Element):
-        super().deserialize(elem)
-        self.title = SimpleText(elem.find('title'))
-        self.general_description = SimpleText(elem.find('general_description'))
-        self.source = Source(elem.find('source'))
-        self.target = Target(elem.find('target'))
-        self.mapping_info = MappingInfo(elem.find('mapping_info'))
-        self.example_data_info = ExampleDataInfo(elem.find('example_data_info'))
-        return elem
+        if NN(elem):
+            super().deserialize(elem)
+            self.title = SimpleText(elem.find('title'))
+            self.general_description = SimpleText(elem.find('general_description'))
+            self.source = Source(elem.find('source'))
+            self.target = Target(elem.find('target'))
+            self.mapping_info = MappingInfo(elem.find('mapping_info'))
+            self.example_data_info = ExampleDataInfo(elem.find('example_data_info'))
+        return self
 
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        self.title.serialize(SubElement(elem, 'title'))
-        self.general_description.serialize(
-            SubElement(elem, 'general_description'))
-        self.source.serialize(SubElement(elem, 'source'))
-        self.target.serialize(SubElement(elem, 'target'))
-        self.mapping_info.serialize(SubElement(elem, 'mapping_info'))
-        self.example_data_info.serialize(SubElement(elem, 'example_data_info'))
+        if NN(elem):
+            super().serialize(elem)
+            self.title.serialize(SubElement(elem, 'title'))
+            self.general_description.serialize(
+                SubElement(elem, 'general_description'))
+            self.source.serialize(SubElement(elem, 'source'))
+            self.target.serialize(SubElement(elem, 'target'))
+            self.mapping_info.serialize(SubElement(elem, 'mapping_info'))
+            self.example_data_info.serialize(SubElement(elem, 'example_data_info'))
         return elem
 
 
 class Namespace(X3Base):
     '''Model class for namespace elements'''
     def __init__(self, elem: Element | None = None):
-        super().__init__(elem)
+        super().__init__()
+        super().deserialize(elem)
 
     @property
     def prefix(self): return self.getAttr('prefix')
@@ -273,12 +277,11 @@ class Namespace(X3Base):
 class Domain(X3Base):
     '''Model class for domain elements''' 
     def __init__(self, elem: Element | None = None):
-        super().__init__(elem)
+        super().__init__()
         self.sourceNode = SourceNode()
         self.targetNode = TargetNode()
         self.comments = []
-        if NN(elem):
-            self.deserialize(elem)
+        self.deserialize(elem)
 
     @property
     def path(self): return self.sourceNode.text
@@ -297,19 +300,23 @@ class Domain(X3Base):
         self.entity = entity
 
     def deserialize(self, elem: Element):
-        super().deserialize(elem)
-        self.sourceNode = SourceNode(elem.find('source_node'))
-        self.targetNode = TargetNode(elem.find('target_node'))
-        self.comments = [Comment(x) for x in elem.findall('comments/comment')]
+        if NN(elem):
+            super().deserialize(elem)
+            self.sourceNode = SourceNode(elem.find('source_node'))
+            self.targetNode = TargetNode(elem.find('target_node'))
+            self.comments = [Comment(x) for x in elem.findall('comments/comment')]
+        return self
 
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        self.sourceNode.serialize(SubElement(elem, 'source_node'))
-        self.targetNode.serialize(SubElement(elem, 'target_node'))
-        if self.comments:
-            cs = SubElement(elem, 'comments')
-            for x in self.comments:
-                x.serialize(SubElement(cs, 'comment'))
+        if NN(elem):
+            super().serialize(elem)
+            self.sourceNode.serialize(SubElement(elem, 'source_node'))
+            self.targetNode.serialize(SubElement(elem, 'target_node'))
+            if self.comments:
+                cs = SubElement(elem, 'comments')
+                for x in self.comments:
+                    x.serialize(SubElement(cs, 'comment'))
+        return elem
 
 
 class NR(X3Base):
@@ -319,13 +326,15 @@ class NR(X3Base):
         self.relation = relation
 
     def serialize(self, elem: Element):
-        self.node.serialize(SubElement(elem, 'node'))
-        self.relation.serialize(SubElement(elem, 'relation'))
-        return elem
+        if NN(elem):
+            self.node.serialize(SubElement(elem, 'node'))
+            self.relation.serialize(SubElement(elem, 'relation'))
+        return self
 
     def deserialize(self, elem: Element):
-        self.node = SimpleText(elem.find('node'))
-        self.relation = SimpleText(elem.find('relation'))
+        if NN(elem):
+            self.node = SimpleText(elem.find('node'))
+            self.relation = SimpleText(elem.find('relation'))
         return elem
 
     @staticmethod
@@ -336,11 +345,10 @@ class NR(X3Base):
 class SourceRelation(X3Base):
     '''Model class for source relation elements'''
     def __init__(self, elem: Element | None = None):
-        super().__init__(elem)
+        super().__init__()
         self.relation = SimpleText()
         self.nodes = []
-        if NN(elem):
-            self.deserialize(elem)
+        self.deserialize(elem)
 
     @property
     def path(self): return self.relation.text
@@ -349,19 +357,21 @@ class SourceRelation(X3Base):
     def path(self, value):  self.relation.text = value
 
     def deserialize(self, elem: Element):
-        super().deserialize(elem)
-        rs = elem.findall('relation')
-        ns = elem.findall('node')
-        self.relation = SimpleText(rs.pop(0))
-        self.nodes = [NR(SimpleText(n), SimpleText(r)) for n, r in zip(ns, rs)]
-        return elem
+        if NN(elem):
+            super().deserialize(elem)
+            rs = elem.findall('relation')
+            ns = elem.findall('node')
+            self.relation = SimpleText(rs.pop(0))
+            self.nodes = [NR(SimpleText(n), SimpleText(r)) for n, r in zip(ns, rs)]
+        return self
 
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        self.relation.serialize(SubElement(elem, 'relation'))
-        for ns in self.nodes:
-            ns.relation.serialize(SubElement(elem, 'relation'))
-            ns.node.serialize(SubElement(elem, 'node'))
+        if NN(elem):
+            super().serialize(elem)
+            self.relation.serialize(SubElement(elem, 'relation'))
+            for ns in self.nodes:
+                ns.relation.serialize(SubElement(elem, 'relation'))
+                ns.node.serialize(SubElement(elem, 'node'))
         return elem
 
     @staticmethod
@@ -374,12 +384,11 @@ class SourceRelation(X3Base):
 class Path(X3Base,Predicate):
     '''Model class for path elements'''
     def __init__(self, elem: Element | None = None):
-        super().__init__(elem)
+        super().__init__()
         self.sourceRelation = SourceRelation()
         self.targetRelation = TargetRelation()
         self.comments = []
-        if NN(elem):
-            self.deserialize(elem)
+        self.deserialize(elem)
 
     @property
     def path(self): return self.sourceRelation.path
@@ -405,31 +414,31 @@ class Path(X3Base,Predicate):
         self.comments.append(Comment.create(s))
 
     def deserialize(self, elem: Element):
-        super().deserialize(elem)
-        self.sourceRelation = SourceRelation(elem.find('source_relation'))
-        self.targetRelation = TargetRelation(elem.find('target_relation'))
-        self.comments = [Comment(x) for x in elem.findall('comments/comment')]
-        return elem
+        if NN(elem):
+            super().deserialize(elem)
+            self.sourceRelation = SourceRelation(elem.find('source_relation'))
+            self.targetRelation = TargetRelation(elem.find('target_relation'))
+            self.comments = [Comment(x) for x in elem.findall('comments/comment')]
+        return self
 
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        self.sourceRelation.serialize(SubElement(elem, 'source_relation'))
-        self.targetRelation.serialize(SubElement(elem, 'target_relation'))
-        if self.comments:
-            cs = SubElement(elem, 'comments')
-            for x in self.comments:
-                x.serialize(SubElement(cs, 'comment'))
+        if NN(elem):
+            super().serialize(elem)
+            self.sourceRelation.serialize(SubElement(elem, 'source_relation'))
+            self.targetRelation.serialize(SubElement(elem, 'target_relation'))
+            if self.comments:
+                cs = SubElement(elem, 'comments')
+                for x in self.comments:
+                    x.serialize(SubElement(cs, 'comment'))
         return elem
-
 
 class Range(X3Base):
     '''Model class for range elements'''
     def __init__(self, elem: Element | None = None):
-        super().__init__(elem)
+        super().__init__()
         self.sourceNode = SourceNode()
         self.targetNode = TargetNode()
-        if NN(elem):
-            self.deserialize(elem)
+        self.deserialize(elem)
 
     @property
     def path(self): return self.sourceNode.text
@@ -448,26 +457,28 @@ class Range(X3Base):
         self.entity = entity
 
     def deserialize(self, elem: Element):
-        super().deserialize(elem)
-        self.sourceNode = SourceNode(elem.find('source_node'))
-        self.targetNode = TargetNode(elem.find('target_node'))
-
+        if NN(elem):
+            super().deserialize(elem)
+            self.sourceNode = SourceNode(elem.find('source_node'))
+            self.targetNode = TargetNode(elem.find('target_node'))
+        return self
+    
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        self.sourceNode.serialize(SubElement(elem, 'source_node'))
-        self.targetNode.serialize(SubElement(elem, 'target_node'))
+        if NN(elem):
+            super().serialize(elem)
+            self.sourceNode.serialize(SubElement(elem, 'source_node'))
+            self.targetNode.serialize(SubElement(elem, 'target_node'))
         return elem
 
 
 class Link(X3Base,Predicate):
     '''Model class for link elements'''
     def __init__(self, elem: Element | None = None):
-        super().__init__(elem)
+        super().__init__()
         self.setAttr('skip', 'false')
         self.path = Path()
         self.range = Range()
-        if NN(elem):
-            self.deserialize(elem)
+        self.deserialize(elem)
 
     @property
     def skip(self): return self.getAttr('skip')
@@ -483,26 +494,28 @@ class Link(X3Base,Predicate):
         return self.path.validate(elem)
 
     def deserialize(self, elem: Element):
-        super().deserialize(elem)
-        self.path = Path(elem.find('path'))
-        self.range = Range(elem.find('range'))
-
+        if NN(elem):
+            super().deserialize(elem)
+            self.path = Path(elem.find('path'))
+            self.range = Range(elem.find('range'))
+        return self
+    
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        self.path.serialize(SubElement(elem, 'path'))
-        self.range.serialize(SubElement(elem, 'range'))
+        if NN(elem):
+            super().serialize(elem)
+            self.path.serialize(SubElement(elem, 'path'))
+            self.range.serialize(SubElement(elem, 'range'))
         return elem
 
 
 class Mapping(X3Base):
     '''Model class for mapping elements'''
     def __init__(self, elem: Element | None = None):
-        super().__init__(elem)
+        super().__init__()
         self.setAttr('skip', 'false')
         self.domain = Domain()
         self.links = []
-        if NN(elem):
-            self.deserialize(elem)
+        self.deserialize(elem)
 
     @property
     def skip(self): return self.getAttr('skip')
@@ -511,16 +524,18 @@ class Mapping(X3Base):
     def skip(self, value):  self.setAttr('skip', value)
 
     def deserialize(self, elem: Element):
-        super().deserialize(elem)
-        self.domain = Domain(elem.find('domain'))
-        self.links = [Link(x) for x in elem.findall('link')]
+        if NN(elem):
+            super().deserialize(elem)
+            self.domain = Domain(elem.find('domain'))
+            self.links = [Link(x) for x in elem.findall('link')]
         return self
 
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        self.domain.serialize(SubElement(elem, 'domain'))
-        for link in self.links:
-            link.serialize(SubElement(elem, 'link'))
+        if NN(elem):
+            super().serialize(elem)
+            self.domain.serialize(SubElement(elem, 'domain'))
+            for link in self.links:
+                link.serialize(SubElement(elem, 'link'))
         return elem
 
     def label(self, n=0):
@@ -535,28 +550,30 @@ class Mapping(X3Base):
 class X3ml(X3Base):
     '''Model class for X3ML elements'''
     def __init__(self, elem: Element | None = None):
-        super().__init__(elem)
+        super().__init__()
         self.namespaces = []
         self.mappings = []
         self.info = Info()
-        if NN(elem):
-            self.deserialize(elem)
+        self.deserialize(elem)
 
     def deserialize(self, elem: Element):
-        super().deserialize(elem)
-        self.info = Info(elem.find('info'))
-        self.namespaces = [Namespace(x) for x in elem.findall('./namespaces/namespace')]
-        self.mappings = [Mapping(x) for x in elem.findall('./mappings/mapping')]
-
+        if NN(elem):
+            super().deserialize(elem)
+            self.info = Info(elem.find('info'))
+            self.namespaces = [Namespace(x) for x in elem.findall('./namespaces/namespace')]
+            self.mappings = [Mapping(x) for x in elem.findall('./mappings/mapping')]
+        return self
+    
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        self.info.serialize(SubElement(elem, 'info'))
-        nss = SubElement(elem, 'namespaces')
-        for m in self.namespaces:
-            m.serialize(SubElement(nss, 'namespace'))
-        mss = SubElement(elem, 'mappings')
-        for m in self.mappings:
-            m.serialize(SubElement(mss, 'mapping'))
+        if NN(elem):
+            super().serialize(elem)
+            self.info.serialize(SubElement(elem, 'info'))
+            nss = SubElement(elem, 'namespaces')
+            for m in self.namespaces:
+                m.serialize(SubElement(nss, 'namespace'))
+            mss = SubElement(elem, 'mappings')
+            for m in self.mappings:
+                m.serialize(SubElement(mss, 'mapping'))
         return elem
 
 
@@ -577,27 +594,29 @@ class Instance_Generator(X3Base):
 class InstanceInfo(X3Base):
     '''Model class for instance info elements'''
     def __init__(self, elem: Element | None = None):
-        super().__init__(elem)
+        super().__init__()
         self.mode = ''
-        if NN(elem):
-            self.deserialize(elem)
+        self.deserialize(elem)
 
     def deserialize(self, elem: Element):
-        if not elem.find('constant') is None:
-            self.mode = 'constant'
-        if not elem.find('language') is None:
-            self.mode = 'language'
-        if not elem.find('description') is None:
-            self.mode = 'description'
-
+        if NN(elem):
+            if not elem.find('constant') is None:
+                self.mode = 'constant'
+            if not elem.find('language') is None:
+                self.mode = 'language'
+            if not elem.find('description') is None:
+                self.mode = 'description'
+        return self
+    
     def serialize(self, elem: Element):
-        match self.mode:
-            case 'constant':
-                SubElement(elem, 'constant')
-            case 'language':
-                SubElement(elem, 'language')
-            case 'description':
-                SubElement(elem, 'description')
+        if NN(elem):
+            match self.mode:
+                case 'constant':
+                    SubElement(elem, 'constant')
+                case 'language':
+                    SubElement(elem, 'language')
+                case 'description':
+                    SubElement(elem, 'description')
         return elem
 
 
@@ -609,28 +628,29 @@ class Relationship(SimpleText):
 class Entity(X3Base):
     '''Model class for entity elements'''
     def __init__(self, elem: Element | None = None) -> None:
-        super().__init__(elem)
+        super().__init__()
         self.type = ''
         self.instance_info = []
         self.instance_generator = []
         self.label_generator = []
         self.additional = []
-        if NN(elem):
-            self.deserialize(elem)
+        self.deserialize(elem)
 
     def deserialize(self, elem: Element | None):
-        super().deserialize(elem)
         if NN(elem):
+            super().deserialize(elem)
             self.type = getText(elem.find('type'))
             self.instance_info = [InstanceInfo(x) for x in elem.findall('instance_info')]
+        return self
 
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        t = SubElement(elem, 'type')
-        t.text = self.type
-        for x in self.instance_info:
-            x.serialize(SubElement(elem, 'instance_info'))
-
+        if NN(elem):
+            super().serialize(elem)
+            t = SubElement(elem, 'type')
+            t.text = self.type
+            for x in self.instance_info:
+                x.serialize(SubElement(elem, 'instance_info'))
+        return elem
 
 class TargetExtension(Serializer):
     '''Model class for TargetExtenion elements'''
@@ -638,26 +658,26 @@ class TargetExtension(Serializer):
         self.entity = entity
         self.relationship = relationShip
 
-    def serialize(self, elem: Element):
-        self.entity.serialize(SubElement(elem, 'entity'))
-        self.relationship.serialize(SubElement(elem, 'relationship'))
-        return elem
-
     def deserialize(self, elem: Element):
-        self.entity = Entity(elem.find('entity'))
-        self.relationship = Relationship(elem.find('relationship'))
-        return elem
+        if NN(elem):
+            self.entity = Entity(elem.find('entity'))
+            self.relationship = Relationship(elem.find('relationship'))
+        return self
 
+    def serialize(self, elem: Element):
+        if NN(elem):
+            self.entity.serialize(SubElement(elem, 'entity'))
+            self.relationship.serialize(SubElement(elem, 'relationship'))
+        return elem
 
 class TargetRelation(X3Base,Predicate):
     '''Model class for target relation type elements'''
     def __init__(self, elem: Element | None = None) -> None:
-        super().__init__(elem)
+        super().__init__()
         self.condition = PredicateVariant()
         self.relationship = Relationship(None)
         self.extensions = []
-        if NN(elem):
-            self.deserialize(elem)
+        self.deserialize(elem)
 
     @property
     def entity(self): return self.relationship.text
@@ -687,52 +707,49 @@ class TargetRelation(X3Base,Predicate):
         return self.condition.validate(elem)
 
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        self.relationship.serialize(SubElement(elem, 'relationship'))
-        self.condition.serialize(SubElement(elem, 'if'))
-        for x in self.extensions:
-            x.entity.serialize(SubElement(elem, 'entity'))
-            x.relationship.serialize(SubElement(elem, 'relationship'))
-        return elem
-
-    def deserialize(self, elem: Element):
-        super().deserialize(elem)
-        self.condition = PredicateVariant(elem.find('if'))
-        rsElems = elem.findall('relationship')
-        if len(rsElems) > 0:
-            self.relationship = Relationship(rsElems.pop())
-            enElems = elem.findall('entity')
-            if len(enElems) == len(rsElems):
-                self.extensions = [TargetExtension(Entity(e), Relationship(r)) for e, r in zip(enElems, rsElems)]
-        return elem
-
-
-class RangeTargetNodeType(X3Base):
-    '''Model class for range target node type elements'''
-    def __init__(self, elem: Element | None = None) -> None:
-        super().__init__(elem)
-        self.entity = Entity()
-        self.conditionIFs = []
         if NN(elem):
-            self.deserialize(elem)
+            super().serialize(elem)
+            self.relationship.serialize(SubElement(elem, 'relationship'))
+            self.condition.serialize(SubElement(elem, 'if'))
+            for x in self.extensions:
+                x.entity.serialize(SubElement(elem, 'entity'))
+                x.relationship.serialize(SubElement(elem, 'relationship'))
+        return elem
 
     def deserialize(self, elem: Element):
-        super().deserialize(elem)
-        self.entity = Entity(elem.find('entity'))
-        self.conditionIFs = [PredicateVariant(x) for x in elem.findall('if')]
-        return elem
+        if NN(elem):
+            super().deserialize(elem)
+            self.condition = PredicateVariant(elem.find('if'))
+            rsElems = elem.findall('relationship')
+            if len(rsElems) > 0:
+                self.relationship = Relationship(rsElems.pop())
+                enElems = elem.findall('entity')
+                if len(enElems) == len(rsElems):
+                    self.extensions = [TargetExtension(Entity(e), Relationship(r)) for e, r in zip(enElems, rsElems)]
+        return self
+
+class TargetNode(X3Base):
+    '''Model class for target node elements'''
+    def __init__(self, elem: Element | None = None) -> None:
+        super().__init__()
+        self.entity = Entity()
+        self.condition = PredicateVariant()
+        self.deserialize(elem)
+
+    def deserialize(self, elem: Element):
+        if NN(elem):
+            super().deserialize(elem)
+            self.entity = Entity(elem.find('entity'))
+            self.condition = PredicateVariant(elem.find('if'))
+        return self
 
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        self.entity.serialize(SubElement(elem, 'entity'))
-        for x in self.conditionIFs:
-            x.serialize(SubElement(elem, 'if'))
+        if NN(elem):
+            super().serialize(elem)
+            self.entity.serialize(SubElement(elem, 'entity'))
+            self.condition.serialize(SubElement(elem, 'if'))
         return elem
 
-
-class TargetNode(RangeTargetNodeType):
-    '''Model class for target node elements'''
-    pass
 
 class SourceNode(SimpleText):
     '''Model class for source node elements'''
@@ -742,13 +759,12 @@ class SourceNode(SimpleText):
 class ComposedPredicate(X3Base,Predicate):
     '''Model class for logical operation elements'''
     def __init__(self, elem: Element | None = None, tag: str = '') -> None:
-        super().__init__(elem)
+        X3Base.__init__(self)
         self.tag = tag
         self.xpath = ''
         self.value=''
         self.predicates = []
-        if NN(elem):
-            self.deserialize(elem)
+        self.deserialize(elem)
 
     @classmethod
     def byValues(cls, xp, val):
@@ -769,23 +785,25 @@ class ComposedPredicate(X3Base,Predicate):
         self.predicates = []
 
     def deserialize(self, elem: Element | None):
-        super().deserialize(elem)
-        self.reset()
-        if children := elem.findall('if'):
-            self.predicates = [PredicateVariant(x) for x in children]
-        else:
-            self.xpath = elem.text
-            self.value = elem.get('value','')
-        return elem
+        if NN(elem):
+            X3Base.deserialize(self,elem)
+            self.reset()
+            if children := elem.findall('if'):
+                self.predicates = [PredicateVariant(x) for x in children]
+            else:
+                self.xpath = elem.text
+                self.value = elem.get('value','')
+        return self
 
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        if self.predicates:
-            for x in self.predicates:
-                x.serialize(SubElement(elem, 'if'))
-        else:
-            if self.xpath: elem.text = self.xpath
-            if self.value: elem.set('value',self.value)
+        if NN(elem):
+            X3Base.serialize(self,elem)
+            if self.predicates:
+                for x in self.predicates:
+                    x.serialize(SubElement(elem, 'if'))
+            else:
+                if self.xpath: elem.text = self.xpath
+                if self.value: elem.set('value',self.value)
         return elem
     
     def validPath(self,elem):
@@ -868,7 +886,7 @@ class Exists(ComposedPredicate):
 class PredicateVariant(X3Base, Predicate):
     '''Model class for conditions type elements'''
     def __init__(self, elem: Element | None = None, **kw) -> None:
-        super().__init__(elem)
+        X3Base.__init__(self)
         self.predicate = Or()
         if NN(elem):
             self.deserialize(elem)
@@ -889,28 +907,30 @@ class PredicateVariant(X3Base, Predicate):
             self.predicate = value
 
     def deserialize(self, elem: Element | None):
-        super().deserialize(elem)
+        if NN(elem):
+            super().deserialize(elem)
 
-        def choice(tag, cls):
-            st = elem.find(tag)
-            if NN(st):
-                self.op = cls(st)
+            def choice(tag, cls):
+                st = elem.find(tag)
+                if NN(st):
+                    self.op = cls(st)
 
-        self.op = None
-        choice('or', Or)
-        choice('and', And)
-        choice('not', Not)
-        choice('narrower', Narrower)
-        choice('broader', Broader)
-        choice('exists', Exists)
-        choice('equals', Equals)
-        choice('exact_match', ExactMatch)
+            self.op = None
+            choice('or', Or)
+            choice('and', And)
+            choice('not', Not)
+            choice('narrower', Narrower)
+            choice('broader', Broader)
+            choice('exists', Exists)
+            choice('equals', Equals)
+            choice('exact_match', ExactMatch)
         return self
 
     def serialize(self, elem: Element):
-        super().serialize(elem)
-        if self.op:
-            self.op.serialize(SubElement(elem, self.op.tag))
+        if NN(elem):
+            super().serialize(elem)
+            if self.op:
+                self.op.serialize(SubElement(elem, self.op.tag))
         return elem
 
     def validate(self, elem):

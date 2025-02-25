@@ -59,7 +59,8 @@ class Test_X3ml_Classes(unittest.TestCase):
  
     def test_X3Base_2(self):
         '''X3Base: Ctor, Attributes'''
-        testee = XC.X3Base(XML('<test A="44" B="ZZ"/>'))
+        testee = XC.X3Base()
+        testee.deserialize(XML('<test A="44" B="ZZ"/>'))
         self.assertEqual(testee.getAttr('A'), '44')
         self.assertEqual(testee.getAttr('B'), 'ZZ')
 
@@ -787,8 +788,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         '''TargetNode: Ctor, Access'''
         testee = XC.TargetNode()
         self.assertIsInstance(testee.entity, XC.Entity)
-        self.assertEqual(len(testee.conditionIFs), 0)
-
+ 
     def test_TargetNode_2(self):
         '''TargetNode: Deserialize'''
         elem = ElementPath('test/entity/type','entityType')
@@ -798,14 +798,12 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee.deserialize(elem)
 
         self.assertEqual(testee.entity.type, 'entityType')
-        self.assertEqual(len(testee.conditionIFs), 1)
-
+ 
     def test_TargetNode_3(self):
         '''TargetNode: Serialize'''
         testee = XC.TargetNode()
         testee.entity.type = 'entityType'
-        testee.conditionIFs.append(XC.PredicateVariant())
-
+ 
         elem = testee.serialize(Element('test'))
 
         self.assertEqual(elem.find('entity/type').text, 'entityType')
@@ -815,14 +813,12 @@ class Test_X3ml_Classes(unittest.TestCase):
         '''TargetNode: Ctor'''
         testee = XC.TargetNode()
         self.assertIsInstance(testee.entity, XC.Entity)
-        self.assertEqual(len(testee.conditionIFs), 0)
-
+ 
 
     def test_TargetNode_5(self):
         '''TargetNode: Serialize'''
         testee = XC.TargetNode()
         testee.entity.type = 'entityType'
-        testee.conditionIFs.append(XC.PredicateVariant())
 
         elem = testee.serialize(Element('test'))
 
