@@ -22,7 +22,7 @@
 
 <body>
   <!-- Main dialog Item connected to vue-app -->
-  <div id="app" class=".container-fluid" >
+  <div id="app" class=".container-fluid">
     <!-- Condition editor dialog (modal )-->
     <div class="modal fade" ref="modal" id="conditionEditor" data-keyboard="false" data-backdrop="static" style="overflow-y: scroll; height:400px; width: 100%;">
       <div class="modal-dialog modal-xl">
@@ -35,13 +35,13 @@
             <div v-for="(item, i) in predicates">
               <div class="row  no-gutters">
                 <div class="col-sm-2">Condition path-value:</div>
-                <div class="col-sm-7">                  
+                <div class="col-sm-7">
                   <input class="form-control" type="text" v-model="item.predicate.xpath">
                 </div>
-                <div class="col-sm-2">  
+                <div class="col-sm-2">
                   <input class="form-control" type="text" v-model="item.predicate.value">
                 </div>
-                <div class="col-sm-1">  
+                <div class="col-sm-1">
                   <button type="button" class="btn btn-danger btn-sm" @click="predicates.splice(i, 1)">Delete</button>
                 </div>
               </div>
@@ -50,9 +50,9 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Dimiss</button>
-            <form novalidate @submit.prevent="applyConditions">
-                <input type="submit" class="btn btn-primary" data-bs-dismiss="modal" value="Apply"/>
-            </form> 
+            <form novalidate @submit.prevent="applyConditionChanges">
+              <input type="submit" class="btn btn-primary" data-bs-dismiss="modal" value="Apply" />
+            </form>
           </div>
         </div>
       </div>
@@ -66,9 +66,9 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <form novalidate @submit.prevent="uploadDLFile">
+            <form novalidate @submit.prevent="uploadX3ml">
               <div class="input-group mb-3">
-                <input type="file" class="form-control" @change="addX3mlFile" />&nbsp;
+                <input type="file" class="form-control" @change="saveX3mlUrl" />&nbsp;
                 <input type="submit" class="btn btn-primary" data-bs-dismiss="modal" value="Open" />
               </div>
             </form>
@@ -88,9 +88,9 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <form novalidate @submit.prevent="uploadLidoFile">
+            <form novalidate @submit.prevent="uploadLido">
               <div class="input-group mb-3">
-                <input type="file" class="form-control" @change="addLidoFile" />&nbsp;
+                <input type="file" class="form-control" @change="saveLidoUrl" />&nbsp;
                 <input type="submit" class="btn btn-primary" data-bs-dismiss="modal" value="Open" />
               </div>
             </form>
@@ -108,8 +108,8 @@
         <h4><span class="label label-default">Mappings (x3ml)</span></h4>
         <p>
           <button type="button" class="btn btn-primary btn-sm" @click="addMapping">Add mapping</button>&nbsp;
-          <button type="button" class="btn btn-primary btn-sm" @click="clearMapping">Clear all</button>&nbsp;
-          <button type="button" class="btn btn-primary btn-sm" @click="uploadDfltMapping">Reset</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" @click="clearMappings">Clear all</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" @click="resetMappings">Reset</button>&nbsp;
           <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal">Upload</button>&nbsp;
           <a href="/downloadX3ml" target="blank"><button class='btn btn-primary btn-sm'>Download</button></a>&nbsp;
         </p>
@@ -133,10 +133,10 @@
                     <label class="form-check-label" :for="'Mapskip' + i">Skip</label>
                   </div>
                   <p>
-                    <button type="button" class="btn btn-primary btn-sm" @click="applyMap" :iM="i">Submit</button>&nbsp;
-                    <button type="button" class="btn btn-primary btn-sm" @click="editMapCondition" :iM="i">Conditions</button>&nbsp;
+                    <button type="button" class="btn btn-primary btn-sm" @click="applyMappingChanges" :iM="i">Submit</button>&nbsp;
+                    <button type="button" class="btn btn-primary btn-sm" @click="openMappingConditionEditor" :iM="i">Conditions</button>&nbsp;
                     <button type="button" class="btn btn-primary btn-sm" @click="addLink" :iM="i">Add Link</button>&nbsp;
-                    <button type="button" class="btn btn-danger btn-sm" @click="deleteMap" :iM="i">Delete</button>&nbsp;
+                    <button type="button" class="btn btn-danger btn-sm" @click="deleteMapping" :iM="i">Delete</button>&nbsp;
                   </p>
                 </div>
 
@@ -161,8 +161,8 @@
                             <label class="form-check-label" :for="'LinkSkip' + i +'-' + j">Skip</label>
                           </div>
                           <br />
-                          <button type="button" class="btn btn-primary btn-sm" @click="applyLink" :iM="i" :iL="j">Submit</button>&nbsp;
-                          <button type="button" class="btn btn-primary btn-sm" @click="editLinkCondition" :iM="i" :iL="j">Conditions</button>&nbsp;
+                          <button type="button" class="btn btn-primary btn-sm" @click="applyLinkChanges" :iM="i" :iL="j">Submit</button>&nbsp;
+                          <button type="button" class="btn btn-primary btn-sm" @click="openLinkConditionEditor" :iM="i" :iL="j">Conditions</button>&nbsp;
                           <button type="button" class="btn btn-danger btn-sm" @click="deleteLink" :iM="i" :iL="j">Delete</button>&nbsp;
                         </form>
                       </div>
@@ -183,7 +183,7 @@
           <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadLidoModal">Upload Lido</button>&nbsp;
           <button type="button" class="btn btn-primary btn-sm" onclick="getLido()">Reset</button>&nbsp;
         </p>
-        <div id="sourceEditor" style="height:600px"></div>
+        <div id="lidoEditor" style="height:600px"></div>
       </div>
       <div class="col">
         <h4>RDF Output (ttl)</h4>
@@ -196,11 +196,9 @@
   </div>
 
   <script>
-    var cidocInfo = null
-
-    function createOptions(optionValues, elementId) {
+     function createOptions(optionValues, elementId) {
       var elem = document.getElementById(elementId);
-      optionValues.forEach(function (x) {
+      optionValues.forEach(x => {
         option = document.createElement('option');
         option.label = x.entity;
         option.value = x.prefix + ':' + x.entity;
@@ -209,13 +207,10 @@
     }
 
     fetch('./static/cidoc_label.json')
-      .then(function (response) {
-        return response.json();
-      })
-      .then(function (data) {
-        cidocInfo = data;
-        createOptions(cidocInfo.classes, 'DLCidocClasses')
-        createOptions(cidocInfo.properties, 'DLCidocProperties')
+      .then( res => res.json())
+      .then( data => {
+        createOptions(data.classes, 'DLCidocClasses')
+        createOptions(data.properties, 'DLCidocProperties')
       })
       .catch(function (err) {
         console.log('error: ' + err);
@@ -223,41 +218,45 @@
 
     var app = Vue.createApp({
       data() {
-        return { x3ml: {}, lido: '', x3file: null, lidofile: null, activeM:-1, activeL:-1, predicates:[], mode:-1 }
+        return { x3ml: {}, lido: '', x3file: null, lidoURL: null, activeM: -1, activeL: -1, predicates: [], mode: '' }
       },
       delimiters: ["${", "}$"], // for global
       compilerOptions: { delimiters: ["${", "}$"] }, // for standalone
       methods: {
-        addX3mlFile(event) {
+        saveX3mlUrl(event) {
+          // Saves x3ml event data
           this.x3file = event.target.files[0];
         },
-        addLidoFile(event) {
-          this.lidofile = event.target.files[0];
+        saveLidoUrl(event) {
+          // Saves lido event data
+          this.lidoURL = event.target.files[0];
         },
-        uploadDLFile() {
+        uploadX3ml() {
+          // Uploads data from the x3ml URL and reloads server data
           if (this.x3file) {
             const pText = this.x3file.text();
             pText.then((x3mlStr) => {
               post('/uploadMapping', { type: 'uploadMapping', data: x3mlStr })
                 .then((res) => {
                   this.x3file = null;
-                  this.syncronize();
+                  this.getX3ml();
                   rdfEditor.setValue('');
                 });
             });
           }
         },
-        applyConditions() {
+        applyConditionChanges() {
+          // Posts conditions changes and reloads server data
           if (this.predicates.length > 0) {
-            //Post data
-            data = { 
-              type: 'applyCondition', 
-              predicates: this.predicates, 
-              mIndex : this.activeM, 
-              lIndex: this.activeL,
-              mode: this.mode 
+            // Posts data from the condition editor
+            data = {
+              type: 'applyCondition', // type tag
+              predicates: this.predicates, // predicates
+              mIndex: this.activeM, // mapping index
+              lIndex: this.activeL, // link index
+              mode: this.mode // mode switch: 'map' or 'link'
             }
-            post('/applyCondition', data).then(res => { this.syncronize(); });
+            post('/applyCondition', data).then(res => { this.getX3ml(); });
             //Reset data
             this.mode = ''
             this.activeL = -1;
@@ -265,42 +264,49 @@
             this.predicates = [];
           }
         },
-        uploadDfltMapping() {
+        resetMappings() {
+          // Post the mapping reset and reloads server data
           post('/uploadMapping', { type: 'uploadMapping', data: null })
-            .then((res) => { this.syncronize(); rdfEditor.setValue(''); });
+            .then((res) => { this.getX3ml(); rdfEditor.setValue(''); });
         },
-        clearMapping() {
+        clearMappings() {
+          // Post the deletion of all mapping and reloads server data
           post('/clearMappings', { type: 'clearMappings' })
-            .then((res) => { this.syncronize(); rdfEditor.setValue(''); });
+            .then((res) => { this.getX3ml(); rdfEditor.setValue(''); });
         },
-        uploadLidoFile() {
-          if (this.lidofile) {
-            const pText = this.lidofile.text();
+        uploadLido() {
+          // Loads text from the lido URL into the Lido editor
+          if (this.lidoURL) {
+            const pText = this.lidoURL.text();
             pText.then((lidoStr) => {
-              sourceEditor.setValue(lidoStr)
+              lidoEditor.setValue(lidoStr)
               rdfEditor.setValue('');
-              this.lidofile = null
+              this.lidoURL = null
             });
           }
         },
-        syncronize() {
+        getX3ml() {
+          // Gets the current x3ml file from the server
           get("/x3ml")
             .then((response) => response.json())
             .then((jsData) => { this.x3ml = JSON.parse(jsData.jsonX3ml); })
             .catch((err) => { console.error(err); });
         },
         addMapping(event) {
+          // Posts the mapping addition and reloads server data
           data = { type: 'addMapping', mIndex: -1 }
-          post('/addMap', data).then(res => { this.syncronize(); });
+          post('/addMap', data).then(res => { this.getX3ml(); });
         },
-        deleteMap(event) {
+        deleteMapping(event) {
+          // Posts the mapping deletion and reloads server data
           attrs = event.target.attributes;
           if (attrs.iM) {
             mIndex = attrs.iM.value;
-            del('/deleteMap/' + mIndex).then(res => { this.syncronize(); });
+            del('/deleteMapping/' + mIndex).then(res => { this.getX3ml(); });
           }
         },
-        applyMap(event) {
+        applyMappingChanges(event) {
+          // Posts the mapping changes and reloads server data
           attrs = event.target.attributes;
           if (attrs.iM) {
             mIndex = attrs.iM.value;
@@ -312,10 +318,11 @@
               path: mapping.domain.sourceNode.text,
               entity: mapping.domain.targetNode.entity.type
             };
-            post('/x3ml', data).then(res => { this.syncronize(); });
+            post('/x3ml', data).then(res => { this.getX3ml(); });
           }
         },
-        editLinkCondition(event) {
+        openLinkConditionEditor(event) {
+          // Opens the condition editor for a link
           attrs = event.target.attributes;
           if (attrs.iM && attrs.iL) {
             this.mode = 'link';
@@ -326,7 +333,8 @@
             $('#conditionEditor').modal('show');
           }
         },
-        editMapCondition(event) {
+        openMappingConditionEditor(event) {
+          // Opens the condition editor for a mapping
           attrs = event.target.attributes;
           if (attrs.iM) {
             this.mode = 'map';
@@ -336,7 +344,8 @@
             $('#conditionEditor').modal('show');
           }
         },
-        applyLink(event) {
+        applyLinkChanges(event) {
+          // Posts a link change and reloads server data
           attrs = event.target.attributes;
           if (attrs.iM && attrs.iL) {
             mIndex = attrs.iM.value;
@@ -351,23 +360,25 @@
               relationship: link.path.targetRelation.relationship.text,
               entity: link.range.targetNode.entity.type
             };
-            post('/x3ml', data).then(res => { this.syncronize(); });
+            post('/x3ml', data).then(res => { this.getX3ml(); });
           }
         },
         deleteLink(event) {
+          // Posts a link deletion and reloads server data
           attrs = event.target.attributes;
           if (attrs.iM && attrs.iL) {
             mIndex = attrs.iM.value;
             lIndex = attrs.iL.value;
-            del('/deleteLink/' + mIndex + '/' + lIndex).then(res => { this.syncronize(); });
+            del('/deleteLink/' + mIndex + '/' + lIndex).then(res => { this.getX3ml(); });
           }
         },
         addLink(event) {
+          // Posts a link addition and reloads server data
           attrs = event.target.attributes;
           if (attrs.iM) {
             mIndex = attrs.iM.value;
             data = { type: 'addLink', mIndex: mIndex, lIndex: -1 };
-            post('/addLink', data).then((res) => { this.syncronize(); });
+            post('/addLink', data).then((res) => { this.getX3ml(); });
           }
         }
       },
@@ -379,12 +390,13 @@
         }
       },
       created() {
-        this.syncronize();
+        this.getX3ml();
         getLido();
       }
     }).mount('#app');
 
     function makeEditor(label, style = "ace/theme/monokai", fmt = "ace/mode/xml") {
+      // Returns an ace editor object
       var ed = ace.edit(label);
       ed.setTheme(style);
       ed.session.setMode(fmt);
@@ -392,33 +404,38 @@
       return ed;
     }
 
-    var sourceEditor = makeEditor("sourceEditor");
-    sourceEditor.setValue(app.lido);
+    // Creator editors
+    var lidoEditor = makeEditor("lidoEditor");
+    lidoEditor.setValue(app.lido);
     var rdfEditor = makeEditor("rdfEditor", "", "ace/mode/turtle");
-    //rdfEditor.setOptions({ "readOnly": true });
+    rdfEditor.setValue('')
 
     function getLido() {
+      // Loads Lido data from server into the source editor
       get("/loadLido")
         .then((response) => response.json())
-        .then((jsData) => { sourceEditor.setValue(jsData.lidoData); })
+        .then((jsData) => { lidoEditor.setValue(jsData.lidoData); })
         .catch((err) => { console.error(err); });
     };
 
     function runMappings() {
-      data = { type: '/runMappings', data: sourceEditor.getValue() }
+      // Triggers the transformation lido + x3ml => ttl
+      // and loads the result into the RDF editor.
+      data = { type: '/runMappings', data: lidoEditor.getValue() }
       post('/runMappings', data)
         .then(res => res.json())
         .then(s => rdfEditor.setValue(s.text));
-      app.syncronize();
+      app.getX3ml();
     }
 
-    function addCondition(conditions) 
-    {
-      condition= {attributes:{}, predicate : {attributes:{}, predicates:[], tag: "equals", value: "todo", xpath: "todo"}}
+    function addCondition(conditions) {
+      // Appends a new condition: use a copy of the 1. entry or a default entry for no recent entries
       if (conditions.length > 0) {
-        condition = clone(conditions[0]);
+        conditions.push(clone(conditions[0]));
       }
-      conditions.push(condition);
+      else {
+        conditions.push({ attributes: {}, predicate: { attributes: {}, predicates: [], tag: "equals", value: "todo", xpath: "todo" } });
+      }
     }
   </script>
 </body>
