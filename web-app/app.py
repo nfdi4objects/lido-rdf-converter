@@ -106,7 +106,7 @@ def clearMappings():
     global workX3ml
     response_object = {'status': 'success'}
     if request.method == 'POST':
-        workX3ml.mappings = [Mapping.create()]
+        workX3ml.mappings = []
         response_object['message'] = 'Mappings deleted!'
     return jsonify(response_object)
 
@@ -164,7 +164,7 @@ def applyCondition():
     parm = request.get_json()
     mode =parm['mode'] # 'link' or 'map'
     mapping = workX3ml.mappings[int(parm['mIndex'])]
-    createEquals = lambda x: XC.PredicateVariant.withOp(XC.Equals.byValues(x['xpath'],x['value']))
+    createEquals = lambda x: XC.PredicateVariant.from_op(XC.Equals.byValues(x['xpath'],x['value']))
     if mode =='link':
         link = mapping.links[int(parm['lIndex'])]
         predicates = [ createEquals(x['predicate']) for x in parm['predicates']]

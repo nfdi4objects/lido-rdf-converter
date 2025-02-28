@@ -32,10 +32,9 @@ class MockOpFalse(XC.Or):
     def validate(self, elem):
         return False
 
-def makeIfOr(trueFalse):
-    tIf = XC.PredicateVariant()
-    tIf.op = MockOpTrue() if trueFalse else MockOpFalse()
-    return tIf
+def createPredicateMock(trueFalse):
+    op = MockOpTrue() if trueFalse else MockOpFalse()
+    return  XC.PredicateVariant.from_op(op)
 
 
 class Test_X3ml_Classes(unittest.TestCase):
@@ -46,7 +45,7 @@ class Test_X3ml_Classes(unittest.TestCase):
 
     def test_Serializer(self):
         '''Serializer: Ctor, JSON'''
-        testee = XC.Serializer()
+        testee = XC.JSON_Serializer()
         testee.y = 5
         self.assertEqual(testee.toJSON(), '{\n  "y": 5\n}')
 
@@ -261,7 +260,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         elem = ElementPath('test/source_node','ABC')
         SubElementPath(elem, 'target_node/entity/type').text = 'XYZ'
 
-        testee = XC.Domain(elem)
+        testee = XC.Domain.from_serial(elem)
 
         self.assertEqual(testee.path, 'ABC')
         self.assertEqual(testee.entity, 'XYZ')
@@ -279,8 +278,8 @@ class Test_X3ml_Classes(unittest.TestCase):
 
     def test_NR_1(self):
         '''NR: Ctor'''
-        node = XC.SimpleText(text='ABC')
-        relation = XC.SimpleText(text='XYZ')
+        node = XC.SimpleText('ABC')
+        relation = XC.SimpleText('XYZ')
 
         testee = XC.NR(node, relation)
 
@@ -311,12 +310,12 @@ class Test_X3ml_Classes(unittest.TestCase):
 
     def test_SourceRelation_1(self):
         '''SourceRelation 1: Ctor'''
-        testee = XC.SourceRelation.create('ABC')
+        testee = XC.SourceRelation('ABC')
         self.assertEqual(testee.relation.text, 'ABC')
 
     def test_SourceRelation_2(self):
         '''SourceRelation 2: Serial'''
-        testee = XC.SourceRelation.create('ABC')
+        testee = XC.SourceRelation('ABC')
         testee.nodes.append(XC.NR.create('N0', 'R0'))
         testee.nodes.append(XC.NR.create('N1', 'R1'))
         elem = Element('test')
@@ -424,7 +423,7 @@ class Test_X3ml_Classes(unittest.TestCase):
 
     def test_ComposedPredicate_1(self):
         '''ComposedPredicate: Ctor, Access'''
-        testee = XC.ComposedPredicate(None, 'aTag')
+        testee = XC.ComposedPredicate('aTag')
         self.assertEqual(testee.tag, 'aTag')
         self.assertEqual(testee.xpath, '')
 
@@ -470,12 +469,12 @@ class Test_X3ml_Classes(unittest.TestCase):
 
     def test_ConditionsType_1(self):
         '''ConditionsType: Ctor, Access'''
-        testee = XC.PredicateVariant(None)
+        testee = XC.PredicateVariant()
         self.assertIsInstance(testee.op, XC.Or)
 
     def test_ConditionsType_2(self):
         '''ConditionsType: Serial'''
-        testee = XC.PredicateVariant(None)
+        testee = XC.PredicateVariant()
         elem = Element('test')
         testee.serialize(elem)
 
@@ -486,7 +485,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         '''ConditionsType: DeSerial'''
         elem = Element('test')
         SubElement(elem, 'or')
-        testee = XC.PredicateVariant(None)
+        testee = XC.PredicateVariant()
 
         testee.deserialize(elem)
 
@@ -496,16 +495,16 @@ class Test_X3ml_Classes(unittest.TestCase):
         elem = Element('test')
         testee = XC.Or()
 
-        testee.predicates = [makeIfOr(False),makeIfOr(False)]
+        testee.predicates = [createPredicateMock(False),createPredicateMock(False)]
         self.assertFalse(testee.validate(elem))
 
-        testee.predicates = [makeIfOr(False),makeIfOr(True)]
+        testee.predicates = [createPredicateMock(False),createPredicateMock(True)]
         self.assertTrue(testee.validate(elem))
 
-        testee.predicates = [makeIfOr(True),makeIfOr(False)]
+        testee.predicates = [createPredicateMock(True),createPredicateMock(False)]
         self.assertTrue(testee.validate(elem))
 
-        testee.predicates = [makeIfOr(True),makeIfOr(True)]
+        testee.predicates = [createPredicateMock(True),createPredicateMock(True)]
         self.assertTrue(testee.validate(elem))
 
     def test_OR_2(self):
@@ -531,7 +530,7 @@ class Test_X3ml_Classes(unittest.TestCase):
                      <if><equals value="value1">xpath1</equals></if>
                      <if><equals value="value2">xpath2</equals></if>
                   </or>'''
-        testee = XC.Or( XML(data))
+        testee = XC.Or.from_serial( XML(data))
         self.assertEqual(len(testee.predicates),2)
         for n in range(2):
             p = testee.predicates[n]
@@ -547,7 +546,7 @@ class Test_X3ml_Classes(unittest.TestCase):
                      <if><equals value="valueÖ">a/b/c/text()</equals></if>
                      <if><equals value="value2">a/b/c/text()</equals></if>
                   </or>'''
-        testee = XC.Or( XML(rules))
+        testee = XC.Or.from_serial( XML(rules))
 
         self.assertIsInstance(testee,XC.Or)
         self.assertEqual(len(testee.predicates),2)
@@ -564,16 +563,16 @@ class Test_X3ml_Classes(unittest.TestCase):
         elem = Element('test')
         testee = XC.And()
 
-        testee.predicates = [makeIfOr(False),makeIfOr(False)]
+        testee.predicates = [createPredicateMock(False),createPredicateMock(False)]
         self.assertFalse(testee.validate(elem))
 
-        testee.predicates = [makeIfOr(False),makeIfOr(True)]
+        testee.predicates = [createPredicateMock(False),createPredicateMock(True)]
         self.assertFalse(testee.validate(elem))
 
-        testee.predicates = [makeIfOr(True),makeIfOr(False)]
+        testee.predicates = [createPredicateMock(True),createPredicateMock(False)]
         self.assertFalse(testee.validate(elem))
 
-        testee.predicates = [makeIfOr(True),makeIfOr(True)]
+        testee.predicates = [createPredicateMock(True),createPredicateMock(True)]
         self.assertTrue(testee.validate(elem))
 
     def test_AND_2(self):
@@ -605,7 +604,7 @@ class Test_X3ml_Classes(unittest.TestCase):
                      <if><equals value="valueÖ">a/b/c/text()</equals></if>
                      <if><equals value="value2">a/b/d/text()</equals></if>
                   </or>'''
-        testee = XC.And( XML(rules))
+        testee = XC.And.from_serial( XML(rules))
 
         self.assertIsInstance(testee,XC.And)
         self.assertEqual(len(testee.predicates),2)
