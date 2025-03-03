@@ -7,6 +7,10 @@ import x3ml_classes as XC
 from lidoEditor import makeWorkspace, processString,workMappingFile
 import copy
 
+from waitress import serve
+import argparse
+
+
 UPLOAD_FOLDER = './work'
 ALLOWED_EXTENSIONS = {'x3ml'}
 mapper = makeWorkspace()
@@ -195,5 +199,14 @@ def loadDftlLido():
 
 
 if __name__ == '__main__': 
-   
-    app.run(host="localhost", port=8000)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-w', '--wsgi', action=argparse.BooleanOptionalAction, help="Use WSGI server")
+    parser.add_argument('-p', '--port', type=int, default=5000, help="Server port")
+    #parser.add_argument('-c', '--config', type=str,  default="config.yaml", help="Config file")
+    args = parser.parse_args()
+    opts = {"port": args.port}
+  
+    if args.wsgi:
+        serve(app, host="0.0.0.0", **opts)
+    else:
+        app.run(host="0.0.0.0", **opts)
