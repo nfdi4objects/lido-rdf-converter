@@ -10,6 +10,7 @@ lidoapp_bp = Blueprint('lidoapp_bp', __name__,  template_folder='templates', sta
 mapper = makeWorkspace()
 
 def init(fd):
+    print(lidoapp_bp.name)
     try:
         if not os.path.exists(fd):
             print('create folder ',fd)
@@ -36,7 +37,7 @@ workX3ml = loadX3ml()
 
 @lidoapp_bp.route('/')
 def index():
-    return render_template('index.html', data=mapper)
+    return render_template('index.html', url_prefix=f'/{lidoapp_bp.name}')
 
 @lidoapp_bp.route('/downloadX3ml')
 def downloadX3ml():
