@@ -7,19 +7,18 @@ import LidoRDFConverter as LRC
 
 WORKFOLDER = './work'
 
-def dlftMappingFile(): return './defaultMapping.x3ml'
-def dlftLidoFile(): return './defaultLido.xml'
-def workMappingFile(): return WORKFOLDER+'/mapping.x3ml'
-def workLidoFile(): return WORKFOLDER+'/lido.xml'
+def dlftMappingFile(): return Path('./defaultMapping.x3ml')
+def dlftLidoFile(): return Path('./defaultLido.xml')
+def workMappingFile(): return Path(WORKFOLDER+'/mapping.x3ml')
+def workLidoFile(): return Path(WORKFOLDER+'/lido.xml')
 
-def makeWorkspace():
-    Path(WORKFOLDER).mkdir(exist_ok=True)
-    mFile = Path(workMappingFile())
-    if not mFile.exists():
-        mFile.write_text(Path(dlftMappingFile()).read_text())
-    sFile = Path(workLidoFile())
-    if not sFile.exists():
-        sFile.write_text(Path(dlftLidoFile()).read_text())
+def makeWorkspace(ws=WORKFOLDER):
+    Path(ws).mkdir(exist_ok=True)
+    def lazyCp(src,dest): 
+        if not dest.exists(): 
+            dest.write_text(src.read_text())
+    lazyCp(dlftMappingFile(), workMappingFile())
+    lazyCp(dlftLidoFile(),workLidoFile())
 
 def initWorkspace(dirName):
     global WORKFOLDER
@@ -32,22 +31,21 @@ def initWorkspace(dirName):
     except OSError as error:
         print(error)  
 
-def processString(lidoString,mapingFile=workMappingFile()):
-    fmt = 'turtle'
+def processString(lidoString,mapingFile=str(workMappingFile())):
     result = '<no-data/>'
     lidoFile = workLidoFile()
-    if Path(lidoFile).write_text(lidoString) > 0:
+    if lidoFile.write_text(lidoString) > 0:
         converter = LRC.LidoRDFConverter(mapingFile)
         graph,_ = converter.processXML(lidoFile)
-        result = graph.serialize(format=fmt)
+        result = graph.serialize(format='turtle')
     return result
 
 lidoapp_bp = Blueprint('lidoapp_bp', __name__,  template_folder='templates', static_folder='')
 workX3ml = loadX3ml()
 
-def registerLidoApp(app, path):
+def registerLidoBlueprint(app, path):
     initWorkspace( path)
-    app.register_blueprint(lidoapp_bp, url_prefix=f'/lidoapp_bp')
+    app.register_blueprint(lidoapp_bp, url_prefix=f'/{lidoapp_bp.name}')
     return lidoapp_bp
 
 #############################################################################
@@ -93,8 +91,9 @@ def uploadMapping():
     if request.method == 'POST':
         parm = request.get_json()
         if data := parm['data']:
-            fileName = Path(workMappingFile()).write_text(data)
-            workX3ml = loadX3ml(fileName)
+            fileName = workMappingFile()
+            fileName.write_text(data)
+            workX3ml = loadX3ml(str(fileName))
         else:
             workX3ml = loadX3ml() #use default mapping
         response_object['message'] = 'Mappings applied to Lido!'
@@ -106,7 +105,7 @@ def runMappings():
     response_object = {'status': 'success'}
     if request.method == 'POST':
         parm = request.get_json()
-        wmf = storeX3ml(workX3ml,workMappingFile())
+        wmf = storeX3ml(workX3ml,str(workMappingFile()))
         response_object['text'] = processString(parm['data'],wmf)
         response_object['message'] = 'Mappings applied to Lido!'
     return jsonify(response_object)
@@ -140,7 +139,6 @@ def addLink():
     response_object = {'status': 'success'}
     if request.method == 'POST':
         parm = request.get_json()
-        #print(parm)
         m = workX3ml.mappings[int(parm['mIndex'])]
         newLink = Link()
         if len(m.links):

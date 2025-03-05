@@ -303,7 +303,7 @@
           attrs = event.target.attributes;
           if (attrs.iM) {
             mIndex = attrs.iM.value;
-            del(bp_prefix + '/deleteMapping/' + mIndex).then(res => { this.getX3ml(); });
+            del(bp_prefix + '/deleteMap/' + mIndex).then(res => { this.getX3ml(); });
           }
         },
         applyMappingChanges(event) {
