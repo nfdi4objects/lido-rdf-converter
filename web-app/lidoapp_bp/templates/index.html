@@ -197,7 +197,7 @@
 
   <script>
     var bp_prefix;
-     function createOptions(optionValues, elementId) {
+    function createOptions(optionValues, elementId) {
       var elem = document.getElementById(elementId);
       optionValues.forEach(x => {
         option = document.createElement('option');
@@ -208,8 +208,8 @@
     }
 
     fetch('./static/cidoc_label.json')
-      .then( res => res.json())
-      .then( data => {
+      .then(res => res.json())
+      .then(data => {
         createOptions(data.classes, 'DLCidocClasses')
         createOptions(data.properties, 'DLCidocProperties')
       })
@@ -237,7 +237,7 @@
           if (this.x3file) {
             const pText = this.x3file.text();
             pText.then((x3mlStr) => {
-              post(bp_prefix+'/uploadMapping', { type: 'uploadMapping', data: x3mlStr })
+              post(bp_prefix + '/uploadMapping', { type: 'uploadMapping', data: x3mlStr })
                 .then((res) => {
                   this.x3file = null;
                   this.getX3ml();
@@ -257,7 +257,7 @@
               lIndex: this.activeL, // link index
               mode: this.mode // mode switch: 'map' or 'link'
             }
-            post(bp_prefix+'/applyCondition', data).then(res => { this.getX3ml(); });
+            post(bp_prefix + '/applyCondition', data).then(res => { this.getX3ml(); });
             //Reset data
             this.mode = ''
             this.activeL = -1;
@@ -267,12 +267,12 @@
         },
         resetMappings() {
           // Post the mapping reset and reloads server data
-          post(bp_prefix+'/uploadMapping', { type: 'uploadMapping', data: null })
+          post(bp_prefix + '/uploadMapping', { type: 'uploadMapping', data: null })
             .then((res) => { this.getX3ml(); rdfEditor.setValue(''); });
         },
         clearMappings() {
           // Post the deletion of all mapping and reloads server data
-          post(bp_prefix+'/clearMappings', { type: 'clearMappings' })
+          post(bp_prefix + '/clearMappings', { type: 'clearMappings' })
             .then((res) => { this.getX3ml(); rdfEditor.setValue(''); });
         },
         uploadLido() {
@@ -296,14 +296,14 @@
         addMapping(event) {
           // Posts the mapping addition and reloads server data
           data = { type: 'addMapping', mIndex: -1 }
-          post(bp_prefix+'/addMap', data).then(res => { this.getX3ml(); });
+          post(bp_prefix + '/addMap', data).then(res => { this.getX3ml(); });
         },
         deleteMapping(event) {
           // Posts the mapping deletion and reloads server data
           attrs = event.target.attributes;
           if (attrs.iM) {
             mIndex = attrs.iM.value;
-            del(bp_prefix+'/deleteMapping/' + mIndex).then(res => { this.getX3ml(); });
+            del(bp_prefix + '/deleteMapping/' + mIndex).then(res => { this.getX3ml(); });
           }
         },
         applyMappingChanges(event) {
@@ -319,7 +319,7 @@
               path: mapping.domain.sourceNode.text,
               entity: mapping.domain.targetNode.entity.type
             };
-            post(bp_prefix+'/x3ml', data).then(res => { this.getX3ml(); });
+            post(bp_prefix + '/x3ml', data).then(res => { this.getX3ml(); });
           }
         },
         openLinkConditionEditor(event) {
@@ -361,7 +361,7 @@
               relationship: link.path.targetRelation.relationship.text,
               entity: link.range.targetNode.entity.type
             };
-            post(bp_prefix+'/x3ml', data).then(res => { this.getX3ml(); });
+            post(bp_prefix + '/x3ml', data).then(res => { this.getX3ml(); });
           }
         },
         deleteLink(event) {
@@ -370,7 +370,7 @@
           if (attrs.iM && attrs.iL) {
             mIndex = attrs.iM.value;
             lIndex = attrs.iL.value;
-            del(bp_prefix+'/deleteLink/' + mIndex + '/' + lIndex).then(res => { this.getX3ml(); });
+            del(bp_prefix + '/deleteLink/' + mIndex + '/' + lIndex).then(res => { this.getX3ml(); });
           }
         },
         addLink(event) {
@@ -379,7 +379,7 @@
           if (attrs.iM) {
             mIndex = attrs.iM.value;
             data = { type: 'addLink', mIndex: mIndex, lIndex: -1 };
-            post(bp_prefix+'/addLink', data).then((res) => { this.getX3ml(); });
+            post(bp_prefix + '/addLink', data).then((res) => { this.getX3ml(); });
           }
         }
       },
@@ -391,7 +391,7 @@
         }
       },
       created() {
-        bp_prefix =document.getElementById("app").getAttribute('url_prefix');
+        bp_prefix = document.getElementById("app").getAttribute('url_prefix');
         this.getX3ml();
         getLido();
       }
@@ -424,7 +424,7 @@
       // Triggers the transformation lido + x3ml => ttl
       // and loads the result into the RDF editor.
       data = { type: '/runMappings', data: lidoEditor.getValue() }
-      post(bp_prefix+'/runMappings', data)
+      post(bp_prefix + '/runMappings', data)
         .then(res => res.json())
         .then(s => rdfEditor.setValue(s.text));
       app.getX3ml();

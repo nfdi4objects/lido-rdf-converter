@@ -1,16 +1,15 @@
 import os
-from flask import Blueprint, render_template, request, send_file, jsonify,current_app
-from .x3ml_classes import loadX3ml, storeX3ml, Namespace, Mapping,Link, PredicateVariant, Equals
-from .lidoEditor import makeWorkspace, processString,workMappingFile
+from flask import Blueprint, render_template, request, send_file, jsonify, current_app
+from .x3ml_classes import loadX3ml, storeX3ml, Namespace, Mapping, Link, PredicateVariant, Equals
+from .lidoEditor import makeWorkspace, processString, workMappingFile
 import copy
 
 
 lidoapp_bp = Blueprint('lidoapp_bp', __name__,  template_folder='templates', static_folder='')
 
-mapper = makeWorkspace()
+makeWorkspace()
 
 def init(fd):
-    print(lidoapp_bp.name)
     try:
         if not os.path.exists(fd):
             print('create folder ',fd)
