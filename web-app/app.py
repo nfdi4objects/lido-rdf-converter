@@ -1,21 +1,16 @@
 import os
 from flask import Flask, redirect
 from waitress import serve
-from lidoapp_bp.lidoapp_bp import lidoapp_bp, init
+from lidoapp_bp.lidoapp_bp import registerLidoApp
 import argparse
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = '110662'
-app.config['UPLOAD_FOLDER'] = os.path.abspath('./work')
-init(app.config['UPLOAD_FOLDER'])
-app.register_blueprint(lidoapp_bp, url_prefix='/lidoapp_bp')
-
+bp = registerLidoApp(app, os.path.abspath('./work'))
 
 @app.route('/')
 def index():
-    return redirect('/lidoapp_bp/')
-
+    return redirect(f'/{bp.name}/')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

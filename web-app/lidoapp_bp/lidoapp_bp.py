@@ -1,36 +1,54 @@
-import os
-from flask import Blueprint, render_template, request, send_file, jsonify, current_app
-from .x3ml_classes import loadX3ml, storeX3ml, Namespace, Mapping, Link, PredicateVariant, Equals
-from .lidoEditor import makeWorkspace, processString, workMappingFile
-import copy
+import sys, os, copy
+sys.path.insert(0, '..')
+from flask import Blueprint, render_template, request, send_file, jsonify
+from .x3ml_classes import loadX3ml, storeX3ml, Mapping, Link, PredicateVariant, Equals
+from pathlib import Path
+import LidoRDFConverter as LRC
 
+WORKFOLDER = './work'
 
-lidoapp_bp = Blueprint('lidoapp_bp', __name__,  template_folder='templates', static_folder='')
+def dlftMappingFile(): return './defaultMapping.x3ml'
+def dlftLidoFile(): return './defaultLido.xml'
+def workMappingFile(): return WORKFOLDER+'/mapping.x3ml'
+def workLidoFile(): return WORKFOLDER+'/lido.xml'
 
-makeWorkspace()
+def makeWorkspace():
+    Path(WORKFOLDER).mkdir(exist_ok=True)
+    mFile = Path(workMappingFile())
+    if not mFile.exists():
+        mFile.write_text(Path(dlftMappingFile()).read_text())
+    sFile = Path(workLidoFile())
+    if not sFile.exists():
+        sFile.write_text(Path(dlftLidoFile()).read_text())
 
-def init(fd):
+def initWorkspace(dirName):
+    global WORKFOLDER
     try:
-        if not os.path.exists(fd):
-            print('create folder ',fd)
-            os.mkdir(fd)
+        if not os.path.exists(dirName):
+            print('create folder ',dirName)
+            os.mkdir(dirName)
+        WORKFOLDER = dirName   
+        makeWorkspace()
     except OSError as error:
         print(error)  
 
-def localFile(s):
-    folder = current_app.config['UPLOAD_FOLDER']
-    return os.path.join(folder, s)
+def processString(lidoString,mapingFile=workMappingFile()):
+    fmt = 'turtle'
+    result = '<no-data/>'
+    lidoFile = workLidoFile()
+    if Path(lidoFile).write_text(lidoString) > 0:
+        converter = LRC.LidoRDFConverter(mapingFile)
+        graph,_ = converter.processXML(lidoFile)
+        result = graph.serialize(format=fmt)
+    return result
 
-def findNS(prefix) -> Namespace|None:
-    hasPrefix = lambda x : x.prefix()==prefix
-    return next((x for x in workX3ml.namespaces if hasPrefix(x)),None)
-
-def getNSdata(id):
-    ns = workX3ml.namespaces[id]
-    return { 'id': id, 'title':f"{ns['prefix']}",'content':f"{ns['uri']}"}
-
-
+lidoapp_bp = Blueprint('lidoapp_bp', __name__,  template_folder='templates', static_folder='')
 workX3ml = loadX3ml()
+
+def registerLidoApp(app, path):
+    initWorkspace( path)
+    app.register_blueprint(lidoapp_bp, url_prefix=f'/lidoapp_bp')
+    return lidoapp_bp
 
 #############################################################################
 
@@ -41,7 +59,7 @@ def index():
 @lidoapp_bp.route('/downloadX3ml')
 def downloadX3ml():
     global workX3ml
-    storePath = localFile('download.x3ml')
+    storePath = Path(WORKFOLDER+'/download.x3ml')
     storeX3ml(workX3ml,storePath)
     return send_file(storePath,  download_name='mapping.x3ml')
 
@@ -75,7 +93,7 @@ def uploadMapping():
     if request.method == 'POST':
         parm = request.get_json()
         if data := parm['data']:
-            fileName = toFile(workMappingFile(),data)
+            fileName = Path(workMappingFile()).write_text(data)
             workX3ml = loadX3ml(fileName)
         else:
             workX3ml = loadX3ml() #use default mapping
@@ -168,19 +186,9 @@ def applyCondition():
         response_object['message'] = 'Conditions applied!'
     return jsonify(response_object)
 
-def fromFile(fname):
-    with open(fname,'r') as fid:
-        return fid.read()
-    return ''
-
-def toFile(fname,data):
-    if data:
-        with open(fname,'w') as fid:
-            fid.write(data)
-            return fname
 
 @lidoapp_bp.route('/loadLido')
 def loadDftlLido():
-    data = fromFile('./defaultLido.xml')
+    data = Path('./defaultLido.xml').read_text()
     answer = {'status': 'success','lidoData':data}
     return jsonify(answer)
