@@ -6,3 +6,4 @@ tmp/
 data/
 oai_buffer.xml
 web-app/work/
+*.db
