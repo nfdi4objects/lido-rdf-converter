@@ -3,6 +3,7 @@ from lxml import etree
 import sys
 import hashlib
 import json
+from pathlib import Path
 
 lidoSchemaURI = 'http://www.lido-schema.org'
 lidoSchemaXSD = 'http://www.lido-schema.org/schema/v1.0/lido-v1.0.xsd'
@@ -303,13 +304,19 @@ def mappingsFromNode(mappingElem) -> Mappings:
         mappings.append(mapping)
     return mappings
 
-def getMapping(fname: str) -> Mappings | None:
-    '''Returns all mappings from a file'''
+def getMappingS(xmlStr:str) -> Mappings | None:
+    '''Returns all mappings from a string'''
     mappings = []
-    for _, elem in etree.iterparse(fname, events=("end",),tag=('mapping'),encoding='UTF-8',remove_blank_text=True):
+    parser = etree.XMLPullParser(events=("end",), tag=('mapping'), encoding='UTF-8',remove_blank_text=True)
+    parser.feed(xmlStr)
+    for _, elem in parser.read_events():
         if not str2bool(elem.get('skip','false')):
             mappings += mappingsFromNode(elem)
     return mappings
+
+def getMapping(fileName: str) -> Mappings | None:
+    '''Returns all mappings from a file'''
+    return getMappingS(Path(fileName).read_text(encoding='UTF-8'))
 
 class NS():
     """ docstring

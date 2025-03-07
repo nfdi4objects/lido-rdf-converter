@@ -1,4 +1,4 @@
-from xml.etree.ElementTree import Element, ElementTree, indent, SubElement, parse
+from xml.etree.ElementTree import Element, ElementTree, indent, SubElement, parse,tostring
 import json
 
 class Predicate():
@@ -60,6 +60,9 @@ class X3Base(JSON_Serializer):
         if NN(elem):
             elem.attrib = self.attributes
         return elem
+
+    def to_str(self):
+        return tostring(self.serialize(Element('x3ml')))
 
     @classmethod
     def from_serial(cls, elem: Element,*args,**kw):

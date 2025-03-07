@@ -4,6 +4,8 @@ from flask import Blueprint, render_template, request, send_file, jsonify
 from .x3ml_classes import loadX3ml, storeX3ml, Mapping, Link, PredicateVariant, Equals
 from pathlib import Path
 import LidoRDFConverter as LRC
+import xml.etree.ElementTree as ET
+
 
 WORKFOLDER = './work'
 
@@ -31,12 +33,11 @@ def initWorkspace(dirName):
     except OSError as error:
         print(error)  
 
-def processString(lidoString,mapingFile=str(workMappingFile())):
+def processString(lidoString,x3mlstr):
     result = '<no-data/>'
-    lidoFile = workLidoFile()
-    if lidoFile.write_text(lidoString) > 0:
-        converter = LRC.LidoRDFConverter(mapingFile)
-        graph,_ = converter.processXML(lidoFile)
+    if lidoString:
+        converter = LRC.LidoRDFConverter.from_str(x3mlstr)
+        graph = converter.parse_string(lidoString)
         result = graph.serialize(format='turtle')
     return result
 
@@ -105,8 +106,7 @@ def runMappings():
     response_object = {'status': 'success'}
     if request.method == 'POST':
         parm = request.get_json()
-        wmf = storeX3ml(workX3ml,str(workMappingFile()))
-        response_object['text'] = processString(parm['data'],wmf)
+        response_object['text'] = processString(parm['data'],workX3ml.to_str())
         response_object['message'] = 'Mappings applied to Lido!'
     return jsonify(response_object)
 

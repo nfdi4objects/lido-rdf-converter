@@ -5,17 +5,18 @@ import x3ml as L2C
 from lxml import etree
 import rdflib as RF
 import os,shutil
+import xml.etree.ElementTree as ET
 
 # General used namespaces
 CRM = RF.Namespace("http://www.cidoc-crm.org/cidoc-crm/")
 N4O = RF.Namespace('http://graph.nfdi4objects.net/id/')
+LIDO_TAG = f'{{{L2C.lidoSchemaURI}}}lido'
+RESUMPTION_TAG = f'{{{L2C.oaiSchemaURL}}}resumptionToken'
 
 def makeERM_URI(s):
     '''Returns URI' like e.g. crm:Enn_cccc'''
     rightToken = s.split(':')[-1]
     return CRM[rightToken]
-
-
 
 def deep_get(d, keys):
     if not keys or d is None:
@@ -74,7 +75,13 @@ def makeCleanSubDir(path):
 
 class LidoRDFConverter():
     def __init__(self, filePath):
-        self.mappings = L2C.getMapping(filePath)
+        self.mappings = L2C.getMapping(filePath) if filePath else []
+
+    @classmethod
+    def from_str(cls, mappingStr):
+        obj = cls('')
+        obj.mappings = L2C.getMappingS(mappingStr)
+        return obj
 
     def processURL(self, url:str):
         makeCleanSubDir('data')
@@ -91,47 +98,59 @@ class LidoRDFConverter():
             req = oaiRequest(url, f'ListRecords&metadataPrefix=lido')
             while req:
                 bFile = toBuffer(req,'oai_buffer.xml')
-                g, rsToken =self.processXML(bFile,processor=proc)
+                g, rsToken =self.parse_file(bFile,processor=proc)
                 if not rsToken:
                     print('No more resumptionToken') 
                     break
                 req = oaiRequest(url, f"ListRecords&resumptionToken={rsToken}")
         else:
             with ULR.urlopen(req) as response:
-                g , _ = self.processXML(response)
+                g , _ = self.parse_file(response)
                 return g
 
  
-    def processXML(self, xml,**kw):
-        g =makeResultGraph()
-        lidoTag = f'{{{L2C.lidoSchemaURI}}}lido'
-        resumTag = f'{{{L2C.oaiSchemaURL}}}resumptionToken'
+    def parse_file(self, xmlFile,**kw):
+        graph = makeResultGraph()
         processor = kw.get('processor')
-        tag = (lidoTag,resumTag,'error')
+        tag = (LIDO_TAG,RESUMPTION_TAG,'error')
         token= None
-        for _, elem in etree.iterparse(xml, events=("end",),tag=tag,encoding='UTF-8',remove_blank_text=True):
-            if resumTag == elem.tag:
-                token = elem.text
-                print('completeListSize',elem.attrib['completeListSize'])
-                print('cursor',elem.attrib['cursor'])
-                print('expirationDate',elem.attrib['expirationDate'])
-                print('token',token)
-            elif 'error' in elem.tag :
-                print('error',elem.tag,elem.text)
-            elif elem.tag == lidoTag:
-                self.process(elem,g)
-            else:
-               print('unexpeced :-(')
-               elem.clear()
+        for _, elem in etree.iterparse(xmlFile, events=("end",),tag=tag,encoding='UTF-8',remove_blank_text=True):
+            token = self.processValidElement(graph, elem)
         if processor:
-            processor(g,token)
-        return g, token
+            processor(graph,token)
+        return graph, token
 
-    def process(self, elemRoot,g,**kw):
+    def parse_string(self, xmlStr):
+        graph = makeResultGraph()
+        tag = (LIDO_TAG)
+        parser = etree.XMLPullParser(events=("end",),tag = tag, encoding='UTF-8',remove_blank_text=True)
+        parser.feed(xmlStr)
+        for _ , elem in parser.read_events():
+            self.processLidoElement(elem,graph)        
+        return graph
+
+    def processValidElement(self, graph, elem):
+        token = None
+        if RESUMPTION_TAG == elem.tag:
+            token = elem.text
+            print('completeListSize',elem.attrib['completeListSize'])
+            print('cursor',elem.attrib['cursor'])
+            print('expirationDate',elem.attrib['expirationDate'])
+            print('token',token)
+        elif 'error' in elem.tag :
+            print('error',elem.tag,elem.text)
+        elif elem.tag == LIDO_TAG:
+            self.processLidoElement(elem,graph)
+        else:
+           print('unexpeced :-(')
+           elem.clear()
+        return token
+
+    def processLidoElement(self, elem, g,**kw):
         '''Create graph LIDO root element w.r.t given mappings'''
-        recId = ' '.join(L2C.lidoXPath(elemRoot, "./lido:lidoRecID/text()"))
-        for mData in [m.getData(elemRoot) for m in self.mappings]:
-            for i, elemData in enumerate(mData):
+        recId = ' '.join(L2C.lidoXPath(elem, "./lido:lidoRecID/text()"))
+        for data in [m.getData(elem) for m in self.mappings]:
+            for i, elemData in enumerate(data):
                 if elemData.get('valid'):
                     addSPO(g, elemData,index=i, recId=recId)
 
