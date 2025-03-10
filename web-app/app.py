@@ -41,8 +41,7 @@ else:
     db.session.add(user0)
     db.session.commit()
 
-app.user = user0
-lidoBp = registerLidoBlueprint(app)
+lidoBp = registerLidoBlueprint(app,user0)
 
 @app.route('/')
 def index():

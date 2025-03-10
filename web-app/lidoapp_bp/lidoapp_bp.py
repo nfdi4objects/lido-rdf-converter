@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 import LidoRDFConverter as LRC
 from pathlib import Path
 from .x3ml_classes import Mapping, Link, PredicateVariant, Equals, X3ml
-from flask import Blueprint, render_template, request, send_file, jsonify, current_app
+from flask import Blueprint, render_template, request, send_file, jsonify
 
 
 def x3mlToStr(x3ml):
@@ -26,19 +26,22 @@ def processString(lidoString, x3mlstr):
         result = graph.serialize(format='turtle')
     return result
 
+class LidoBP(Blueprint):
+    def __init__(self,user=None):
+        super().__init__('lidoapp_bp', __name__,  template_folder='templates', static_folder='')
+        self.x3ml = X3ml()
+        self.user = user
 
-lidoapp_bp = Blueprint('lidoapp_bp', __name__,  template_folder='templates', static_folder='')
-lidoapp_bp.x3ml = X3ml()
+lidoapp_bp = LidoBP()
 
-
-def registerLidoBlueprint(app):
+def registerLidoBlueprint(app,user):
     global lidoapp_bp
     app.register_blueprint(lidoapp_bp, url_prefix=f'/{lidoapp_bp.name}')
-    lidoapp_bp.x3ml = X3ml.from_serial(ET.XML(app.user.x3ml))
+    lidoapp_bp.x3ml = X3ml.from_serial(ET.XML(user.x3ml))
+    lidoapp_bp.user = user
     return lidoapp_bp
 
 #############################################################################
-
 
 @lidoapp_bp.route('/')
 def index():
@@ -85,10 +88,10 @@ def uploadMapping():
     if request.method == 'POST':
         parm = request.get_json()
         if data := parm['data']:
-            current_app.user.x3ml = data
+            lidoapp_bp.user.x3ml = data
         else:
-            current_app.user.x3ml = dlftMappingFile().read_text()
-        lidoapp_bp.x3ml = X3ml.from_serial(ET.XML(current_app.user.x3ml))
+            lidoapp_bp.user.x3ml = dlftMappingFile().read_text()
+        lidoapp_bp.x3ml = X3ml.from_serial(ET.XML(lidoapp_bp.user.x3ml))
         response_object['message'] = 'Mappings applied to Lido!'
     return jsonify(response_object)
 
@@ -99,8 +102,8 @@ def runMappings():
     response_object = {'status': 'success'}
     if request.method == 'POST':
         parm = request.get_json()
-        current_app.user.lido = parm['data']
-        response_object['text'] = processString(current_app.user.lido, lidoapp_bp.x3ml.to_str())
+        lidoapp_bp.user.lido = parm['data']
+        response_object['text'] = processString(lidoapp_bp.user.lido, lidoapp_bp.x3ml.to_str())
         response_object['message'] = 'Mappings applied to Lido!'
     return jsonify(response_object)
 
@@ -111,7 +114,7 @@ def updateLido():
     print('update lido')
     if request.method == 'POST':
         parm = request.get_json()
-        current_app.user.lido = parm['data']
+        lidoapp_bp.user.lido = parm['data']
     return jsonify(response_object)
 
 
@@ -198,6 +201,6 @@ def applyCondition():
 @lidoapp_bp.route('/loadLido/<int:mode>')
 def loadLido(mode):
     if mode == 1:#Reset
-        current_app.user.lido = dlftLidoFile().read_text()
-    answer = {'status': 'success', 'lidoData': current_app.user.lido}
+        lidoapp_bp.user.lido = dlftLidoFile().read_text()
+    answer = {'status': 'success', 'lidoData': lidoapp_bp.user.lido}
     return jsonify(answer)
