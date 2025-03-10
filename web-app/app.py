@@ -41,6 +41,7 @@ else:
     db.session.add(user0)
     db.session.commit()
 
+app.user = user0
 lidoBp = registerLidoBlueprint(app, os.path.abspath('./work'))
 
 @app.route('/')

@@ -1,10 +1,9 @@
 import sys, os, copy
 sys.path.insert(0, '..')
-from flask import Blueprint, render_template, request, send_file, jsonify
+from flask import Blueprint, render_template, request, send_file, jsonify, current_app
 from .x3ml_classes import loadX3ml, storeX3ml, Mapping, Link, PredicateVariant, Equals
 from pathlib import Path
 import LidoRDFConverter as LRC
-import xml.etree.ElementTree as ET
 
 
 WORKFOLDER = './work'
@@ -12,24 +11,23 @@ WORKFOLDER = './work'
 def dlftMappingFile(): return Path('./defaultMapping.x3ml')
 def dlftLidoFile(): return Path('./defaultLido.xml')
 def workMappingFile(): return Path(WORKFOLDER+'/mapping.x3ml')
-def workLidoFile(): return Path(WORKFOLDER+'/lido.xml')
 
-def makeWorkspace(ws=WORKFOLDER):
+def makeWorkspace(user,ws=WORKFOLDER):
     Path(ws).mkdir(exist_ok=True)
     def lazyCp(src,dest): 
         if not dest.exists(): 
             dest.write_text(src.read_text())
+    user.lido = dlftLidoFile().read_text()
     lazyCp(dlftMappingFile(), workMappingFile())
-    lazyCp(dlftLidoFile(),workLidoFile())
 
-def initWorkspace(dirName):
+def initWorkspace(dirName,user):
     global WORKFOLDER
     try:
         if not os.path.exists(dirName):
             print('create folder ',dirName)
             os.mkdir(dirName)
         WORKFOLDER = dirName   
-        makeWorkspace()
+        makeWorkspace(user)
     except OSError as error:
         print(error)  
 
@@ -45,7 +43,7 @@ lidoapp_bp = Blueprint('lidoapp_bp', __name__,  template_folder='templates', sta
 workX3ml = loadX3ml()
 
 def registerLidoBlueprint(app, path):
-    initWorkspace( path)
+    initWorkspace( path,app.user)
     app.register_blueprint(lidoapp_bp, url_prefix=f'/{lidoapp_bp.name}')
     return lidoapp_bp
 
@@ -106,7 +104,8 @@ def runMappings():
     response_object = {'status': 'success'}
     if request.method == 'POST':
         parm = request.get_json()
-        response_object['text'] = processString(parm['data'],workX3ml.to_str())
+        current_app.user.lido = parm['data']
+        response_object['text'] = processString(current_app.user.lido,workX3ml.to_str())
         response_object['message'] = 'Mappings applied to Lido!'
     return jsonify(response_object)
 
@@ -187,6 +186,6 @@ def applyCondition():
 
 @lidoapp_bp.route('/loadLido')
 def loadDftlLido():
-    data = Path('./defaultLido.xml').read_text()
+    data = current_app.user.lido
     answer = {'status': 'success','lidoData':data}
     return jsonify(answer)
