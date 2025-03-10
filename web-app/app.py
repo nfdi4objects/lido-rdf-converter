@@ -42,7 +42,7 @@ else:
     db.session.commit()
 
 app.user = user0
-lidoBp = registerLidoBlueprint(app, os.path.abspath('./work'))
+lidoBp = registerLidoBlueprint(app)
 
 @app.route('/')
 def index():
