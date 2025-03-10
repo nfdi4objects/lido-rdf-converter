@@ -181,7 +181,7 @@
         <h4>Lido source (xml)</h4>
         <p>
           <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadLidoModal">Upload Lido</button>&nbsp;
-          <button type="button" class="btn btn-primary btn-sm" onclick="getLido()">Reset</button>&nbsp;
+          <button type="button" class="btn btn-primary btn-sm" onclick="getLido(1)">Reset</button>&nbsp;
         </p>
         <div id="lidoEditor" style="height:600px"></div>
       </div>
@@ -393,7 +393,7 @@
       created() {
         bp_prefix = document.getElementById("app").getAttribute('url_prefix');
         this.getX3ml();
-        getLido();
+        getLido(0);
       }
     }).mount('#app');
 
@@ -412,9 +412,9 @@
     var rdfEditor = makeEditor("rdfEditor", "", "ace/mode/turtle");
     rdfEditor.setValue('')
 
-    function getLido() {
+    function getLido(mode=0) {
       // Loads Lido data from server into the source editor
-      get("/lidoapp_bp/loadLido")
+      get("/lidoapp_bp/loadLido/"+mode)
         .then((response) => response.json())
         .then((jsData) => { lidoEditor.setValue(jsData.lidoData); })
         .catch((err) => { console.error(err); });
