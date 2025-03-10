@@ -7,15 +7,24 @@ import LidoRDFConverter as LRC
 from pathlib import Path
 from .x3ml_classes import Mapping, Link, PredicateVariant, Equals, X3ml
 from flask import Blueprint, render_template, request, send_file, jsonify
+from .database import db, User
 
 
-def x3mlToStr(x3ml):
-    elem = x3ml.serialize(ET.Element('root'))
-    return ET.tostring(elem)
+class LidoBP(Blueprint):
+    def __init__(self,user=None):
+        super().__init__('lidoapp_bp', __name__,  template_folder='templates', static_folder='')
+        self.x3ml = X3ml()
+        self.user = user
+
+lidoapp_bp = LidoBP()
 
 
-def dlftMappingFile(): return Path('./defaultMapping.x3ml')
-def dlftLidoFile(): return Path('./defaultLido.xml')
+def dlftMappingFile(): 
+    return Path('./defaultMapping.x3ml')
+
+
+def dlftLidoFile(): 
+    return Path('./defaultLido.xml')
 
 
 def processString(lidoString, x3mlstr):
@@ -26,13 +35,6 @@ def processString(lidoString, x3mlstr):
         result = graph.serialize(format='turtle')
     return result
 
-class LidoBP(Blueprint):
-    def __init__(self,user=None):
-        super().__init__('lidoapp_bp', __name__,  template_folder='templates', static_folder='')
-        self.x3ml = X3ml()
-        self.user = user
-
-lidoapp_bp = LidoBP()
 
 def registerLidoBlueprint(app,user):
     global lidoapp_bp
@@ -40,6 +42,38 @@ def registerLidoBlueprint(app,user):
     lidoapp_bp.x3ml = X3ml.from_serial(ET.XML(user.x3ml))
     lidoapp_bp.user = user
     return lidoapp_bp
+
+def fileContent(fileName):
+    path = Path(fileName)
+    return path.read_text() if path.exists() else ''
+
+def makeLidoBP(app):
+    db_file = Path('.') / 'lido_conv.db'
+
+    app.config['SQLALCHEMY_DATABASE_URI'] ='sqlite:///' +str(db_file.absolute())
+    app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
+
+    db.init_app(app)
+
+    app.app_context().push()
+
+    if not db_file.exists(): db.create_all()
+
+    if users := User.query.all():
+        firstUser = users[0]
+        print('Recent first user',firstUser)
+    else:
+        # Create user from default files
+        lido = fileContent('./defaultLido.xml')
+        x3ml = fileContent('./defaultMapping.x3ml')
+        firstUser = User(id=1,username='master', lido=lido,x3ml=x3ml)
+        print('initial new user added', firstUser)
+        db.session.add(firstUser)
+        db.session.commit()
+
+    # Bind all parts
+    return registerLidoBlueprint(app,firstUser)
+
 
 #############################################################################
 
@@ -111,7 +145,6 @@ def runMappings():
 def updateLido():
     global lidoapp_bp
     response_object = {'status': 'success'}
-    print('update lido')
     if request.method == 'POST':
         parm = request.get_json()
         lidoapp_bp.user.lido = parm['data']
