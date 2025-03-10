@@ -104,6 +104,16 @@ def runMappings():
         response_object['message'] = 'Mappings applied to Lido!'
     return jsonify(response_object)
 
+@lidoapp_bp.route('/updateLido', methods=['GET', 'POST'])
+def updateLido():
+    global lidoapp_bp
+    response_object = {'status': 'success'}
+    print('update lido')
+    if request.method == 'POST':
+        parm = request.get_json()
+        current_app.user.lido = parm['data']
+    return jsonify(response_object)
+
 
 @lidoapp_bp.route('/clearMappings', methods=['GET', 'POST'])
 def clearMappings():

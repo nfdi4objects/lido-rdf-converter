@@ -408,6 +408,7 @@
 
     // Creator editors
     var lidoEditor = makeEditor("lidoEditor");
+    lidoEditor.on('change', function() {onLidoChanged()});
     lidoEditor.setValue(app.lido);
     var rdfEditor = makeEditor("rdfEditor", "", "ace/mode/turtle");
     rdfEditor.setValue('')
@@ -418,7 +419,7 @@
         .then((response) => response.json())
         .then((jsData) => { lidoEditor.setValue(jsData.lidoData); })
         .catch((err) => { console.error(err); });
-    };
+    }
 
     function runMappings() {
       // Triggers the transformation lido + x3ml => ttl
@@ -429,6 +430,12 @@
         .then(s => rdfEditor.setValue(s.text));
       app.getX3ml();
     }
+
+    function onLidoChanged()
+    {
+      data = { type: '/updateLido', data: lidoEditor.getValue() }
+      post(bp_prefix + '/updateLido', data)
+     }
 
     function addCondition(conditions) {
       // Appends a new condition: use a copy of the 1. entry or a default entry for no recent entries
