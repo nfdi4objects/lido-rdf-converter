@@ -44,26 +44,25 @@ def registerLidoBlueprint(app,user):
     return lidoapp_bp
 
 def fileContent(fileName):
-    path = Path(fileName)
-    return path.read_text() if path.exists() else ''
+    file = Path(fileName)
+    return file.read_text() if file.exists() else ''
 
-def makeLidoBP(app):
+def createLido2RdfService(app):
     db_file = Path('.') / 'lido_conv.db'
-
     app.config['SQLALCHEMY_DATABASE_URI'] ='sqlite:///' +str(db_file.absolute())
     app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 
     db.init_app(app)
-
     app.app_context().push()
 
-    if not db_file.exists(): db.create_all()
+    if not db_file.exists(): 
+        db.create_all()
 
     if users := User.query.all():
         firstUser = users[0]
         print('Recent first user',firstUser)
     else:
-        # Create user from default files
+        # Create first user from default files
         lido = fileContent('./defaultLido.xml')
         x3ml = fileContent('./defaultMapping.x3ml')
         firstUser = User(id=1,username='master', lido=lido,x3ml=x3ml)

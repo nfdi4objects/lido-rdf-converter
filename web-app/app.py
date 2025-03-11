@@ -1,21 +1,18 @@
-import os
 from flask import Flask, redirect
 from waitress import serve
-from lidoapp_bp.lidoapp_bp import makeLidoBP
-from pathlib import Path
-
-import argparse
+from lidoapp_bp.lidoapp_bp import createLido2RdfService
+import argparse as AP
 
 app = Flask(__name__)
-lidoBp = makeLidoBP(app)
+l2rService = createLido2RdfService(app)
 
 @app.route('/')
 def index():
-    return redirect(f'/{lidoBp.name}/')
+    return redirect(f'/{l2rService.name}/')
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-w', '--wsgi', action=argparse.BooleanOptionalAction, help="Use WSGI server")
+    parser = AP.ArgumentParser()
+    parser.add_argument('-w', '--wsgi', action=AP.BooleanOptionalAction, help="Use WSGI server")
     parser.add_argument('-p', '--port', type=int, default=5000, help="Server port")
     args = parser.parse_args()
     opts = {"port": args.port}
