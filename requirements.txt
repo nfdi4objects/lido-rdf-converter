@@ -1,4 +1,11 @@
-typing_extensions
+Flask
+Flask-SQLAlchemy
+Jinja2
 lxml
+MarkupSafe
+pyparsing
 rdflib
+SQLAlchemy
+typing_extensions
 waitress
+Werkzeug
