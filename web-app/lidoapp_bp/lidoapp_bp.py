@@ -13,7 +13,7 @@ from .database import db, User
 class LidoBP(Blueprint):
     def __init__(self,user=None):
         super().__init__('lidoapp_bp', __name__,  template_folder='templates', static_folder='')
-        self.x3ml = X3ml()
+        self.model = X3ml()
         self.user = user
 
 lidoapp_bp = LidoBP()
@@ -39,7 +39,7 @@ def processString(lidoString, x3mlstr):
 def registerLidoBlueprint(app,user):
     global lidoapp_bp
     app.register_blueprint(lidoapp_bp, url_prefix=f'/{lidoapp_bp.name}')
-    lidoapp_bp.x3ml = X3ml.from_serial(ET.XML(user.x3ml))
+    lidoapp_bp.model = X3ml.from_serial(ET.XML(user.x3ml))
     lidoapp_bp.user = user
     return lidoapp_bp
 
@@ -76,7 +76,7 @@ def createLido2RdfService(app):
 
 #############################################################################
 
-@lidoapp_bp.route('/')
+@lidoapp_bp.route('/', methods=["GET","POST"])
 def index():
     return render_template('index.html', url_prefix=f'/{lidoapp_bp.name}')
 
@@ -85,7 +85,7 @@ def index():
 def downloadX3ml():
     global lidoapp_bp
     buffer = io.BytesIO()
-    buffer.write(lidoapp_bp.x3ml.to_str())
+    buffer.write(lidoapp_bp.model.to_str())
     buffer.seek(0)
     return send_file(buffer, as_attachment=True, mimetype="application/xml", download_name='mapping.x3ml')
 
@@ -97,7 +97,7 @@ def x3ml():
     if request.method == 'POST':
         try:
             parm = request.get_json()
-            mapping = lidoapp_bp.x3ml.mappings[int(parm['mIndex'])]
+            mapping = lidoapp_bp.model.mappings[int(parm['mIndex'])]
             match parm['type']:
                 case 'mapping':
                     mapping['skip'] = parm['skip']
@@ -110,7 +110,7 @@ def x3ml():
         except Exception as e:
             response_object['message'] = f'error {e}'
     else:
-        response_object['jsonX3ml'] = lidoapp_bp.x3ml.toJSON()
+        response_object['jsonX3ml'] = lidoapp_bp.model.toJSON()
     return jsonify(response_object)
 
 
@@ -124,7 +124,8 @@ def uploadMapping():
             lidoapp_bp.user.x3ml = data
         else:
             lidoapp_bp.user.x3ml = dlftMappingFile().read_text()
-        lidoapp_bp.x3ml = X3ml.from_serial(ET.XML(lidoapp_bp.user.x3ml))
+        db.session.commit()
+        lidoapp_bp.model = X3ml.from_serial(ET.XML(lidoapp_bp.user.x3ml))
         response_object['message'] = 'Mappings applied to Lido!'
     return jsonify(response_object)
 
@@ -136,7 +137,7 @@ def runMappings():
     if request.method == 'POST':
         parm = request.get_json()
         lidoapp_bp.user.lido = parm['data']
-        response_object['text'] = processString(lidoapp_bp.user.lido, lidoapp_bp.x3ml.to_str())
+        response_object['text'] = processString(lidoapp_bp.user.lido, lidoapp_bp.model.to_str())
         response_object['message'] = 'Mappings applied to Lido!'
     return jsonify(response_object)
 
@@ -147,6 +148,7 @@ def updateLido():
     if request.method == 'POST':
         parm = request.get_json()
         lidoapp_bp.user.lido = parm['data']
+        db.session.commit()
     return jsonify(response_object)
 
 
@@ -155,7 +157,7 @@ def clearMappings():
     global lidoapp_bp
     response_object = {'status': 'success'}
     if request.method == 'POST':
-        lidoapp_bp.x3ml.mappings = []
+        lidoapp_bp.model.mappings = []
         response_object['message'] = 'Mappings deleted!'
     return jsonify(response_object)
 
@@ -166,11 +168,11 @@ def addMap():
     response_object = {'status': 'success'}
     if request.method == 'POST':
         newMapping = Mapping()
-        if len(lidoapp_bp.x3ml.mappings):
-            newMapping.domain = copy.deepcopy(lidoapp_bp.x3ml.mappings[0].domain)
+        if len(lidoapp_bp.model.mappings):
+            newMapping.domain = copy.deepcopy(lidoapp_bp.model.mappings[0].domain)
         else:
             newMapping.domain.sourceNode.text = '//lido:lido'
-        lidoapp_bp.x3ml.mappings.insert(0, newMapping)
+        lidoapp_bp.model.mappings.insert(0, newMapping)
         response_object['message'] = 'Map changes applied!'
     return jsonify(response_object)
 
@@ -182,7 +184,7 @@ def addLink():
     if request.method == 'POST':
         # Find mapping and add a new link (a copy of the first if exists)
         parm = request.get_json()
-        mapping = lidoapp_bp.x3ml.mappings[int(parm['mIndex'])]
+        mapping = lidoapp_bp.model.mappings[int(parm['mIndex'])]
         newLink = Link()
         if len(mapping.links):
             newLink.path = copy.deepcopy(mapping.links[0].path)
@@ -196,7 +198,7 @@ def deleteMap(mapId):
     global lidoapp_bp
     response_object = {'status': 'success'}
     if request.method == 'DELETE':
-        lidoapp_bp.x3ml.mappings.pop(mapId)
+        lidoapp_bp.model.mappings.pop(mapId)
         response_object['message'] = 'Map removed!'
     return jsonify(response_object)
 
@@ -206,7 +208,7 @@ def deleteLink(mapId, linkId):
     global lidoapp_bp
     answer = {'status': 'success'}
     if request.method == 'DELETE':
-        lidoapp_bp.x3ml.mappings[mapId].links.pop(linkId)
+        lidoapp_bp.model.mappings[mapId].links.pop(linkId)
         answer['message'] = 'Link removed!'
     return jsonify(answer)
 
@@ -216,7 +218,7 @@ def applyCondition():
     response_object = {'status': 'success'}
     parm = request.get_json()
     mode = parm['mode']  # 'link' or 'map'
-    mapping = lidoapp_bp.x3ml.mappings[int(parm['mIndex'])]
+    mapping = lidoapp_bp.model.mappings[int(parm['mIndex'])]
     def createEquals(x): return PredicateVariant.from_op(Equals.byValues(x['xpath'], x['value']))
     if mode == 'link':
         link = mapping.links[int(parm['lIndex'])]
