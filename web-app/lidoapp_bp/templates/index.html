@@ -289,7 +289,7 @@
         },
         getX3ml() {
           // Gets the current x3ml file from the server
-          get("/lidoapp_bp/x3ml")
+          get(bp_prefix+"/x3ml")
             .then((response) => response.json())
             .then((jsData) => { this.x3ml = JSON.parse(jsData.jsonX3ml); })
             .catch((err) => { console.error(err); });
@@ -417,7 +417,7 @@
 
     function getLido(mode=0) {
       // Loads Lido data from server into the source editor
-      get("/lidoapp_bp/loadLido/"+mode)
+      get(bp_prefix+"/loadLido/"+mode)
         .then((response) => response.json())
         .then((jsData) => { lidoEditor.setValue(jsData.lidoData); })
         .catch((err) => { console.error(err); });

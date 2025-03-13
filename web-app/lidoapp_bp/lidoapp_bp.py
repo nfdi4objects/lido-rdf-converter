@@ -12,7 +12,7 @@ from .database import db, User
 
 class LidoBP(Blueprint):
     def __init__(self,user=None):
-        super().__init__('lidoapp_bp', __name__,  template_folder='templates', static_folder='')
+        super().__init__('LidoBP', __name__,  template_folder='templates', static_folder='')
         self.model = X3ml()
         self.user = user
 
