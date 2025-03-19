@@ -7,67 +7,58 @@ import re
 import argparse
 from io import BytesIO
 from urllib.error import HTTPError, URLError
+from pathlib import Path
 
-urlPattern = re.compile("^(https?|file):")
+URL_REGEXP = re.compile("^(https?|file):")
 
-formatNames = {'ttl': 'turtle', 'nt': 'nt', 'json': 'json-ld', 'xml': 'xml'}
-
+SUFFIX_FORMAT_MAP = {'ttl': 'turtle', 'nt': 'nt', 'json': 'json-ld', 'xml': 'xml'}
+'''Maps file suffixes to formats'''
 
 def error(msg):
     print(msg, file=stderr)
     exit(1)
 
+def getValidFormat(formatStr,fileName):
+    '''Retursns a valid format string'''
+    suffix = formatStr or Path(fileName).suffix.strip('.')
+    return SUFFIX_FORMAT_MAP.get(suffix, 'nt')
 
-def lido2rdf(source, target, mapping, format=None):
-    '''Applies x3ml mapping to a LIDO file and writes result'''
-
-    if format:
-        if format in formatNames:
-            format = formatNames[format]
-        else:
-            error(f"RDF serialization format not supported: {format}!")
-    else:
-        suffix = target.split('.')[-1]
-        format = formatNames.get(suffix, 'nt')
-
+def lido2rdf(source, mapping):
+    '''Applies a x3ml mapping to a LIDO file'''
     converter = LidoRDFConverter(mapping)
-    if urlPattern.match(source):
-        graph = converter.processURL(source)
+    if URL_REGEXP.match(source):
+        return converter.processURL(source,rdfFolder='rdfData')
     else:
         if source == "-":
-            source = BytesIO(stdin.buffer.read())
-        graph,_ = converter.parse_file(source)
-
-    if target == "-":
-        print(graph.serialize(format=format))
-    else:
-        if graph:
-            graph.serialize(destination=target, format=format, encoding='utf-8')
+            source = BytesIO()
+            source.write(stdin.buffer.read())
+            source.seek(0)
+        g,_ = converter.parse_file(source)
+        return g
 
 
 def main():
-    def formatter(prog):
-        return argparse.HelpFormatter(prog, max_help_position=50)
+    apFormatter = lambda prog: argparse.HelpFormatter(prog, max_help_position=50)
+    parser = argparse.ArgumentParser(description="Convert LIDO to RDF using X3ML mapping", formatter_class=apFormatter)
 
-    parser = argparse.ArgumentParser(
-        description="Convert LIDO to RDF using X3ML mapping", formatter_class=formatter)
-
-    parser.add_argument("-o", '--output', metavar="NAME", dest="target",
-                        default='-', help="RDF output file (default: -)")
-    formats = ",".join(formatNames.keys())
-    parser.add_argument("-t", '--to', dest="format",
-                        help=f"RDF output serialization ({formats})")
-    parser.add_argument('-m', '--mapping', dest="mapping", default='lido2rdf.x3ml',
-                        help="X3ML mapping file (default: lido2rdf.x3ml)")
-    parser.add_argument('source', metavar='LIDO-XML', nargs="?",
-                        default="-", help='LIDO file or URL (default: -)')
+    formats = ",".join(SUFFIX_FORMAT_MAP.keys())
+    parser.add_argument("-o", '--output', metavar="NAME", dest="target", default='-', help="RDF output file (default: -)")
+    parser.add_argument("-t", '--to', dest="format", help=f"RDF output format ({formats})")
+    parser.add_argument('-m', '--mapping', dest="mapping", default='lido2rdf.x3ml', help="X3ML mapping file (default: lido2rdf.x3ml)")
+    parser.add_argument('source', metavar='LIDO-XML', nargs="?", default="-", help='LIDO file or URL (default: -)')
 
     args = parser.parse_args()
     if args.source == "-" and stdin.isatty():
         parser.print_help()
     else:
         try:
-            lido2rdf(args.source, args.target, args.mapping, args.format)
+            if graph := lido2rdf(args.source, args.mapping):
+                formatStr = getValidFormat(args.format,args.target)
+                #Process result graph
+                if args.target == "-":
+                    print(graph.serialize(format=formatStr))
+                else:
+                    graph.serialize(destination=args.target, format=formatStr, encoding='utf-8')
         except (HTTPError, URLError) as exception:
             error(exception)
 

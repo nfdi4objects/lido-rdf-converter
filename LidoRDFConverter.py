@@ -5,7 +5,6 @@ import x3ml as L2C
 from lxml import etree
 import rdflib as RF
 import os,shutil
-import xml.etree.ElementTree as ET
 
 # General used namespaces
 CRM = RF.Namespace("http://www.cidoc-crm.org/cidoc-crm/")
@@ -83,22 +82,22 @@ class LidoRDFConverter():
         obj.mappings = L2C.getMappingS(mappingStr)
         return obj
 
-    def processURL(self, url:str):
-        makeCleanSubDir('data')
-        def proc(g,t):
-            g.serialize(destination=f'./data/{t}.ttl', format='ttl')
+    def processURL(self, url:str,**kw):
+        rdfFolder = kw.get('rdfFolder','data')
+        makeCleanSubDir(rdfFolder)
+        def serialize(g,t):
+            g.serialize(destination=f'./{rdfFolder}/{t}.ttl', format='ttl')
             #print(f'{t}.ttl')
 
         '''Transfers all LIDO elements'''
-        headers = {'User-Agent': 'pyoaiharvester/3.0',
-                   'Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
+        headers = {'User-Agent': 'pyoaiharvester/3.0','Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
         req = ULR.Request(url, headers=headers)
         self.numProcessed = 0
         if url.startswith('http'):
             req = oaiRequest(url, f'ListRecords&metadataPrefix=lido')
             while req:
                 bFile = toBuffer(req,'oai_buffer.xml')
-                g, rsToken =self.parse_file(bFile,processor=proc)
+                g, rsToken =self.parse_file(bFile,processor=serialize)
                 if not rsToken:
                     print('No more resumptionToken') 
                     break
