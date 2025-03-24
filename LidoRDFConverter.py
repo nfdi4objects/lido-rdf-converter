@@ -1,200 +1,213 @@
+import re
 import time
-import urllib.request as ULR
-import urllib.parse as ULP
-import x3ml as L2C
+import urllib.request as ulr
+import urllib.parse as ulp
+import x3ml as x3ml
 from lxml import etree
 import rdflib as RF
-import os,shutil
+import os
+import shutil
+from io import BytesIO
 
 # General used namespaces
 CRM = RF.Namespace("http://www.cidoc-crm.org/cidoc-crm/")
 N4O = RF.Namespace('http://graph.nfdi4objects.net/id/')
-LIDO_TAG = f'{{{L2C.lidoSchemaURI}}}lido'
-RESUMPTION_TAG = f'{{{L2C.oaiSchemaURL}}}resumptionToken'
+LIDO_TAG = f'{{{x3ml.lidoSchemaURI}}}lido'
+RESUMPTION_TAG = f'{{{x3ml.oaiSchemaURL}}}resumptionToken'
 
-def makeERM_URI(s):
+
+def make_erm_uri(uri_str):
     '''Returns URI' like e.g. crm:Enn_cccc'''
-    rightToken = s.split(':')[-1]
-    return CRM[rightToken]
+    right_token = uri_str.split(':')[-1]
+    return CRM[right_token]
 
-def deep_get(d, keys):
-    if not keys or d is None:
-        return d
-    return deep_get(d.get(keys[0]), keys[1:])
 
-def isURI(s):
-    return ULP.urlparse(s).scheme.startswith('http')
- 
-def safeURI(s):
-    if isURI(s):
-        return ULP.quote(s).replace('%3A', ':')
-    return s
+def deep_get(nested_dict, keys):
+    if not keys or nested_dict is None:
+        return nested_dict
+    return deep_get(nested_dict.get(keys[0]), keys[1:])
 
-def oaiRequest(serverURI:str, command:str)->ULR.Request|None:
+
+def is_uri(uri_str):
+    return ulp.urlparse(uri_str).scheme.startswith('http')
+
+
+def safe_uri(uri_str):
+    if is_uri(uri_str):
+        return ulp.quote(uri_str).replace('%3A', ':')
+    return uri_str
+
+
+def create_oai_request(server_uri: str, command: str) -> ulr.Request | None:
     """Primary function for requesting OAI-PMH data from repository,
        checking for errors, handling possible compression and returning
        the XML string to the rest of the script for writing to a file."""
 
-    global N_RECOVERIES, MAX_RECOVERIES
-    requestStr = serverURI + f'?verb={command}'
-    headers = {'User-Agent': 'pyoaiharvester/3.0','Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
+    request_str = server_uri + f'?verb={command}'
+    headers = {'User-Agent': 'pyoaiharvester/3.0', 'Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
     try:
-        return ULR.Request(requestStr, headers=headers)
-    except ULR.HTTPError as ex_value:
-        print('Http Error:',ex_value)
+        return ulr.Request(request_str, headers=headers)
+    except ulr.HTTPError as ex_value:
+        print('Http Error:', ex_value)
         if ex_value.code == 503:
             retry_wait = int(ex_value.hdrs.get("Retry-After", "-1"))
             if retry_wait < 0:
                 return None
             print(f'Waiting {retry_wait} seconds')
             time.sleep(retry_wait)
-            return oaiRequest(serverURI, command)
-        if N_RECOVERIES < MAX_RECOVERIES:
-            N_RECOVERIES += 1
-            return oaiRequest(serverURI, command)
+            return create_oai_request(server_uri, command)
         return None
 
-def toBuffer(req:ULR.Request,oaiFile)->str:
-    '''Buffer q request in a file'''
-    with ULR.urlopen(req) as response, open(oaiFile,'w') as f:
-        answer = response.read()
-        f.write(answer.decode('utf-8'))
-        return oaiFile
-    
-def makeResultGraph():
-    g = RF.Graph()
-    g.bind("crm", CRM)
-    g.bind("n4o", N4O)
-    return g
 
-def makeCleanSubDir(path):
-    if os.path.exists(path):
-        shutil.rmtree(path)
-    os.mkdir(path)
+def request_to_buffer(req: ulr.Request) -> str:
+    '''Write request response in a file'''
+    with ulr.urlopen(req) as response:
+        buffer = BytesIO()
+        buffer.write(response.read())
+        buffer.seek(0)
+        return buffer
+
+
+def make_result_graph():
+    graph = RF.Graph()
+    graph.bind("crm", CRM)
+    graph.bind("n4o", N4O)
+    return graph
+
+
+def make_clean_subdir(dir_path):
+    if os.path.exists(dir_path):
+        shutil.rmtree(dir_path)
+    os.mkdir(dir_path)
+
 
 class LidoRDFConverter():
-    def __init__(self, filePath):
-        self.mappings = L2C.getMapping(filePath) if filePath else []
+    def __init__(self, file_path):
+        self.mappings = x3ml.getMapping(file_path) if file_path else []
 
     @classmethod
-    def from_str(cls, mappingStr):
+    def from_str(cls, mapping_str):
         obj = cls('')
-        obj.mappings = L2C.getMappingS(mappingStr)
+        obj.mappings = x3ml.getMappingS(mapping_str)
         return obj
 
-    def processURL(self, url:str,**kw):
-        rdfFolder = kw.get('rdfFolder','data')
-        makeCleanSubDir(rdfFolder)
-        def serialize(g,t):
-            g.serialize(destination=f'./{rdfFolder}/{t}.ttl', format='ttl')
-            #print(f'{t}.ttl')
+    def process_url(self, url: str, **kw):
+        rdf_folder = kw.get('rdf_folder', 'data')
+        make_clean_subdir(rdf_folder)
+
+        def serialize(g, t):
+            file = f'./{rdf_folder}/{t}.ttl'
+            g.serialize(destination=file, format='ttl')
 
         '''Transfers all LIDO elements'''
-        headers = {'User-Agent': 'pyoaiharvester/3.0','Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
-        req = ULR.Request(url, headers=headers)
-        self.numProcessed = 0
+        headers = {'User-Agent': 'pyoaiharvester/3.0', 'Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
+        request = ulr.Request(url, headers=headers)
         if url.startswith('http'):
-            req = oaiRequest(url, f'ListRecords&metadataPrefix=lido')
-            while req:
-                bFile = toBuffer(req,'oai_buffer.xml')
-                g, rsToken =self.parse_file(bFile,processor=serialize)
-                if not rsToken:
-                    print('No more resumptionToken') 
+            request = create_oai_request(url, f'ListRecords&metadataPrefix=lido')
+            while request:
+                buffer = request_to_buffer(request)
+                graph, rs_token = self.parse_file(buffer, processor=serialize)
+                if not rs_token:
+                    print('No more resumptionToken')
                     break
-                req = oaiRequest(url, f"ListRecords&resumptionToken={rsToken}")
+                request = create_oai_request(url, f"ListRecords&resumptionToken={rs_token}")
         else:
-            with ULR.urlopen(req) as response:
-                g , _ = self.parse_file(response)
-                return g
+            with ulr.urlopen(request) as response:
+                graph, _ = self.parse_file(response)
+                return graph
 
- 
-    def parse_file(self, xmlFile,**kw):
-        graph = makeResultGraph()
+    def parse_file(self, lido_file, **kw):
+        graph = make_result_graph()
         processor = kw.get('processor')
-        tag = (LIDO_TAG,RESUMPTION_TAG,'error')
-        token= None
-        for _, elem in etree.iterparse(xmlFile, events=("end",),tag=tag,encoding='UTF-8',remove_blank_text=True):
-            token = self.processValidElement(graph, elem)
+        valid_tag = (LIDO_TAG, RESUMPTION_TAG, 'error')
+        token = None
+        for _, elem in etree.iterparse(
+                lido_file, events=("end",),
+                tag=valid_tag, encoding='UTF-8', remove_blank_text=True):
+            token = self._process_valid_element(graph, elem)
         if processor:
-            processor(graph,token)
+            processor(graph, token)
         return graph, token
 
-    def parse_string(self, xmlStr):
-        graph = makeResultGraph()
-        tag = (LIDO_TAG)
-        parser = etree.XMLPullParser(events=("end",),tag = tag, encoding='UTF-8',remove_blank_text=True)
-        parser.feed(xmlStr)
-        for _ , elem in parser.read_events():
-            self.processLidoElement(elem,graph)        
+    def parse_string(self, lido_str):
+        graph = make_result_graph()
+        valid_tag = (LIDO_TAG)
+        parser = etree.XMLPullParser(events=("end",), tag=valid_tag, encoding='UTF-8', remove_blank_text=True)
+        parser.feed(lido_str)
+        for _, elem in parser.read_events():
+            self._process_lido_element(elem, graph)
         return graph
 
-    def processValidElement(self, graph, elem):
+    def _process_valid_element(self, graph, elem):
         token = None
         if RESUMPTION_TAG == elem.tag:
             token = elem.text
-            print('completeListSize',elem.attrib['completeListSize'])
-            print('cursor',elem.attrib['cursor'])
-            print('expirationDate',elem.attrib['expirationDate'])
-            print('token',token)
-        elif 'error' in elem.tag :
-            print('error',elem.tag,elem.text)
+            print('completeListSize', elem.attrib['completeListSize'])
+            print('cursor', elem.attrib['cursor'])
+            print('expirationDate', elem.attrib['expirationDate'])
+            print('token', token)
+        elif 'error' in elem.tag:
+            print('error', elem.tag, elem.text)
         elif elem.tag == LIDO_TAG:
-            self.processLidoElement(elem,graph)
+            self._process_lido_element(elem, graph)
         else:
-           print('unexpeced :-(')
-           elem.clear()
+            print('unexpeced :-(')
+            elem.clear()
         return token
 
-    def processLidoElement(self, elem, g,**kw):
+    def _process_lido_element(self, elem, graph):
         '''Create graph LIDO root element w.r.t given mappings'''
-        recId = ' '.join(L2C.lidoXPath(elem, "./lido:lidoRecID/text()"))
+        rec_id = ' '.join(x3ml.lidoXPath(elem, "./lido:lidoRecID/text()"))
         for data in [m.getData(elem) for m in self.mappings]:
-            for i, elemData in enumerate(data):
-                if elemData.get('valid'):
-                    addSPO(g, elemData,index=i, recId=recId)
+            for i, elem_data in enumerate(data):
+                if elem_data.get('valid'):
+                    add_spo(graph, elem_data, index=i, rec_id=rec_id)
 
 
-def _hash(s):
-    return L2C.md5Hash(s)
-
-def makeItem(s,a=''):
-    if isURI(s):
-        return RF.term.URIRef(s) 
-    return N4O[f"{_hash(s + a)}"] #No URI for ID => local ID from path and recID
+def hash(s):
+    return x3ml.md5Hash(s)
 
 
-def addSPO(graph, elemData, **kw):
-    entity_S = deep_get(elemData,['S','entity'])
-    id_S = safeURI(deep_get(elemData,['info','id']))
-    recId = kw.get('recId','')
-    j = kw.get('index',0)
-    S = makeItem(id_S, recId)
-    triples = [(S, RF.RDF.type, makeERM_URI(entity_S))]
-    for i,po in enumerate(deep_get(elemData,['PO'])):
-        poTriples =  []
+__url_regex = re.compile(r"https?:")
+def __strip_schema(url): return __url_regex.sub('', url).strip().strip('/')
+
+
+def make_item(text, specify, use_id=False):
+    if is_uri(text) and not use_id:
+        return RF.term.URIRef(text)
+    return N4O[f"{hash(__strip_schema(text)+specify)}"]  # No URI for ID => local ID from path and recID
+
+
+def add_spo(graph, elem_data, **kw):
+    rec_id = kw.get('rec_id', '')
+    entity_S = deep_get(elem_data, ['S', 'entity'])
+    id_S = safe_uri(deep_get(elem_data, ['info', 'id']))
+    S = make_item(id_S, rec_id, use_id=True)
+    triples = [(S, RF.RDF.type, make_erm_uri(entity_S))]
+    for po in deep_get(elem_data, ['PO']):
+        po_triples = []
         if po.get('isValid'):
-            entity_P = deep_get(po,['P','entity'])
-            entity_O = deep_get(po,['O','entity'])
+            entity_P = deep_get(po, ['P', 'entity'])
+            entity_O = deep_get(po, ['O', 'entity'])
             for po_data in po.get('data'):
                 if text := po_data.get('text'):
-                    if not isURI(text):
-                        poTriples.append((S, makeERM_URI('P90_has_value'), RF.Literal(text)))
+                    if not is_uri(text):
+                        po_triples.append((S, make_erm_uri('P90_has_value'), RF.Literal(text)))
                     else:
-                        text = safeURI(text)
-                        isURI_Id = isURI(text) and entity_O=="crm:E42_Identifier"
+                        text = safe_uri(text)
+                        is_uri_id = is_uri(text) and entity_O == "crm:E42_Identifier"
                         id_O = po_data.get('id')
-
                         if id_S != id_O:
-                            if isURI(id_O) or isURI_Id:
+                            P = make_erm_uri(entity_P)
+                            if is_uri(id_O) or is_uri_id:
                                 O = RF.term.URIRef(text)
-                                poTriples.append((S, makeERM_URI(entity_P), O))
+                                po_triples.append((S, P, O))
                             else:
-                                O = makeItem(id_O, recId)
-                                poTriples.append((O, RF.RDF.type, makeERM_URI(entity_O)))
-                                poTriples.append((O, makeERM_URI('P90_has_value'), RF.Literal(text)))
-                                poTriples.append((S, makeERM_URI(entity_P), O))
-        if poTriples:
-            triples += poTriples
-    for t in triples: 
-        graph.add(t)
-
+                                O = make_item(id_O, rec_id)
+                                po_triples.append((O, RF.RDF.type, make_erm_uri(entity_O)))
+                                po_triples.append((O, make_erm_uri('P90_has_value'), RF.Literal(text)))
+                                po_triples.append((S, P, O))
+        if po_triples:
+            triples += po_triples
+    for triple in triples:
+        graph.add(triple)

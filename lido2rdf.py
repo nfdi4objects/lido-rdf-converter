@@ -27,7 +27,7 @@ def lido2rdf(source, mapping):
     '''Applies a x3ml mapping to a LIDO file'''
     converter = LidoRDFConverter(mapping)
     if URL_REGEXP.match(source):
-        return converter.processURL(source,rdfFolder='rdfData')
+        return converter.process_url(source,rdf_folder='rdfData')
     else:
         if source == "-":
             source = BytesIO()
