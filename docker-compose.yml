@@ -1,0 +1,14 @@
+version: '3.0'
+services:
+  lido2rdf:
+    image: ${IMAGE:-ghcr.io/nfdi4objects/lido-rdf-converter}
+    ports:
+      - "${PORT:-5000}:5000"
+    container_name: lido-rdf-converter
+
+    # Everything below is only for local development and testing of the image.
+    # Please don't copy to your local docker-compose.yml!
+    build: # only required to build locally
+      context: .
+      dockerfile: Dockerfile
+
