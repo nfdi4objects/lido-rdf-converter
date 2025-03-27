@@ -33,7 +33,7 @@ class QNameInfo():
             if len(vx) == 2:
                 self.prefix, self.entity = vx
             else:
-                self.prefix, self.enitity = '', vx[-1]
+                self.prefix, self.entity = '', vx[-1]
 
     def __lt__(self, other):
         return self.entity < other.entity
