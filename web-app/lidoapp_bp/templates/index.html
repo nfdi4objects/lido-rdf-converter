@@ -18,6 +18,7 @@
   <title>X3ML Editor</title>
   <datalist id="DLCidocClasses"></datalist>
   <datalist id="DLCidocProperties"></datalist>
+  <datalist id="DLLidoClasses"></datalist>
 </head>
 
 <body>
@@ -125,7 +126,7 @@
 
                 <div class="container-fluid">
                   <label for="fname">Path:</label>
-                  <input class="form-control" type="text" name="S-path" :id="i" v-model="mapping.domain.sourceNode.text">
+                  <input class="form-control" list="DLLidoClasses" type="text" name="S-path" :id="i" v-model="mapping.domain.sourceNode.text">
                   <label for="lname">Entity:</label>
                   <input class="form-control" list="DLCidocClasses" type="text" name="S-type" :id="i" v-model="mapping.domain.targetNode.entity.type">
                   <div class="form-check">
@@ -151,7 +152,7 @@
                       <div class="accordion-body">
                         <form method="post">
                           <label for="fname">Path:</label>
-                          <input class="form-control" type="text" name="P-path" :id="j" v-model="link.path.sourceRelation.relation.text">
+                          <input class="form-control" list="DLLidoClasses" type="text" name="P-path" :id="j" v-model="link.path.sourceRelation.relation.text">
                           <label for="lname">Property:</label>
                           <input class="form-control" list="DLCidocProperties" type="text" name="P-type" :id="j" v-model="link.path.targetRelation.relationship.text">
                           <label for="lname">Entity:</label>
@@ -197,7 +198,7 @@
 
   <script>
     var bp_prefix;
-    function createOptions(optionValues, elementId) {
+    function createCidocOptions(optionValues, elementId) {
       var elem = document.getElementById(elementId);
       optionValues.forEach(x => {
         option = document.createElement('option');
@@ -206,18 +207,37 @@
         elem.appendChild(option);
       });
     }
-    function getLabel() {
+    function createLidoOptions(optionValues, elementId) {
+      var elem = document.getElementById(elementId);
+      optionValues.forEach(x => {
+        option = document.createElement('option');
+        option.label = x;
+        option.value = x;
+        elem.appendChild(option);
+      });
+    }
+    function getCidocLabel() {
       fetch(bp_prefix + '/static/cidoc_label.json')
         .then(res => res.json())
         .then(data => {
-          createOptions(data.classes, 'DLCidocClasses')
-          createOptions(data.properties, 'DLCidocProperties')
+          createCidocOptions(data.classes, 'DLCidocClasses')
+          createCidocOptions(data.properties, 'DLCidocProperties')
         })
         .catch(function (err) {
           console.log('error: ' + err);
         });
     }
 
+    function getLidoLabel() {
+      fetch(bp_prefix + '/static/lido_label.json')
+        .then(res => res.json())
+        .then(data => {
+          createLidoOptions(data.pathes, 'DLLidoClasses')
+        })
+        .catch(function (err) {
+          console.log('error: ' + err);
+        });
+    }
     var app = Vue.createApp({
       data() {
         return { x3ml: {}, lido: '', x3file: null, lidoURL: null, activeM: -1, activeL: -1, predicates: [], mode: '' }
@@ -393,7 +413,8 @@
       },
       created() {
         bp_prefix = document.getElementById("app").getAttribute('url_prefix');
-        getLabel()
+        getCidocLabel()
+        getLidoLabel()
         this.getX3ml();
         getLido(0);
       }

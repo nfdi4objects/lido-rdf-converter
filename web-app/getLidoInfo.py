@@ -1,8 +1,9 @@
-import sys
+import sys,json
 from lxml import etree
 
 
 NS = {'path':'http://www.w3.org/2001/XMLSchema','label':'lido'}
+namespaces = {'xs':'http://www.w3.org/2001/XMLSchema'}
 
 class NameInfo():
     def __init__(self, prefix,entity):
@@ -15,22 +16,34 @@ class NameInfo():
     def __str__(self):
         lbl = NS.get('label')
         return f'{lbl}:{self.entity}'
+    
+def processElement(elem,f=None):
+    if f:    
+        if name := elem.get('name'):
+            f(f'lido:{name}')
+        elif ref := elem.get('ref'):
+           f(f'{ref}')
 
+def processCT(elem, f=None):
+        for x in elem.findall('xs:sequence/xs:element',namespaces):
+            processElement(x,f)
+          
+def process(root,f):
+    for elem in root.findall('xs:element',namespaces):
+        processElement(elem,f)
+    for elem in root.findall('xs:complexType',namespaces):
+        processCT(elem,f)
 
 if __name__ == "__main__":
-    args = sys.argv[1:]
-    if len(args) > 0:
-        file_path = args[0]
-        xs = NS.get('path')
-        valid_tag = (f'{{{xs}}}element')
-        names = set()
-        for _, elem in etree.iterparse(file_path, events=("end",),tag=valid_tag, encoding='UTF-8', remove_blank_text=True):
-            if name := elem.get('name'):
-                names.add(name)
-        infos = (NameInfo(xs,name) for name in sorted(names))
-        for x in  infos: print(x)
+    args = sys.argv
+    if len(args) > 1:
+        tree = etree.parse(args[1])
+        result = set()
+        process(tree.getroot(),lambda x: result.add(x))
+        w = {'source': args[1],'pathes': sorted(result)}
+        print(json.dumps(w, indent=3))
     else:
         appName = sys.argv[0]
-        print(f'Usage: python {appName} <rdf_file>')
-        print(f'Example: python {appName} CIDOC_CRM_v7.1.1.rdf')
+        print(f'Usage: python {appName} <xml_file>')
+        print(f'Example: python {appName} lido-v1.1.xsd')
         sys.exit(1)
