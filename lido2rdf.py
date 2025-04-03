@@ -44,7 +44,7 @@ def main():
     formats = ",".join(SUFFIX_FORMAT_MAP.keys())
     parser.add_argument("-o", '--output', metavar="NAME", dest="target", default='-', help="RDF output file (default: -)")
     parser.add_argument("-t", '--to', dest="format", help=f"RDF output format ({formats})")
-    parser.add_argument('-m', '--mapping', dest="mapping", default='lido2rdf.x3ml', help="X3ML mapping file (default: lido2rdf.x3ml)")
+    parser.add_argument('-m', '--mapping', dest="mapping", default='defaultMapping.x3ml', help="X3ML mapping file (default: defaultMapping.x3ml)")
     parser.add_argument('source', metavar='LIDO-XML', nargs="?", default="-", help='LIDO file or URL (default: -)')
 
     args = parser.parse_args()

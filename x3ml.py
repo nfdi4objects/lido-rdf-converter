@@ -31,10 +31,6 @@ def md5Hash(s):
     return hashlib.md5(s.encode()).hexdigest()
 
 
-def MAPPING_FILE():
-    return 'lido2rdf.x3ml'
-
-
 DOMAIN_PATH = './domain/source_node'
 DOMAIN_TYPE = './domain/target_node/entity/type'
 DOMAIN_COND = './domain/target_node/if/or/if/equals'
@@ -344,6 +340,6 @@ def getNamespaces(fname: str):
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    mappings = args[0] if len(args) == 1 else "lido2rdf.x3ml"
+    mappings = args[0] if len(args) == 1 else "defaultMapping.x3ml"
     for t in getMapping(mappings):
         print(json.dumps(t.toDict(), indent=3))

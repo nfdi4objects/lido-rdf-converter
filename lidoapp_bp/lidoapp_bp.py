@@ -1,7 +1,5 @@
-import sys
 import copy
 import io
-sys.path.insert(0, '..')
 import xml.etree.ElementTree as ET
 import LidoRDFConverter as LRC
 from pathlib import Path

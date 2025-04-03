@@ -51,7 +51,7 @@ options:
   -h, --help                     show this help message and exit
   -o NAME, --output NAME         RDF output file (default: -)
   -t FORMAT, --to FORMAT         RDF output serialization (ttl,nt,json,xml)
-  -m MAPPING, --mapping MAPPING  X3ML mapping file (default: lido2rdf.x3ml)
+  -m MAPPING, --mapping MAPPING  X3ML mapping file (default: defaultMapping.x3ml)
 ~~~
  
 For instance this will convert `example1.xml` to `example1.ttl`:
@@ -63,7 +63,7 @@ For instance this will convert `example1.xml` to `example1.ttl`:
 To inspect how an X3ML mapping file is used internally:
 
 ~~~sh
-./x3ml.py lido2rdf.x3ml
+./x3ml.py defaultMapping.x3ml
 ~~~
 
 ### Web application
