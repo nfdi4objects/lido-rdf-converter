@@ -1,5 +1,9 @@
 # Lido to RDF converter
 
+[![License](https://img.shields.io/github/license/nfdi4objects/lido-rdf-converter.svg)](https://github.com/nfdi4objects/lido-rdf-converter/blob/master/LICENSE)
+[![Test](https://github.com/nfdi4objects/lido-rdf-converter/actions/workflows/test.yml/badge.svg)](https://github.com/nfdi4objects/lido-rdf-converter/actions/workflows/test.yml)
+[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Fnfdi4objects%2Fnlido--rdf--converter-informational)](https://github.com/nfdi4objects/lido-rdf-converter/pkgs/container/lido-rdf-converter)
+
 This repository contains a Python library, command line script, and web application to convert LIDO XML files to RDF using X3ML mappings
 
 ## Installation
@@ -8,12 +12,22 @@ The application can be installed with Docker (recommended) or from sources (for 
 
 ### With Docker
 
-A docker container will be published soon. Meanwhile clone the repository,
-locally build a Docker image and run the container for testing:
+Pull the [current image](https://github.com/orgs/nfdi4objects/packages/container/package/lido-rdf-converter)
 
 ~~~sh
-docker compose build
-docker compose up
+docker pull ghcr.io/nfdi4objects/lido-rdf-converter:main
+~~~
+
+and start a container with `docker`, or with `docker compose` and a `docker-compose.yml` like [the one in this repository](docker-compose.yml):
+
+~~~sh
+docker run --rm -p 5000:5000 ghcr.io/nfdi4objects/lido-rdf-converter:main
+~~~
+
+or
+
+~~~sh
+docker compose up --force-recreate
 ~~~
 
 ### From sources
@@ -25,19 +39,20 @@ git clone https://github.com/nfdi4objects/lido-rdf-converter.git
 cd lido-rdf-converter
 ```
 
-Then install dependencies with `make deps` or 
+Then install dependencies and enable virtual Python environment:
 
 ```sh
-python3 -m venv .venv
+make deps
 . .venv/bin/activate
-pip3 install -r requirements.txt
 ```
 
 ## Usage
 
 ### Command line client
 
-Call `./lido2rdf.py` without any arguments or with `--help` for help:
+*Usage from Docker container has not been enabled yet*
+
+If installed from sources, call `./lido2rdf.py` without any arguments or with `--help` for help:
 
 ~~~
 usage: lido2rdf.py [-h] [-o NAME] [-t FORMAT] [-m MAPPING] [LIDO-XML]
@@ -68,7 +83,9 @@ To inspect how an X3ML mapping file is used internally:
 
 ### Web application
 
-Is made available at <http://localhost:5000> by default.
+The web application is made available at <http://localhost:5000> by default, if installed via Docker. 
+
+Usage if installed from sources is only recommended for development and testing.
 
 ## Build and test
 
