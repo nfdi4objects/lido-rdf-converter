@@ -1,4 +1,4 @@
-#!.venv/bin/python
+#!/usr/bin/env python
 
 """Converts LIDO file to RDF """
 from LidoRDFConverter import LidoRDFConverter
