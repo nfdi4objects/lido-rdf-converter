@@ -1,8 +1,22 @@
 # Lido to RDF converter
 
-This repository contains Python code to convert LIDO XML files to RDF using a X3ML mapping.
+This repository contains a Python library, command line script, and web application to convert LIDO XML files to RDF using X3ML mappings
 
 ## Installation
+
+The application can be installed with Docker (recommended) or from sources (for development).
+
+### With Docker
+
+A docker container will be published soon. Meanwhile clone the repository,
+locally build a Docker image and run the container for testing:
+
+~~~sh
+docker compose build
+docker compose up
+~~~
+
+### From sources
 
 Requires Python >=3.5 and a POSIX compliant operating system. Clone the repository:
 
@@ -20,6 +34,8 @@ pip3 install -r requirements.txt
 ```
 
 ## Usage
+
+### Command line client
 
 Call `./lido2rdf.py` without any arguments or with `--help` for help:
 
@@ -48,6 +64,18 @@ To inspect how an X3ML mapping file is used internally:
 
 ~~~sh
 ./x3ml.py lido2rdf.x3ml
+~~~
+
+### Web application
+
+Is made available at <http://localhost:5000> by default.
+
+## Build and test
+
+To locally build a Docker image for testing:
+
+~~~sh
+docker compose build
 ~~~
 
 ## See Also
