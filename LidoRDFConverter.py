@@ -32,12 +32,12 @@ def isHttp(s) -> bool:
     """Checks if a string is a valid HTTP URL.""" 
     return ulp.urlparse(s).scheme.startswith('http')
 
-def proper_uri(s:str)-> str:
+def proper_uri(uri:str)-> str:
     """Returns a proper URI string, replacing spaces with underscores and encoding special characters."""  
-    t = s.strip() 
-    if t.startswith('http'):
-        return ulp.quote(t).replace('%3A', ':')
-    return t 
+    uri_t = uri.strip() 
+    if uri_t.startswith('http'):
+        return ulp.quote(uri_t).replace('%3A', ':')
+    return uri_t 
 
 
 def create_oai_request(server_uri: str, command: str) -> ulr.Request | None:
