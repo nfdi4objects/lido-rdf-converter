@@ -51,7 +51,7 @@ PATH_ID_TAG = 'lidoPath'
 class lxpath():
     '''Wrapper for lidoXPath'''
 
-    def __init__(self, tag):
+    def __init__(self, tag=''):
         self.tag = tag
 
     def firstId(self, elem):
@@ -83,10 +83,10 @@ LIDO_ID_MAP = {
     'lido:object': lxpath('lido:objectID'),
     'lido:recordType': lxpath('lido:conceptID'),
     'lido:rightsHolder': lxpath('lido:legalBodyID'),
+    'lido:resourceSet': lxpath('lido:resourceID'),
     'lido:repositoryName': lxpath('lido:legalBodyID'),
-    'lido:measurementType': lxpath(''),
-    'lido:appellationValue': lxpath(''),
-    'lido:resourceSet': lxpath('lido:resourceID')}
+    'lido:measurementType': lxpath(),
+    'lido:appellationValue': lxpath()}
 
 '''Valid Lido ID type URIs'''
 LIDO_ID_TYPE_URIS = ('http://terminology.lido-schema.org/lido00099',
@@ -101,25 +101,24 @@ def notNone(*args) -> bool:
     '''Tests all args to not None'''
     return not any(x is None for x in args)
 
-
 def executeS(fun, x, default=None):
     '''Applies a function on a valid argument'''
     return fun(x) if notNone(x) else default
 
-def isValidType(elem: etree.Element) -> bool:
-    '''Tests for valid lido type attribute'''
-    return True
+def hasText(elem: etree.Element) -> bool:
+    return notNone(elem.text)
 
 def getIDs(elem):
     '''Returns all texts from valid Id elements'''
-    validItems = filter(isValidType, getIdElements(elem))
-    return list(map(lambda x: (x.text), validItems))
-
+    validItems = filter(hasText, getIdElements(elem))
+    return list(map(lambda x: x.text, validItems))
 
 def getIdElements(elem):
     '''Returns all ID child elements'''
     tag = lidoCompressNS(elem.tag)
-    return executeS(lambda x: x.children(elem), LIDO_ID_MAP.get(tag), [])
+    if lxp :=  LIDO_ID_MAP.get(tag):
+        return lxp.children(elem)
+    return []
 
 def findVar(elem: etree.Element) -> str | None:
     return executeS(lambda x: x.get('variable', ''), elem.find(RANGE_ENTT+"[@variable]"), '')
