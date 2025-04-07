@@ -1,13 +1,14 @@
 import re
 import time
-import urllib.request as ulr
-import urllib.parse as ulp
-import x3ml as x3ml
-from lxml import etree
-import rdflib as RF
+import x3ml
 import os
 import shutil
+import rdflib as RF
+import urllib.request as ulr
+import urllib.parse as ulp
 from io import BytesIO
+from lxml import etree
+
 
 # General used namespaces
 CRM = RF.Namespace("http://www.cidoc-crm.org/cidoc-crm/")
@@ -27,15 +28,16 @@ def deep_get(nested_dict, keys):
         return nested_dict
     return deep_get(nested_dict.get(keys[0]), keys[1:])
 
+def isHttp(s) -> bool:
+    """Checks if a string is a valid HTTP URL.""" 
+    return ulp.urlparse(s).scheme.startswith('http')
 
-def is_uri(uri_str):
-    return ulp.urlparse(uri_str).scheme.startswith('http')
-
-
-def safe_uri(uri_str):
-    if is_uri(uri_str):
-        return ulp.quote(uri_str).replace('%3A', ':')
-    return uri_str
+def proper_uri(s:str)-> str:
+    """Returns a proper URI string, replacing spaces with underscores and encoding special characters."""  
+    t = s.strip() 
+    if t.startswith('http'):
+        return ulp.quote(t).replace('%3A', ':')
+    return t 
 
 
 def create_oai_request(server_uri: str, command: str) -> ulr.Request | None:
@@ -173,7 +175,7 @@ def __strip_schema(url): return __url_regex.sub('', url).strip().strip('/')
 
 
 def make_item(text, specify, use_id=False):
-    if is_uri(text) and not use_id:
+    if isHttp(text) and not use_id:
         return RF.term.URIRef(text)
     return N4O[f"{hash(__strip_schema(text)+specify)}"]  # No URI for ID => local ID from path and recID
 
@@ -181,7 +183,7 @@ def make_item(text, specify, use_id=False):
 def add_spo(graph, elem_data, **kw):
     rec_id = kw.get('rec_id', '')
     entity_S = deep_get(elem_data, ['S', 'entity'])
-    id_S = safe_uri(deep_get(elem_data, ['info', 'id']))
+    id_S = proper_uri( deep_get(elem_data, ['info', 'id']))
     S = make_item(id_S, rec_id, use_id=True)
     triples = [(S, RF.RDF.type, make_erm_uri(entity_S))]
     for po in deep_get(elem_data, ['PO']):
@@ -191,15 +193,15 @@ def add_spo(graph, elem_data, **kw):
             entity_O = deep_get(po, ['O', 'entity'])
             for po_data in po.get('data'):
                 if text := po_data.get('text'):
-                    if not is_uri(text):
+                    if not isHttp(text):
                         po_triples.append((S, make_erm_uri('P90_has_value'), RF.Literal(text)))
                     else:
-                        text = safe_uri(text)
-                        is_uri_id = is_uri(text) and entity_O == "crm:E42_Identifier"
+                        text = proper_uri(text)
+                        is_uri_id = isHttp(text) and entity_O == "crm:E42_Identifier"
                         id_O = po_data.get('id')
                         if id_S != id_O:
                             P = make_erm_uri(entity_P)
-                            if is_uri(id_O) or is_uri_id:
+                            if isHttp(id_O) or is_uri_id:
                                 O = RF.term.URIRef(text)
                                 po_triples.append((S, P, O))
                             else:
