@@ -1,6 +1,6 @@
 FROM python:3
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # Install Python dependencies
 COPY requirements.txt ./
