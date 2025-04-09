@@ -2,6 +2,7 @@ import unittest
 import rdflib
 from getCidocInfo import graphFromFile, namespaces2dict, QNameInfo, getQNameInfos
 
+
 class TestGetCidocInfo(unittest.TestCase):
 
     def setUp(self):
@@ -22,8 +23,9 @@ class TestGetCidocInfo(unittest.TestCase):
     def test_QNameInfo(self):
         info = QNameInfo('http://www.cidoc-crm.org/cidoc-crm/E1_CRM_Entity')
         self.assertEqual(info.prefix, '')
-        self.assertEqual(info.entity, 'http://www.cidoc-crm.org/cidoc-crm/E1_CRM_Entity')
-        
+        self.assertEqual(
+            info.entity, 'http://www.cidoc-crm.org/cidoc-crm/E1_CRM_Entity')
+
         info = QNameInfo('crm:E1')
         self.assertEqual(info.prefix, 'crm')
         self.assertEqual(info.entity, 'E1')
@@ -40,6 +42,7 @@ class TestGetCidocInfo(unittest.TestCase):
         self.assertIsInstance(data['namespaces'], dict)
         self.assertIsInstance(data['classes'], list)
         self.assertIsInstance(data['properties'], list)
+
 
 if __name__ == '__main__':
     unittest.main()

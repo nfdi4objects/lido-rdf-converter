@@ -1,17 +1,20 @@
 FROM python:3
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
+# Install Python dependencies
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 RUN apt-get update && apt-get install -y npm
 
 COPY . .
 
-WORKDIR /usr/src/app/lidoapp_bp/static
+WORKDIR /app/lidoapp_bp/static
 RUN npm init -y && npm install
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 
+# Allow to directly call scripts in the base directory
+ENV PATH="/app:$PATH"
 CMD [ "python", "./app.py" ]

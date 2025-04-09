@@ -101,30 +101,37 @@ def notNone(*args) -> bool:
     '''Tests all args to not None'''
     return not any(x is None for x in args)
 
+
 def executeS(fun, x, default=None):
     '''Applies a function on a valid argument'''
     return fun(x) if notNone(x) else default
 
+
 def hasText(elem: etree.Element) -> bool:
     return notNone(elem.text)
+
 
 def getIDs(elem):
     '''Returns all texts from valid Id elements'''
     validItems = filter(hasText, getIdElements(elem))
     return list(map(lambda x: x.text, validItems))
 
+
 def getIdElements(elem):
     '''Returns all ID child elements'''
     tag = lidoCompressNS(elem.tag)
-    if lxp :=  LIDO_ID_MAP.get(tag):
+    if lxp := LIDO_ID_MAP.get(tag):
         return lxp.children(elem)
     return []
 
+
 def findVar(elem: etree.Element) -> str | None:
-    return executeS(lambda x: x.get('variable', ''), elem.find(RANGE_ENTT+"[@variable]"), '')
+    return executeS(lambda x: x.get('variable', ''), elem.find(RANGE_ENTT + "[@variable]"), '')
+
 
 def str2bool(bstr) -> bool:
     return bstr.lower() in ("yes", "true", "t", "1")
+
 
 def skipped(elem: etree.Element) -> bool:
     return str2bool(elem.get('skip', 'false'))
@@ -185,6 +192,7 @@ class ExP:
 def stripPath(link: ExP, txt: str) -> str:
     return txt.removeprefix(link.path)
 
+
 class Condition():
     def __init__(self):
         self.access = ''
@@ -236,6 +244,7 @@ class PO():
                 for i, elem in enumerate(self.O.elements(root))]
         return {'P': self.P.toDict(), 'O': self.O.toDict(), 'data': data, 'isValid': self.isValid(root)}
 
+
 class Mapping:
     def __init__(self, s: ExP, n=0):
         self.S = s
@@ -272,12 +281,14 @@ class Mapping:
 
 Mappings = list[Mapping]
 
+
 def makeExP(pathElem: etree.Element, typeElem: etree.Element, varStr: str = '') -> ExP | None:
     if notNone(pathElem, typeElem):
         pathText = pathElem.text.strip()
         typeText = typeElem.text.strip()
         if typeText and pathText:
             return ExP(pathText, typeText, varStr)
+
 
 def mappingsFromNode(mappingElem) -> Mappings:
     '''Reads single mappings from an x3ml mapping node'''
@@ -286,7 +297,8 @@ def mappingsFromNode(mappingElem) -> Mappings:
         mapping = Mapping(sExP)
         # Find domain conditions
         for cndElem in mappingElem.findall(DOMAIN_COND):
-            mapping.condition.add(stripPath(sExP, cndElem.text), cndElem.get('value'))
+            mapping.condition.add(
+                stripPath(sExP, cndElem.text), cndElem.get('value'))
         for linkElem in mappingElem.findall('./link'):
             if not skipped(linkElem):
                 if pExP := makeExP(linkElem.find(PATH_SRR), linkElem.find(PATH_TRR)):
@@ -294,29 +306,35 @@ def mappingsFromNode(mappingElem) -> Mappings:
                     if oExP := makeExP(linkElem.find(RANGE_SN), linkElem.find(RANGE_TYPE), varStr):
                         po = PO(pExP, oExP)
                         for cndElem in linkElem.findall(PATH_TRE):
-                            po.condition.add(stripPath(oExP, cndElem.text), cndElem.get('value'))
+                            po.condition.add(
+                                stripPath(oExP, cndElem.text), cndElem.get('value'))
                         mapping.addPO(po)
         mappings.append(mapping)
     return mappings
 
-def getMappingS(xmlStr:str) -> Mappings | None:
+
+def getMappingS(xmlStr: str) -> Mappings | None:
     '''Returns all mappings from a string'''
     mappings = []
-    parser = etree.XMLPullParser(events=("end",), tag=('mapping'), encoding='UTF-8',remove_blank_text=True)
+    parser = etree.XMLPullParser(events=("end",), tag=(
+        'mapping'), encoding='UTF-8', remove_blank_text=True)
     parser.feed(xmlStr)
     for _, elem in parser.read_events():
-        if not str2bool(elem.get('skip','false')):
+        if not str2bool(elem.get('skip', 'false')):
             mappings += mappingsFromNode(elem)
     return mappings
+
 
 def getMapping(fileName: str) -> Mappings | None:
     '''Returns all mappings from a file'''
     return getMappingS(Path(fileName).read_text(encoding='UTF-8'))
 
+
 class NS():
     """ docstring
     """
-    def __init__(self, prefix,uri):
+
+    def __init__(self, prefix, uri):
         self.prefix = prefix
         self.uri = uri
 
@@ -324,18 +342,22 @@ class NS():
         if self.prefix:
             return 1
         return 0
-    
+
     def toDict(self):
-        return {'prefix':self.prefix,'uri':self.uri}
-    
+        return {'prefix': self.prefix, 'uri': self.uri}
+
     def __repr__(self):
         return str(self.toDict())
-    
+
+
 def getNamespaces(fname: str):
     '''Returns all namepsaces from a file'''
-    mNS = lambda e: NS(e.get('prefix'),e.get('uri'))
-    elements = etree.iterparse(fname, events=("end",),tag=('namespace'),encoding='UTF-8',remove_blank_text=True)
-    return [mNS(elem) for _,elem in elements if elem.get('prefix')]
+    def mNS(e):
+        return NS(e.get('prefix'), e.get('uri'))
+    elements = etree.iterparse(fname, events=("end",), tag=(
+        'namespace'), encoding='UTF-8', remove_blank_text=True)
+    return [mNS(elem) for _, elem in elements if elem.get('prefix')]
+
 
 if __name__ == "__main__":
     args = sys.argv[1:]

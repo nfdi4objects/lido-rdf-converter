@@ -6,14 +6,18 @@ import argparse as AP
 app = Flask(__name__)
 l2rService = createLido2RdfService(app)
 
-@app.route('/',methods=["GET","POST"])
+
+@app.route('/', methods=["GET", "POST"])
 def index():
     return redirect(f'/{l2rService.name}/')
 
+
 if __name__ == '__main__':
     parser = AP.ArgumentParser()
-    parser.add_argument('-w', '--wsgi', action=AP.BooleanOptionalAction, help="Use WSGI server")
-    parser.add_argument('-p', '--port', type=int, default=5000, help="Server port")
+    parser.add_argument(
+        '-w', '--wsgi', action=AP.BooleanOptionalAction, help="Use WSGI server")
+    parser.add_argument('-p', '--port', type=int,
+                        default=5000, help="Server port")
     args = parser.parse_args()
     opts = {"port": args.port}
 
