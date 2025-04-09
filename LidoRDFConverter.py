@@ -28,16 +28,18 @@ def deep_get(nested_dict, keys):
         return nested_dict
     return deep_get(nested_dict.get(keys[0]), keys[1:])
 
+
 def isHttp(s) -> bool:
-    """Checks if a string is a valid HTTP URL.""" 
+    """Checks if a string is a valid HTTP URL."""
     return ulp.urlparse(s).scheme.startswith('http')
 
-def proper_uri(uri:str)-> str:
-    """Returns a proper URI string, replacing spaces with underscores and encoding special characters."""  
-    uri_t = uri.strip() 
+
+def proper_uri(uri: str) -> str:
+    """Returns a proper URI string, replacing spaces with underscores and encoding special characters."""
+    uri_t = uri.strip()
     if uri_t.startswith('http'):
         return ulp.quote(uri_t).replace('%3A', ':')
-    return uri_t 
+    return uri_t
 
 
 def create_oai_request(server_uri: str, command: str) -> ulr.Request | None:
@@ -46,7 +48,8 @@ def create_oai_request(server_uri: str, command: str) -> ulr.Request | None:
        the XML string to the rest of the script for writing to a file."""
 
     request_str = server_uri + f'?verb={command}'
-    headers = {'User-Agent': 'pyoaiharvester/3.0', 'Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
+    headers = {'User-Agent': 'pyoaiharvester/3.0',
+               'Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
     try:
         return ulr.Request(request_str, headers=headers)
     except ulr.HTTPError as ex_value:
@@ -102,17 +105,20 @@ class LidoRDFConverter():
             g.serialize(destination=file, format='ttl')
 
         '''Transfers all LIDO elements'''
-        headers = {'User-Agent': 'pyoaiharvester/3.0', 'Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
+        headers = {'User-Agent': 'pyoaiharvester/3.0',
+                   'Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
         request = ulr.Request(url, headers=headers)
         if url.startswith('http'):
-            request = create_oai_request(url, f'ListRecords&metadataPrefix=lido')
+            request = create_oai_request(
+                url, 'ListRecords&metadataPrefix=lido')
             while request:
                 buffer = request_to_buffer(request)
                 graph, rs_token = self.parse_file(buffer, processor=serialize)
                 if not rs_token:
                     print('No more resumptionToken')
                     break
-                request = create_oai_request(url, f"ListRecords&resumptionToken={rs_token}")
+                request = create_oai_request(
+                    url, f"ListRecords&resumptionToken={rs_token}")
         else:
             with ulr.urlopen(request) as response:
                 graph, _ = self.parse_file(response)
@@ -134,7 +140,8 @@ class LidoRDFConverter():
     def parse_string(self, lido_str):
         graph = make_result_graph()
         valid_tag = (LIDO_TAG)
-        parser = etree.XMLPullParser(events=("end",), tag=valid_tag, encoding='UTF-8', remove_blank_text=True)
+        parser = etree.XMLPullParser(
+            events=("end",), tag=valid_tag, encoding='UTF-8', remove_blank_text=True)
         parser.feed(lido_str)
         for _, elem in parser.read_events():
             self._process_lido_element(elem, graph)
@@ -170,20 +177,21 @@ def hash(s):
     return x3ml.md5Hash(s)
 
 
-__url_regex = re.compile(r"https?:")
-def __strip_schema(url): return __url_regex.sub('', url).strip().strip('/')
+def __strip_schema(url):
+    return re.sub(r"https?:", '', url).strip().strip('/')
 
 
 def make_item(text, specify, use_id=False):
     if isHttp(text) and not use_id:
         return RF.term.URIRef(text)
-    return N4O[f"{hash(__strip_schema(text)+specify)}"]  # No URI for ID => local ID from path and recID
+    # No URI for ID => local ID from path and recID
+    return N4O[f"{hash(__strip_schema(text) + specify)}"]
 
 
 def add_spo(graph, elem_data, **kw):
     rec_id = kw.get('rec_id', '')
     entity_S = deep_get(elem_data, ['S', 'entity'])
-    id_S = proper_uri( deep_get(elem_data, ['info', 'id']))
+    id_S = proper_uri(deep_get(elem_data, ['info', 'id']))
     S = make_item(id_S, rec_id, use_id=True)
     triples = [(S, RF.RDF.type, make_erm_uri(entity_S))]
     for po in deep_get(elem_data, ['PO']):
@@ -194,10 +202,12 @@ def add_spo(graph, elem_data, **kw):
             for po_data in po.get('data'):
                 if text := po_data.get('text'):
                     if not isHttp(text):
-                        po_triples.append((S, make_erm_uri('P90_has_value'), RF.Literal(text)))
+                        po_triples.append(
+                            (S, make_erm_uri('P90_has_value'), RF.Literal(text)))
                     else:
                         text = proper_uri(text)
-                        is_uri_id = isHttp(text) and entity_O == "crm:E42_Identifier"
+                        is_uri_id = isHttp(
+                            text) and entity_O == "crm:E42_Identifier"
                         id_O = po_data.get('id')
                         if id_S != id_O:
                             P = make_erm_uri(entity_P)
@@ -206,8 +216,10 @@ def add_spo(graph, elem_data, **kw):
                                 po_triples.append((S, P, O))
                             else:
                                 O = make_item(id_O, rec_id)
-                                po_triples.append((O, RF.RDF.type, make_erm_uri(entity_O)))
-                                po_triples.append((O, make_erm_uri('P90_has_value'), RF.Literal(text)))
+                                po_triples.append(
+                                    (O, RF.RDF.type, make_erm_uri(entity_O)))
+                                po_triples.append(
+                                    (O, make_erm_uri('P90_has_value'), RF.Literal(text)))
                                 po_triples.append((S, P, O))
         if po_triples:
             triples += po_triples

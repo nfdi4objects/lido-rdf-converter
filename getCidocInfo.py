@@ -7,8 +7,10 @@ import sys
 
 def graphFromFile(file_path):
     graph = rdflib.Graph()
-    graph.namespace_manager.bind('crm', rdflib.URIRef('http://www.cidoc-crm.org/cidoc-crm/'))
-    graph.namespace_manager.bind('skos', rdflib.URIRef('http://www.w3.org/2004/02/skos/core#'))
+    graph.namespace_manager.bind('crm', rdflib.URIRef(
+        'http://www.cidoc-crm.org/cidoc-crm/'))
+    graph.namespace_manager.bind('skos', rdflib.URIRef(
+        'http://www.w3.org/2004/02/skos/core#'))
     graph.parse(file_path)
     return graph
 
@@ -51,9 +53,11 @@ class QNameInfo():
 def getQNameInfos(graph, **kw):
     entities = set()
     properties = set()
-    rdfProperty = rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#Property')
+    rdfProperty = rdflib.term.URIRef(
+        'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property')
     rdfClass = rdflib.term.URIRef('http://www.w3.org/2000/01/rdf-schema#Class')
-    predicate = rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
+    predicate = rdflib.term.URIRef(
+        'http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
     # Get all classes and properties
     for subject, object in graph.subject_objects(predicate):
         info = QNameInfo(graph.qname(subject))
@@ -61,8 +65,10 @@ def getQNameInfos(graph, **kw):
             properties.add(info)
         elif object == rdfClass:
             entities.add(info)
+
     # Return the compiled data
-    def sortedDictList(aList): return [x.__dict__ for x in sorted(aList)]
+    def sortedDictList(aList):
+        return [x.__dict__ for x in sorted(aList)]
     return {
         'source': kw.get('source', ''),
         'namespaces': namespaces2dict(graph),
