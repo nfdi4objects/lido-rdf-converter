@@ -50,12 +50,22 @@ make deps
 
 ### Command line client
 
-*Usage from Docker container has not been enabled yet*
+With Docker the command line client can be called like this:
 
-If installed from sources, call `./lido2rdf.py` without any arguments or with `--help` for help:
+~~~sh
+docker run --rm -i ghcr.io/nfdi4objects/lido-rdf-converter:main lido2rdf < example1.xml
+~~~
+
+Alternatively mount a volume to read and write files:
+
+~~~sh
+docker run --rm -v .:/data ghcr.io/nfdi4objects/lido-rdf-converter:main lido2rdf /data/example1.xml
+~~~
+
+If installed from sources, call `./lido2rdf` without any arguments or with `--help` for help:
 
 ~~~
-usage: lido2rdf.py [-h] [-o NAME] [-t FORMAT] [-m MAPPING] [LIDO-XML]
+usage: lido2rdf [-h] [-o NAME] [-t FORMAT] [-m MAPPING] [LIDO-XML]
 
 Convert LIDO to RDF using X3ML mapping
 
