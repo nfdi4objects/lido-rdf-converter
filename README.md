@@ -87,6 +87,14 @@ The web application is made available at <http://localhost:5000> by default, if 
 
 Usage if installed from sources is only recommended for development and testing.
 
+If you want to run the web application by script, you have to install some JS scripts first.
+Therefore, you can use these shell commands:
+~~~sh
+cd ./lidoapp_bp/static
+npm init -y 
+npm install
+~~~
+
 ## Build and test
 
 To locally build a Docker image for testing:
