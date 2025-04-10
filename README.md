@@ -53,7 +53,7 @@ make deps
 With Docker the command line client can be called like this:
 
 ~~~sh
-docker run --rm -i ghcr.io/nfdi4objects/lido-rdf-converter:main lido2rdf < example1.xml
+example1.xml | docker run --rm -i ghcr.io/nfdi4objects/lido-rdf-converter:main lido2rdf
 ~~~
 
 Alternatively mount a volume to read and write files:

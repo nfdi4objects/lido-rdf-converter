@@ -8,7 +8,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN apt-get update && apt-get install -y npm
 
 COPY . .
-
+RUN chmod +x ./lido2rdf
+RUN chmod +x ./lido2rdf.py
 WORKDIR /app/lidoapp_bp/static
 RUN npm init -y && npm install
 
