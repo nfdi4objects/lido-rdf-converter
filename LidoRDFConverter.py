@@ -31,15 +31,18 @@ def deep_get(nested_dict, keys):
 
 def isHttp(s) -> bool:
     """Checks if a string is a valid HTTP URL."""
-    return ulp.urlparse(s).scheme.startswith('http')
+    if s:
+        return ulp.urlparse(s).scheme.startswith('http')
+    return False
 
 
-def proper_uri(uri: str) -> str:
+def proper_uri(uri: str|None) -> str|None:
     """Returns a proper URI string, replacing spaces with underscores and encoding special characters."""
-    uri_t = uri.strip()
-    if uri_t.startswith('http'):
-        return ulp.quote(uri_t).replace('%3A', ':')
-    return uri_t
+    if uri:
+        uri_t = uri.strip()
+        if uri_t.startswith('http'):
+            return ulp.quote(uri_t).replace('%3A', ':')
+        return uri_t
 
 
 def create_oai_request(server_uri: str, command: str) -> ulr.Request | None:
@@ -170,58 +173,54 @@ class LidoRDFConverter():
         for data in [m.getData(elem) for m in self.mappings]:
             for i, elem_data in enumerate(data):
                 if elem_data.get('valid'):
-                    add_spo(graph, elem_data, index=i, rec_id=rec_id)
+                    add_triples(graph, elem_data, rec_id, index=i)
 
 
 def hash(s):
     return x3ml.md5Hash(s)
 
-
-def __strip_schema(url):
+def strip_schema(url: str) -> str:
+    """Strips the schema from a URL"""
     return re.sub(r"https?:", '', url).strip().strip('/')
 
 
-def make_item(text, specify, use_id=False):
+def make_item(text, specify, use_id=False) :
     if isHttp(text) and not use_id:
         return RF.term.URIRef(text)
     # No URI for ID => local ID from path and recID
-    return N4O[f"{hash(__strip_schema(text) + specify)}"]
+    return N4O[f"{hash(strip_schema(text) + specify)}"]
 
 
-def add_spo(graph, elem_data, **kw):
-    rec_id = kw.get('rec_id', '')
-    entity_S = deep_get(elem_data, ['S', 'entity'])
-    id_S = proper_uri(deep_get(elem_data, ['info', 'id']))
-    S = make_item(id_S, rec_id, use_id=True)
-    triples = [(S, RF.RDF.type, make_erm_uri(entity_S))]
-    for po in deep_get(elem_data, ['PO']):
-        po_triples = []
-        if po.get('isValid'):
-            entity_P = deep_get(po, ['P', 'entity'])
-            entity_O = deep_get(po, ['O', 'entity'])
-            for po_data in po.get('data'):
-                if text := po_data.get('text'):
-                    if not isHttp(text):
-                        po_triples.append(
-                            (S, make_erm_uri('P90_has_value'), RF.Literal(text)))
+def add_triples(graph, data, rec_id, **kw)  :
+    '''Add triples to the graph'''
+    Entity_S = deep_get(data, ['S', 'entity'])
+    ID_S = proper_uri(deep_get(data, ['info', 'id']))
+    S = make_item(ID_S, rec_id, use_id=True)
+
+    graph.add((S, RF.RDF.type, make_erm_uri(Entity_S)))
+    for po in deep_get(data, ['PO']):
+            for triple in compile_triples(rec_id, S, po,**kw):
+                graph.add(triple)
+
+def compile_triples(rec_id, S, po,**kw) -> list:
+    '''Compile triples from PO data'''
+    triples = []
+    if po.get('isValid'):
+        entity_P = deep_get(po, ['P', 'entity'])
+        entity_O = deep_get(po, ['O', 'entity'])
+        P = make_erm_uri(entity_P)
+        for po_data in po.get('data'):
+            if text := proper_uri(po_data.get('text')):
+                OL = RF.Literal(text)
+                if isHttp(text):
+                    triples.append((S, P, OL))
+                else:
+                    id_O = po_data.get('id')
+                    if isHttp(id_O) :               
+                        O = make_item(id_O, rec_id)
+                        triples.append((O, RF.RDF.type, make_erm_uri(entity_O)))
+                        triples.append((O, P, OL))
+                        triples.append((S, P, O))
                     else:
-                        text = proper_uri(text)
-                        is_uri_id = isHttp(
-                            text) and entity_O == "crm:E42_Identifier"
-                        id_O = po_data.get('id')
-                        if id_S != id_O:
-                            P = make_erm_uri(entity_P)
-                            if isHttp(id_O) or is_uri_id:
-                                O = RF.term.URIRef(text)
-                                po_triples.append((S, P, O))
-                            else:
-                                O = make_item(id_O, rec_id)
-                                po_triples.append(
-                                    (O, RF.RDF.type, make_erm_uri(entity_O)))
-                                po_triples.append(
-                                    (O, make_erm_uri('P90_has_value'), RF.Literal(text)))
-                                po_triples.append((S, P, O))
-        if po_triples:
-            triples += po_triples
-    for triple in triples:
-        graph.add(triple)
+                        triples.append((S, P, OL))
+    return triples
