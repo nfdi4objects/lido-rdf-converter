@@ -3,14 +3,14 @@
 
 <head>
   <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1">
-  <script src="{{url_prefix}}/static/node_modules/vue/dist/vue.global.js"></script>
-  <script src="{{url_prefix}}/static/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="{{url_prefix}}/static/node_modules/ace-builds/src-min/ace.js"></script>
-  <script src="{{url_prefix}}/static/node_modules/jquery/dist/jquery.min.js"></script>
-  <script src="{{url_prefix}}/static/script.js"></script>
+  <script src="assets/node_modules/vue/dist/vue.global.js"></script>
+  <script src="assets/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/node_modules/ace-builds/src-min/ace.js"></script>
+  <script src="assets/node_modules/jquery/dist/jquery.min.js"></script>
+  <script src="assets/script.js"></script>
 
-  <link rel="stylesheet" href="{{url_prefix}}/static/node_modules/bootstrap/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="{{url_prefix}}/static/lidostyle.css">
+  <link rel="stylesheet" href="assets/node_modules/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/lidostyle.css">
 
   <title>X3ML Editor</title>
   <datalist id="DLCidocClasses"></datalist>
@@ -20,7 +20,7 @@
 
 <body>
   <!-- Main dialog Item connected to vue-app -->
-  <div id="app" class=".container-fluid" url_prefix="{{url_prefix}}">
+  <div id="app" class=".container-fluid">
     <!-- Condition editor dialog (modal )-->
     <div class="modal fade" ref="modal" id="conditionEditor" data-keyboard="false" data-backdrop="static" style="overflow-y: scroll; height:400px; width: 100%;">
       <div class="modal-dialog modal-xl">
@@ -109,7 +109,7 @@
           <button type="button" class="btn btn-primary btn-sm" @click="clearMappings">Clear all</button>&nbsp;
           <button type="button" class="btn btn-primary btn-sm" @click="resetMappings">Reset</button>&nbsp;
           <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal">Upload</button>&nbsp;
-          <a href="{{url_prefix}}/downloadX3ml" target="blank"><button class='btn btn-primary btn-sm'>Download</button></a>&nbsp;
+          <a href="downloadX3ml" target="blank"><button class='btn btn-primary btn-sm'>Download</button></a>&nbsp;
         </p>
         <div id="acc" class="accordion accordion-flush" style="overflow-y: scroll; height:600px; width: 100%;">
           <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
@@ -194,7 +194,6 @@
   </div>
 
   <script>
-    var bp_prefix;
     function createCidocOptions(optionValues, elementId) {
       var elem = document.getElementById(elementId);
       optionValues.forEach(x => {
@@ -214,7 +213,7 @@
       });
     }
     function getCidocLabel() {
-      fetch(bp_prefix + '/static/cidoc_label.json')
+      fetch('assets/cidoc_label.json')
         .then(res => res.json())
         .then(data => {
           createCidocOptions(data.classes, 'DLCidocClasses')
@@ -226,7 +225,7 @@
     }
 
     function getLidoLabel() {
-      fetch(bp_prefix + '/static/lido_label.json')
+      fetch('assets/lido_label.json')
         .then(res => res.json())
         .then(data => {
           createLidoOptions(data.pathes, 'DLLidoClasses')
@@ -255,7 +254,7 @@
           if (this.x3file) {
             const pText = this.x3file.text();
             pText.then((x3mlStr) => {
-              post(bp_prefix + '/uploadMapping', { type: 'uploadMapping', data: x3mlStr })
+              post('uploadMapping', { type: 'uploadMapping', data: x3mlStr })
                 .then((res) => {
                   this.x3file = null;
                   this.getX3ml();
@@ -275,7 +274,7 @@
               lIndex: this.activeL, // link index
               mode: this.mode // mode switch: 'map' or 'link'
             }
-            post(bp_prefix + '/applyCondition', data).then(res => { this.getX3ml(); });
+            post('applyCondition', data).then(res => { this.getX3ml(); });
             //Reset data
             this.mode = ''
             this.activeL = -1;
@@ -285,12 +284,12 @@
         },
         resetMappings() {
           // Post the mapping reset and reloads server data
-          post(bp_prefix + '/uploadMapping', { type: 'uploadMapping', data: null })
+          post('uploadMapping', { type: 'uploadMapping', data: null })
             .then((res) => { this.getX3ml(); rdfEditor.setValue(''); });
         },
         clearMappings() {
           // Post the deletion of all mapping and reloads server data
-          post(bp_prefix + '/clearMappings', { type: 'clearMappings' })
+          post('clearMappings', { type: 'clearMappings' })
             .then((res) => { this.getX3ml(); rdfEditor.setValue(''); });
         },
         uploadLido() {
@@ -306,7 +305,7 @@
         },
         getX3ml() {
           // Gets the current x3ml file from the server
-          get(bp_prefix+"/x3ml")
+          get("x3ml")
             .then((response) => response.json())
             .then((jsData) => { this.x3ml = JSON.parse(jsData.jsonX3ml); })
             .catch((err) => { console.error(err); });
@@ -314,14 +313,14 @@
         addMapping(event) {
           // Posts the mapping addition and reloads server data
           data = { type: 'addMapping', mIndex: -1 }
-          post(bp_prefix + '/addMap', data).then(res => { this.getX3ml(); });
+          post('addMap', data).then(res => { this.getX3ml(); });
         },
         deleteMapping(event) {
           // Posts the mapping deletion and reloads server data
           attrs = event.target.attributes;
           if (attrs.iM) {
             mIndex = attrs.iM.value;
-            del(bp_prefix + '/deleteMap/' + mIndex).then(res => { this.getX3ml(); });
+            del('deleteMap/' + mIndex).then(res => { this.getX3ml(); });
           }
         },
         applyMappingChanges(event) {
@@ -337,7 +336,7 @@
               path: mapping.domain.sourceNode.text,
               entity: mapping.domain.targetNode.entity.type
             };
-            post(bp_prefix + '/x3ml', data).then(res => { this.getX3ml(); });
+            post('x3ml', data).then(res => { this.getX3ml(); });
           }
         },
         openLinkConditionEditor(event) {
@@ -379,7 +378,7 @@
               relationship: link.path.targetRelation.relationship.text,
               entity: link.range.targetNode.entity.type
             };
-            post(bp_prefix + '/x3ml', data).then(res => { this.getX3ml(); });
+            post('x3ml', data).then(res => { this.getX3ml(); });
           }
         },
         deleteLink(event) {
@@ -388,7 +387,7 @@
           if (attrs.iM && attrs.iL) {
             mIndex = attrs.iM.value;
             lIndex = attrs.iL.value;
-            del(bp_prefix + '/deleteLink/' + mIndex + '/' + lIndex).then(res => { this.getX3ml(); });
+            del('deleteLink/' + mIndex + '/' + lIndex).then(res => { this.getX3ml(); });
           }
         },
         addLink(event) {
@@ -397,7 +396,7 @@
           if (attrs.iM) {
             mIndex = attrs.iM.value;
             data = { type: 'addLink', mIndex: mIndex, lIndex: -1 };
-            post(bp_prefix + '/addLink', data).then((res) => { this.getX3ml(); });
+            post('addLink', data).then((res) => { this.getX3ml(); });
           }
         }
       },
@@ -409,7 +408,6 @@
         }
       },
       created() {
-        bp_prefix = document.getElementById("app").getAttribute('url_prefix');
         getCidocLabel()
         getLidoLabel()
         this.getX3ml();
@@ -435,7 +433,7 @@
 
     function getLido(mode=0) {
       // Loads Lido data from server into the source editor
-      get(bp_prefix+"/loadLido/"+mode)
+      get("loadLido/"+mode)
         .then((response) => response.json())
         .then((jsData) => { lidoEditor.setValue(jsData.lidoData); })
         .catch((err) => { console.error(err); });
@@ -445,7 +443,7 @@
       // Triggers the transformation lido + x3ml => ttl
       // and loads the result into the RDF editor.
       data = { type: '/runMappings', data: lidoEditor.getValue() }
-      post(bp_prefix + '/runMappings', data)
+      post('runMappings', data)
         .then(res => res.json())
         .then(s => rdfEditor.setValue(s.text));
       app.getX3ml();
@@ -454,7 +452,7 @@
     function onLidoChanged()
     {
       data = { type: '/updateLido', data: lidoEditor.getValue() }
-      post(bp_prefix + '/updateLido', data)
+      post('updateLido', data)
      }
 
     function addCondition(conditions) {

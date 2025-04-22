@@ -99,10 +99,17 @@ Usage if installed from sources is only recommended for development and testing.
 
 If you want to run the web application by script, you have to install some JS scripts first.
 Therefore, you can use these shell commands:
+
 ~~~sh
 cd ./lidoapp_bp/static
 npm init -y 
 npm install
+~~~
+
+Then start `app.py` (optionally with argument `--port`):
+
+~~~sh
+python app.py
 ~~~
 
 ## Build and test

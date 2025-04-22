@@ -10,7 +10,7 @@ from .database import db, User
 
 class LidoBP(Blueprint):
     def __init__(self,user=None):
-        super().__init__('LidoBP', __name__,  template_folder='templates', static_folder='')
+        super().__init__('LidoBP', __name__,  template_folder='templates', static_folder='static', static_url_path='/assets')
         self.model = X3ml()
         self.user = user
 
@@ -36,7 +36,7 @@ def processString(lidoString, x3mlstr):
 
 def registerLidoBlueprint(app,user):
     global lidoapp_bp
-    app.register_blueprint(lidoapp_bp, url_prefix=f'/{lidoapp_bp.name}')
+    app.register_blueprint(lidoapp_bp)
     lidoapp_bp.model = X3ml.from_serial(ET.XML(user.x3ml))
     lidoapp_bp.user = user
     return lidoapp_bp
@@ -76,7 +76,7 @@ def createLido2RdfService(app):
 
 @lidoapp_bp.route('/', methods=["GET","POST"])
 def index():
-    return render_template('index.html', url_prefix=f'/{lidoapp_bp.name}')
+    return render_template('index.html')
 
 
 @lidoapp_bp.route('/downloadX3ml')

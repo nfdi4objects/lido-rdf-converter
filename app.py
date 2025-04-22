@@ -6,12 +6,6 @@ import argparse as AP
 app = Flask(__name__)
 l2rService = createLido2RdfService(app)
 
-
-@app.route('/', methods=["GET", "POST"])
-def index():
-    return redirect(f'/{l2rService.name}/')
-
-
 if __name__ == '__main__':
     parser = AP.ArgumentParser()
     parser.add_argument(
