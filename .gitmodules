@@ -1,0 +1,3 @@
+[submodule "lido-schema"]
+	path = lido-schema
+	url = https://github.com/nfdi4objects/lido-schema.git

@@ -32,14 +32,14 @@ docker compose up --force-recreate
 
 ### From sources
 
-Requires Python >=3.5 and a POSIX compliant operating system. Clone the repository:
+Requires Python >=3.5 and a POSIX compliant operating system. Clone the repository, including its submodules:
 
 ```sh
-git clone https://github.com/nfdi4objects/lido-rdf-converter.git
+git clone --recursive https://github.com/nfdi4objects/lido-rdf-converter.git
 cd lido-rdf-converter
 ```
 
-Then install dependencies and enable virtual Python environment:
+Then install dependencies and missing submodules, and enable virtual Python environment:
 
 ```sh
 make deps
@@ -122,8 +122,8 @@ docker compose build
 
 ## See Also
 
+- <https://github.com/nfdi4objects/lido-schema> contains schema files and validation script to check whether an XML file is valid LIDO (included as submodule into directory `lido-schema`)
 - <https://github.com/nfdi4objects/lido-examples> contains sample LIDO files to be used as test cases
-- <https://github.com/nfdi4objects/lido-schema> contains schema files and validation script to check whether an XML file is valid LIDO
 
 ## License
 
