@@ -5,7 +5,7 @@ WORKDIR /app
 # Install Python dependencies
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
-RUN apt-get update && apt-get install -y npm
+RUN apt-get update && apt-get install -y npm libxml2-utils
 
 COPY . .
 RUN chmod +x ./lido2rdf
