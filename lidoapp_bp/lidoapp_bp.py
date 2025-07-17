@@ -141,15 +141,10 @@ def runMappings():
 
 @lidoapp_bp.route('/convert', methods=['POST'])
 def convert():
-    global lidoapp_bp
-    rdf_str = '<no-data/>'
-    #response_object = {'status': 'success'}
     if storage_file := request.files['file']:
         lido_str =  storage_file.read().decode('utf-8')
-        rdf_str = processString(lido_str, lidoapp_bp.model.to_str())
-        #response_object['text'] = rdf_str
-        #response_object['message'] = 'Lido converted to RDF!'
-    return rdf_str
+        return processString(lido_str, dlftMappingFile().read_text())
+    return f'<no-data/>'
 
 
 @lidoapp_bp.route('/updateLido', methods=['GET', 'POST'])
