@@ -114,16 +114,17 @@ python app.py
 
 ### API
 
-The API has not fully been specified yet an may change. 
+The API has not fully been specified yet an may change.
 
 #### POST /convert
 
-Expects a valid LIDO/XML document as request body. Returns the LIDO data converted to RDF in Turtle serialization on success.
+Convert LIDO/XML with default mapping. Returns RDF in Turtle serialization on success.
 
-Sample query:
+LIDO data can be send either via HTTP POST payload or as `multipart/form-data` file upload:
 
 ~~~sh
 curl http://127.0.0.1:5000/convert --data-binary @lido.xml --silent
+curl http://127.0.0.1:5000/convert -F file=@example.xml --silent
 ~~~
 
 ## Build and test

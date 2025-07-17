@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import LidoRDFConverter as LRC
 from pathlib import Path
 from .x3ml_classes import Mapping, Link, PredicateVariant, Equals, X3ml
-from flask import Blueprint, render_template, request, send_file, jsonify, make_response
+from flask import Blueprint, render_template, request, send_file, jsonify
 from .database import db, User
 
 
@@ -128,24 +128,28 @@ def uploadMapping():
     return jsonify(response_object)
 
 
+@lidoapp_bp.route('/runMappings', methods=['GET', 'POST'])
+def runMappings():
+    global lidoapp_bp
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
+        parm = request.get_json()
+        lidoapp_bp.user.lido = parm['data']
+        response_object['text'] = processString(lidoapp_bp.user.lido, lidoapp_bp.model.to_str())
+        response_object['message'] = 'Mappings applied to Lido!'
+    return jsonify(response_object)
+
 @lidoapp_bp.route('/convert', methods=['POST'])
 def convert():
-    global lidoapp_bp
-    lidoapp_bp.user.lido = request.get_data()
     # TODO: catch error and provide better error response e.g. code 400 for malformed LIDO
-    turtle = processString(lidoapp_bp.user.lido, lidoapp_bp.model.to_str()) 
+    if request.mimetype == "multipart/form-data":
+        lido_xml = request.files['file'].read().decode('utf-8')
+    else:
+        lido_xml = request.get_data()
+    return processString(lido_xml, dlftMappingFile().read_text())
     response = make_response(turtle, 200)
     response.mime_type = "text/turtle"
-    return response
-
-
-@lidoapp_bp.route('/convert', methods=['POST'])
-def convert():
-    if storage_file := request.files['file']:
-        lido_str =  storage_file.read().decode('utf-8')
-        return processString(lido_str, dlftMappingFile().read_text())
-    return f'<no-data/>'
-
+    return response        
 
 @lidoapp_bp.route('/updateLido', methods=['GET', 'POST'])
 def updateLido():
