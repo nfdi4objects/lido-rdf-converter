@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import LidoRDFConverter as LRC
 from pathlib import Path
 from .x3ml_classes import Mapping, Link, PredicateVariant, Equals, X3ml
-from flask import Blueprint, render_template, request, send_file, jsonify
+from flask import Blueprint, render_template, request, send_file, jsonify, make_response
 from .database import db, User
 
 
@@ -128,16 +128,16 @@ def uploadMapping():
     return jsonify(response_object)
 
 
-@lidoapp_bp.route('/runMappings', methods=['GET', 'POST'])
-def runMappings():
+@lidoapp_bp.route('/convert', methods=['POST'])
+def convert():
     global lidoapp_bp
-    response_object = {'status': 'success'}
-    if request.method == 'POST':
-        parm = request.get_json()
-        lidoapp_bp.user.lido = parm['data']
-        response_object['text'] = processString(lidoapp_bp.user.lido, lidoapp_bp.model.to_str())
-        response_object['message'] = 'Mappings applied to Lido!'
-    return jsonify(response_object)
+    lidoapp_bp.user.lido = request.get_data()
+    # TODO: catch error and provide better error response e.g. code 400 for malformed LIDO
+    turtle = processString(lidoapp_bp.user.lido, lidoapp_bp.model.to_str()) 
+    response = make_response(turtle, 200)
+    response.mime_type = "text/turtle"
+    return response
+
 
 @lidoapp_bp.route('/convert', methods=['POST'])
 def convert():

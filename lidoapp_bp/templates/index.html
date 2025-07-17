@@ -186,7 +186,7 @@
       <div class="col">
         <h4>RDF Output (ttl)</h4>
         <p>
-          <button type="button" class="btn btn-success btn-sm" onclick="runMappings()">Apply mappings</button>&nbsp;
+          <button type="button" class="btn btn-success btn-sm" onclick="runMapping()">Apply mappings</button>&nbsp;
         </p>
         <div id="rdfEditor"></div>
       </div>
@@ -439,13 +439,12 @@
         .catch((err) => { console.error(err); });
     }
 
-    function runMappings() {
+    function runMapping() {
       // Triggers the transformation lido + x3ml => ttl
       // and loads the result into the RDF editor.
-      data = { type: '/runMappings', data: lidoEditor.getValue() }
-      post('runMappings', data)
-        .then(res => res.json())
-        .then(s => rdfEditor.setValue(s.text));
+      fetch('convert', { method: "POST", body: lidoEditor.getValue() })
+        .then(res => res.text())
+        .then(ttl => rdfEditor.setValue(ttl))
       app.getX3ml();
     }
 

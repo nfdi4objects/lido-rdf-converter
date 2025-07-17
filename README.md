@@ -112,6 +112,20 @@ Then start `app.py` (optionally with argument `--port`):
 python app.py
 ~~~
 
+### API
+
+The API has not fully been specified yet an may change. 
+
+#### POST /convert
+
+Expects a valid LIDO/XML document as request body. Returns the LIDO data converted to RDF in Turtle serialization on success.
+
+Sample query:
+
+~~~sh
+curl http://127.0.0.1:5000/convert --data-binary @lido.xml --silent
+~~~
+
 ## Build and test
 
 To locally build a Docker image for testing:
