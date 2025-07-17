@@ -1,5 +1,5 @@
 {
-   "source": "lido-v1.1.xsd",
+   "source": "lido-schema/lido-v1.1.xsd",
    "pathes": [
       "gml:LineString",
       "gml:Point",

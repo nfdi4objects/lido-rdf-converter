@@ -51,5 +51,5 @@ if __name__ == "__main__":
     else:
         appName = sys.argv[0]
         print(f'Usage: python {appName} <xml_file>')
-        print(f'Example: python {appName} lido-v1.1.xsd')
+        print(f'Example: python {appName} lido-schema/lido-v1.1.xsd')
         sys.exit(1)

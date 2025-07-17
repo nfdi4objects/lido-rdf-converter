@@ -2,6 +2,7 @@ deps:
 	[ -d .venv ] || python3 -m venv .venv
 	.venv/bin/pip3 install -r requirements.txt
 	.venv/bin/pip3 install -r dev-requirements.txt
+	git submodule update --init
 
 test:
 	@.venv/bin/pytest
