@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import LidoRDFConverter as LRC
 from pathlib import Path
 from .x3ml_classes import Mapping, Link, PredicateVariant, Equals, X3ml
-from flask import Blueprint, render_template, request, send_file, jsonify
+from flask import Blueprint, render_template, request, send_file, jsonify, make_response
 from .database import db, User
 
 
@@ -25,13 +25,14 @@ def dlftLidoFile():
     return Path('./defaultLido.xml')
 
 
-def processString(lidoString, x3mlstr):
-    result = '<no-data/>'
-    if lidoString:
-        converter = LRC.LidoRDFConverter.from_str(x3mlstr)
-        graph = converter.parse_string(lidoString)
-        result = graph.serialize(format='turtle')
-    return result
+def convert_lido_str(lido_str, x3ml_str,format='turtle'):
+    '''Converts LIDO XML string to RDF using the provided X3ML mapping string.
+    Returns the RDF string in the specified format.'''
+    if lido_str:
+        converter = LRC.LidoRDFConverter.from_str(x3ml_str)
+        graph = converter.parse_string(lido_str)
+        return graph.serialize(format=format)
+    return ''
 
 
 def registerLidoBlueprint(app,user):
@@ -135,20 +136,27 @@ def runMappings():
     if request.method == 'POST':
         parm = request.get_json()
         lidoapp_bp.user.lido = parm['data']
-        response_object['text'] = processString(lidoapp_bp.user.lido, lidoapp_bp.model.to_str())
+        response_object['text'] = convert_lido_str(lidoapp_bp.user.lido, lidoapp_bp.model.to_str())
         response_object['message'] = 'Mappings applied to Lido!'
     return jsonify(response_object)
 
 @lidoapp_bp.route('/convert', methods=['POST'])
 def convert():
     # TODO: catch error and provide better error response e.g. code 400 for malformed LIDO
+    # Valid formats: "xml", "n3", "turtle", "nt", "pretty-xml", "trix", "trig", "nquads", "json-ld", "hext"
+    # Example: curl -X POST -F format='nt' -F file=@FILE HOST:PORT/convert"
     if request.mimetype == "multipart/form-data":
         lido_xml = request.files['file'].read().decode('utf-8')
+        format = request.form.get('format','turtle')
     else:
         lido_xml = request.get_data()
-    return processString(lido_xml, dlftMappingFile().read_text())
-    response = make_response(turtle, 200)
-    response.mime_type = "text/turtle"
+        format ='turtle'
+    try:
+        rdf_str = convert_lido_str(lido_xml, dlftMappingFile().read_text(),format=format)
+        response = make_response(rdf_str, 200)
+        response.mime_type = f"text/{format}"
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
     return response        
 
 @lidoapp_bp.route('/updateLido', methods=['GET', 'POST'])
