@@ -1,3 +1,4 @@
+import json
 import re
 import time
 import x3ml
@@ -11,7 +12,7 @@ from lxml import etree
 
 
 # prefix namespace mapping
-prefix_namespaces = {
+NAMESPACE_MAP = {
     "n4o": RF.Namespace('http://graph.nfdi4objects.net/id/'),
     "crm": RF.Namespace("http://www.cidoc-crm.org/cidoc-crm/"),
     "geo": RF.Namespace('http://www.ontotext.com/plugins/geosparql#')
@@ -20,9 +21,10 @@ LIDO_TAG = f'{{{x3ml.lidoSchemaURI}}}lido'
 RESUMPTION_TAG = f'{{{x3ml.oaiSchemaURL}}}resumptionToken'
 
 
-def make_erm_uri(uri_str):
+def make_short_uri(uri_str, **kw):
     '''Returns URI' like e.g. crm:Enn_cccc'''
-    for k, v in prefix_namespaces.items():
+    # tag = kw.get('tag',None)
+    for k, v in NAMESPACE_MAP.items():
         if uri_str.startswith(f"{k}:"):
             return v[uri_str.split(':')[-1]]
     return RF.term.URIRef(uri_str)
@@ -36,16 +38,14 @@ def deep_get(nested_dict, keys):
 
 def isHttp(s) -> bool:
     """Checks if a string is a valid HTTP URL."""
-    if s:
-        return ulp.urlparse(s).scheme.startswith('http')
-    return False
+    return re.match(r"^https?:", s) is not None
 
 
 def proper_uri(uri: str | None) -> str | None:
     """Returns a proper URI string, replacing spaces with underscores and encoding special characters."""
     if uri:
         uri_t = uri.strip()
-        if uri_t.startswith('http'):
+        if isHttp(uri_t):
             return ulp.quote(uri_t).replace('%3A', ':')
         return uri_t
 
@@ -82,71 +82,79 @@ def request_to_buffer(req: ulr.Request) -> str:
 
 
 def make_result_graph():
+    '''Creates an RDF graph with bound namespaces'''
     graph = RF.Graph()
-    for k, v in prefix_namespaces.items():
+    for k, v in NAMESPACE_MAP.items():
         graph.bind(k, v)
     return graph
 
 
 def make_clean_subdir(dir_path):
+    '''Creates a clean subdirectory for storing RDF files'''
     if os.path.exists(dir_path):
         shutil.rmtree(dir_path)
     os.mkdir(dir_path)
 
 
 def hash(s):
-    ''''''
-    # print(re.sub(r"\s+", "", s, flags=re.UNICODE))
+    '''Returns a hash of the string s'''
     return x3ml.md5Hash(s)
 
 
 def strip_schema(url: str) -> str:
     """Strips the schema from a URL"""
-    return re.sub(r"https?:", '', url).strip().strip('/')
+    return re.sub(r"^https?:", '', url).strip().strip('/')
 
 
-def make_item(text, specify, use_id=False):
-    '''Create an RDF item URI from a text and specify'''
-    if isHttp(text) and not use_id:
-        return RF.term.URIRef(text)
-    else:
-        return prefix_namespaces['n4o'][f"{hash(strip_schema(text) + specify)}"]
+def make_n4o_id(text: str, **kw) -> str:
+    """Creates a N4O ID from text and specify"""
+    return NAMESPACE_MAP['n4o'][f"{hash(text)}"]
 
+def pd(*args):
+    print([json.dumps(x,indent=2) for x in args])
+    
+    
+uri_ref = RF.term.URIRef
 
-def compile_triples(rec_id, S, po, **kw) -> list:
+def add_triples(graph, data, recID, **kw):
+    '''Add triples to the graph'''
+    if id_S := deep_get(data, ['info', 'id']).strip():
+        mode = deep_get(data, ['info', 'mode'])
+        if mode != 'lidoID': id_S = recID + '-' + id_S
+        S = make_n4o_id(id_S,tag='S')
+        entity_S = deep_get(data, ['S', 'entity'])
+        all_triples = []
+        all_triples.append((S, RF.RDF.type, make_short_uri(entity_S, tag='S')))
+        #all_triples.append((S,make_short_uri('crm:P999'), RF.Literal(deep_get(data, ['S', 'path'])+'-'+recID)))
+        k = len(all_triples)
+        for po in deep_get(data, ['PO']):
+            all_triples.extend(get_po_triples(S, recID,  po, **kw))
+        if len(all_triples)>k:
+            for t in all_triples:graph.add(t)
+
+def get_po_triples(S, rec_id, po, **kw) -> list:
     '''Compile triples from PO data'''
     triples = []
     if po.get('isValid'):
         entity_P = deep_get(po, ['P', 'entity'])
-        entity_O = deep_get(po, ['O', 'entity'])
-        P = make_erm_uri(entity_P)
+        P = make_short_uri(entity_P, tag='P')
         for po_data in po.get('data'):
-            if text := proper_uri(po_data.get('text')):
-                OL = RF.Literal(text)
-                if isHttp(text):
-                    triples.append((S, P, OL))
-                else:
-                    id_O = po_data.get('id')
-                    if isHttp(id_O):
-                        O = make_item(id_O, rec_id)
-                        triples.append((O, RF.RDF.type, make_erm_uri(entity_O)))
-                        triples.append((O, P, OL))
-                        triples.append((S, P, O))
-                    else:
-                        triples.append((S, P, OL))
+            mode = po_data.get('mode')
+            if mode == 'lidoID':
+                id_O = po_data.get('id').strip()
+                O = make_n4o_id(id_O,tag='O')
+                if (O!=S):
+                    #print(po)
+                    entity_O = deep_get(po, ['O', 'entity'])
+                    triples.append((O, RF.RDF.type, make_short_uri(entity_O, tag='O')))
+                    triples.append((O, make_short_uri('crm:P90_has_value'), RF.Literal(id_O)))
+                    triples.append((S, P, O))
+            else:
+                if text:=po_data.get('text'):
+                    O = RF.Literal(text.strip())
+                    triples.append((S, P, O))
     return triples
 
-
-def add_triples(graph, data, rec_id, **kw):
-    '''Add triples to the graph'''
-    Entity_S = deep_get(data, ['S', 'entity'])
-    ID_S = proper_uri(deep_get(data, ['info', 'id']))
-    S = make_item(ID_S, rec_id, use_id=True)
-
-    graph.add((S, RF.RDF.type, make_erm_uri(Entity_S)))
-    for po in deep_get(data, ['PO']):
-        for triple in compile_triples(rec_id, S, po, **kw):
-            graph.add(triple)
 
 
 class LidoRDFConverter():
@@ -229,8 +237,9 @@ class LidoRDFConverter():
 
     def _process_lido_element(self, elem, graph):
         '''Create graph LIDO root element w.r.t given mappings'''
-        rec_id = ' '.join(x3ml.lidoXPath(elem, "./lido:lidoRecID/text()"))
+        IDs = x3ml.lidoXPath(elem, "./lido:lidoRecID/text()")
+        recID = ' '.join([x.strip() for x in IDs])
         for data in [m.getData(elem) for m in self.mappings]:
             for i, elem_data in enumerate(data):
                 if elem_data.get('valid'):
-                    add_triples(graph, elem_data, rec_id, index=i)
+                    add_triples(graph, elem_data, recID, index=i)

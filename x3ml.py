@@ -76,7 +76,7 @@ LIDO_ID_MAP = {
     'lido:actor': lxpath('lido:actorID'),
     'lido:category': lxpath('lido:conceptID'),
     'lido:repositorySet': lxpath('lido:workID'),
-    'lido:place': lxpath('lido:placeID'),
+    'lido:place': [lxpath('lido:placeID'),lxpath('lido:namePlaceSet/lido:appellationValue')],
     'lido:namePlaceSet': lxpath('lido:appellationValue'),
     'lido:subjectConcept': lxpath('lido:conceptID'),
     'lido:recordWrap': lxpath('lido:recordID'),
@@ -121,7 +121,12 @@ def getIdElements(elem):
     '''Returns all ID child elements'''
     tag = lidoCompressNS(elem.tag)
     if lxp := LIDO_ID_MAP.get(tag):
-        return lxp.children(elem)
+        if isinstance(lxp, lxpath):
+            return lxp.children(elem)
+        if isinstance(lxp, list):
+            for l in lxp:
+                if ch :=l.children(elem):
+                    return ch
     return []
 
 

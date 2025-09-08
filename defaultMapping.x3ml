@@ -38,6 +38,9 @@
         <namespace prefix="rdfs" uri="http://www.w3.org/2000/01/rdf-schema#"/>
         <namespace prefix="xsd" uri="http://www.w3.org/2001/XMLSchema#"/>
         <namespace prefix="crm" uri="http://www.cidoc-crm.org/cidoc-crm/"/>
+        <namespace prefix="lido" uri="http://www.lido-schema.org/"/>
+        <namespace prefix="gml" uri="http://www.opengis.net/gml/3.2"/>
+        <namespace prefix="geo" uri="http://www.ontotext.com/plugins/geosparql#"/>
     </namespaces>
     <mappings>
         <mapping skip='false'>
@@ -8149,14 +8152,14 @@
             <link>
                 <path>
                     <source_relation>
-                        <relation>lido:gml</relation>
+                        <relation>lido:gml/gml:Point/gml:pos</relation>
                     </source_relation>
                     <target_relation>
-                        <relationship>crm:P3_has_note</relationship>
+                        <relationship>geo:asWKT</relationship>
                     </target_relation>
                 </path>
                 <range>
-                    <source_node>lido:gml</source_node>
+                    <source_node>lido:gml/gml:Point/gml:pos</source_node>
                     <target_node>
                         <entity>
                             <type>http://www.w3.org/2000/01/rdf-schema#Literal</type>
