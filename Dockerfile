@@ -15,7 +15,6 @@ RUN npm init -y && npm install
 
 WORKDIR /app
 
-
 # Allow to directly call scripts in the base directory
 ENV PATH="/app:$PATH"
-CMD [ "python", "./app.py" ]
+CMD [ "python", "./app.py", "--wsgi" ]
