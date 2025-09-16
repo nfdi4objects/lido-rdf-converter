@@ -15,7 +15,8 @@ xmlnsURI = 'http://www.w3.org/XML/1998/namespace'
 lidoNS = {'lido': lidoSchemaURI, 'gml': gmlSchemaURI, 'skos': skosSchemaURL}
 
 
-def lidoXPath(elem: etree.Element, path: str) -> list:
+def xpath_lido(elem: etree.Element, path: str) -> list:
+    '''Wrapper for xpath with Lido namespaces'''
     return elem.xpath(path, namespaces=lidoNS)
 
 
@@ -51,21 +52,19 @@ PATH_ID_TAG = 'lidoPath'
 class lxpath():
     '''Wrapper for lidoXPath'''
 
-    def __init__(self, tag=''):
+    def __init__(self, tag=None):
         self.tag = tag
 
-    def firstId(self, elem):
-        '''Returns the first id'''
-        if not self.tag:
-            return elem.text
-        if iDs := lidoXPath(elem, f"./{self.tag}/text()"):
-            return iDs[0]
-
     def children(self, elem):
-        '''Retruns all child elements'''
+        '''Returns all child elements'''
         if not self.tag:
             return [elem]
-        return lidoXPath(elem, f"./{self.tag}")
+        return xpath_lido(elem, f"./{self.tag}")
+
+    def firstId(self, elem):
+        if ch := self.children(elem):
+            return ch[0]
+
 
 
 '''Mapping lido tags to its ID tags (lxpath)'''
@@ -86,7 +85,8 @@ LIDO_ID_MAP = {
     'lido:resourceSet': lxpath('lido:resourceID'),
     'lido:repositoryName': lxpath('lido:legalBodyID'),
     'lido:measurementType': lxpath(),
-    'lido:appellationValue': lxpath()}
+    'lido:appellationValue': lxpath(),
+    }
 
 '''Valid Lido ID type URIs'''
 LIDO_ID_TYPE_URIS = ('http://terminology.lido-schema.org/lido00099',
@@ -152,7 +152,9 @@ def fullLidoPath(elem):
     return tags
 
 
-class Base:
+class ResultData:
+    '''Generic result data class for S, P, O, PO, Mapping'''
+
     def __init__(self, **kw):
         for k, v in kw.items():
             setattr(self, k, v)
@@ -160,18 +162,19 @@ class Base:
 
 def getLidoInfo(elem, i):
     t = elem.text.strip() if elem.text else ''
+    a = elem.attrib
     if ids := getIDs(elem):
-        return  Base(text=t,mode = 'lidoID',id = ids[0])
+        return ResultData(text=t, attrib=a, mode='lidoID', id=ids[0])
     else:
         ids = '/'.join(fullLidoPath(elem) + [str(i)])
-        return  Base(text=t,mode = 'path',id = ids)
+        return ResultData(text=t, attrib=a, mode='path', id=ids)
 
 
 class ExP:
     '''Linking a XML path to a entity label'''
 
     def __init__(self, path: str, entity: str, var: str = ''):
-        self.path: str = path.strip('/')
+        self.path: str = path
         self.entity = entity
         self.var = var
 
@@ -190,9 +193,9 @@ class ExP:
     def sPath(self):
         return self.path.replace('lido:', '')
 
-    def elements(self, root) -> list:
+    def subs(self, elem) -> list:
         xpath = "." if self.isRoot() else f".//{self.path}"
-        return lidoXPath(root, xpath)
+        return xpath_lido(elem, xpath)
 
 
 def stripPath(link: ExP, txt: str) -> str:
@@ -216,7 +219,7 @@ class Condition():
     def isValid(self, elem) -> bool:
         if self.values:
             if self.access.endswith('/text()'):
-                pathValue = lidoXPath(elem, f"./{self.access}")
+                pathValue = xpath_lido(elem, f"./{self.access}")
                 if self.values.intersection(pathValue):
                     return True
             else:
@@ -242,9 +245,9 @@ class PO():
     def isValid(self, elem):
         return self.condition.isValid(elem)
 
-    def getData(self, elem):
-        data = [getLidoInfo(e, i) for i, e in enumerate(self.O.elements(elem))]
-        return Base(P=self.P, O=self.O, data=data, valid=self.isValid(elem))
+    def evaluate(self, elem):
+        data = [getLidoInfo(e, i) for i, e in enumerate(self.O.subs(elem))]
+        return ResultData(P=self.P, O=self.O, data=data, valid=self.isValid(elem))
 
 
 class Mapping:
@@ -257,13 +260,12 @@ class Mapping:
     def isValid(self, elem):
         return self.condition.isValid(elem)
 
-    def eval(self, elem, i):
-        ret = Base(S=self.S, PO=[], valid=self.isValid(elem), info=getLidoInfo(elem, i))
-        ret.PO = [po.getData(elem) for po in self.POs]
-        return ret
+    def evaluate_n(self, elem, i):
+        POs = [po.evaluate(elem) for po in self.POs]
+        return ResultData(S=self.S, POs=POs, valid=self.isValid(elem), info=getLidoInfo(elem, i))
 
-    def getData(self, elem):
-        return [self.eval(e, i) for i, e in enumerate(self.S.elements(elem))]
+    def evaluate(self, elem):
+        return [self.evaluate_n(e, i) for i, e in enumerate(self.S.subs(elem))]
 
     def __str__(self):
         poStr = '\n'.join([f"\t{x}" for x in self.POs])
@@ -311,7 +313,7 @@ def mappingsFromNode(mappingElem) -> Mappings:
     return mappings
 
 
-def getMappingS(xmlStr: str) -> Mappings | None:
+def mappings_from_str(xmlStr: str) -> Mappings | None:
     '''Returns all mappings from a string'''
     mappings = []
     parser = etree.XMLPullParser(events=("end",), tag=(
@@ -323,9 +325,10 @@ def getMappingS(xmlStr: str) -> Mappings | None:
     return mappings
 
 
-def getMapping(fileName: str) -> Mappings | None:
+def mappings_from_file(fileName: str) -> Mappings | None:
     '''Returns all mappings from a file'''
-    return getMappingS(Path(fileName).read_text(encoding='UTF-8'))
+    s = Path(fileName).read_text(encoding='UTF-8')
+    return mappings_from_str(s)
 
 
 class NS():
@@ -350,8 +353,7 @@ class NS():
 
 def getNamespaces(fname: str):
     '''Returns all namepsaces from a file'''
-    def mNS(e):
-        return NS(e.get('prefix'), e.get('uri'))
+    mNS = lambda e: NS(e.get('prefix'), e.get('uri'))
     elements = etree.iterparse(fname, events=("end",), tag=(
         'namespace'), encoding='UTF-8', remove_blank_text=True)
     return [mNS(elem) for _, elem in elements if elem.get('prefix')]
@@ -360,5 +362,5 @@ def getNamespaces(fname: str):
 if __name__ == "__main__":
     args = sys.argv[1:]
     mappings = args[0] if len(args) == 1 else "defaultMapping.x3ml"
-    for t in getMapping(mappings):
+    for t in mappings_from_file(mappings):
         print(json.dumps(t.toDict(), indent=3))
