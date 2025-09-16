@@ -289,10 +289,10 @@ Mappings = list[Mapping]
 
 def makeExP(pathElem: etree.Element, typeElem: etree.Element, varStr: str = '') -> ExP | None:
     if notNone(pathElem, typeElem):
-        pathText = pathElem.text.strip()
-        typeText = typeElem.text.strip()
+        pathText = pathElem.text
+        typeText = typeElem.text
         if typeText and pathText:
-            return ExP(pathText, typeText, varStr)
+            return ExP(pathText.strip(), typeText.strip(), varStr)
 
 
 def mappingsFromNode(mappingElem) -> Mappings:

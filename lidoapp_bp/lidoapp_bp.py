@@ -187,10 +187,10 @@ def addMap():
     if request.method == 'POST':
         newMapping = Mapping()
         if len(lidoapp_bp.model.mappings):
-            newMapping.domain = copy.deepcopy(lidoapp_bp.model.mappings[0].domain)
+            newMapping.domain = copy.deepcopy(lidoapp_bp.model.mappings[-1].domain)
         else:
             newMapping.domain.sourceNode.text = '//lido:lido'
-        lidoapp_bp.model.mappings.insert(0, newMapping)
+        lidoapp_bp.model.mappings.append(newMapping)
         response_object['message'] = 'Map changes applied!'
     return jsonify(response_object)
 
@@ -205,8 +205,8 @@ def addLink():
         mapping = lidoapp_bp.model.mappings[int(parm['mIndex'])]
         newLink = Link()
         if len(mapping.links):
-            newLink.path = copy.deepcopy(mapping.links[0].path)
-        mapping.links.insert(0, newLink)
+            newLink.path = copy.deepcopy(mapping.links[-1].path)
+        mapping.links.append(newLink)
         response_object['message'] = 'Map changes applied!'
     return jsonify(response_object)
 
