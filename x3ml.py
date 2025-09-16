@@ -15,7 +15,7 @@ xmlnsURI = 'http://www.w3.org/XML/1998/namespace'
 lidoNS = {'lido': lidoSchemaURI, 'gml': gmlSchemaURI, 'skos': skosSchemaURL}
 
 
-def lidoXPath(elem, path):
+def lidoXPath(elem: etree.Element, path: str) -> list:
     return elem.xpath(path, namespaces=lidoNS)
 
 
@@ -76,7 +76,7 @@ LIDO_ID_MAP = {
     'lido:actor': lxpath('lido:actorID'),
     'lido:category': lxpath('lido:conceptID'),
     'lido:repositorySet': lxpath('lido:workID'),
-    'lido:place': [lxpath('lido:placeID'),lxpath('lido:namePlaceSet/lido:appellationValue')],
+    'lido:place': [lxpath('lido:placeID'), lxpath('lido:namePlaceSet/lido:appellationValue')],
     'lido:namePlaceSet': lxpath('lido:appellationValue'),
     'lido:subjectConcept': lxpath('lido:conceptID'),
     'lido:recordWrap': lxpath('lido:recordID'),
@@ -125,7 +125,7 @@ def getIdElements(elem):
             return lxp.children(elem)
         if isinstance(lxp, list):
             for l in lxp:
-                if ch :=l.children(elem):
+                if ch := l.children(elem):
                     return ch
     return []
 
@@ -152,30 +152,31 @@ def fullLidoPath(elem):
     return tags
 
 
+class Base:
+    def __init__(self, **kw):
+        for k, v in kw.items():
+            setattr(self, k, v)
+
+
 def getLidoInfo(elem, i):
+    t = elem.text.strip() if elem.text else ''
     if ids := getIDs(elem):
-        mode = 'lidoID'
-        id = ids[0]
+        return  Base(text=t,mode = 'lidoID',id = ids[0])
     else:
-        mode = 'path'
-        id = '/'.join(fullLidoPath(elem) + [str(i)])
-    return {'id': id, 'text': elem.text, 'mode': mode}
+        ids = '/'.join(fullLidoPath(elem) + [str(i)])
+        return  Base(text=t,mode = 'path',id = ids)
 
 
 class ExP:
     '''Linking a XML path to a entity label'''
 
-    def __init__(self, pathStr: str, typeStr: str, varStr: str = ''):
-        self.path: str = pathStr
-        self.entity = typeStr
-        self.var = varStr
+    def __init__(self, path: str, entity: str, var: str = ''):
+        self.path: str = path.strip('/')
+        self.entity = entity
+        self.var = var
 
     def isRoot(self):
         return self.path.startswith('//')
-
-    def toDict(self):
-        return {'path': self.path.strip('/'), 'entity': self.entity,
-                'var': self.var, 'isRoot': self.isRoot(), 'isLiteral': self.isLiteral()}
 
     def __str__(self):
         return f"{self.path}|{self.entity}"
@@ -189,7 +190,7 @@ class ExP:
     def sPath(self):
         return self.path.replace('lido:', '')
 
-    def elements(self, root):
+    def elements(self, root) -> list:
         xpath = "." if self.isRoot() else f".//{self.path}"
         return lidoXPath(root, xpath)
 
@@ -235,19 +236,15 @@ class PO():
         self.intermediates = []
         self.condition = Condition()
 
-    def toDict(self):
-        return {'P': self.P.toDict(), 'O': self.O.toDict(), 'condition': self.condition.toDict()}
-
     def __str__(self):
         return f"{self.P} -> {self.O}"
 
     def isValid(self, elem):
         return self.condition.isValid(elem)
 
-    def getData(self, root):
-        data = [getLidoInfo(elem, i)
-                for i, elem in enumerate(self.O.elements(root))]
-        return {'P': self.P.toDict(), 'O': self.O.toDict(), 'data': data, 'isValid': self.isValid(root)}
+    def getData(self, elem):
+        data = [getLidoInfo(e, i) for i, e in enumerate(self.O.elements(elem))]
+        return Base(P=self.P, O=self.O, data=data, valid=self.isValid(elem))
 
 
 class Mapping:
@@ -260,17 +257,13 @@ class Mapping:
     def isValid(self, elem):
         return self.condition.isValid(elem)
 
-    def toDict(self):
-        return {'S': self.S.toDict(), 'POs': [po.toDict() for po in self.POs],
-                'condition': self.condition.toDict(), 'n': self.n}
+    def eval(self, elem, i):
+        ret = Base(S=self.S, PO=[], valid=self.isValid(elem), info=getLidoInfo(elem, i))
+        ret.PO = [po.getData(elem) for po in self.POs]
+        return ret
 
-    def getSData(self, elem, i):
-        info = getLidoInfo(elem, i)
-        poData = [po.getData(elem) for po in self.POs]
-        return {'S': self.S.toDict(), 'info': info, 'PO': poData, 'valid': self.isValid(elem)}
-
-    def getData(self, root):
-        return [self.getSData(elemS, i) for i, elemS in enumerate(self.S.elements(root))]
+    def getData(self, elem):
+        return [self.eval(e, i) for i, e in enumerate(self.S.elements(elem))]
 
     def __str__(self):
         poStr = '\n'.join([f"\t{x}" for x in self.POs])

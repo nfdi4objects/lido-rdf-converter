@@ -118,16 +118,16 @@ uri_ref = RF.term.URIRef
 
 def add_triples(graph, data, recID, **kw):
     '''Add triples to the graph'''
-    if id_S := deep_get(data, ['info', 'id']).strip():
-        mode = deep_get(data, ['info', 'mode'])
+    if id_S := data.info.id.strip():
+        mode = data.info.mode
         if mode != 'lidoID': id_S = recID + '-' + id_S
         S = make_n4o_id(id_S,tag='S')
-        entity_S = deep_get(data, ['S', 'entity'])
+        entity_S = data.S.entity
         all_triples = []
         all_triples.append((S, RF.RDF.type, make_short_uri(entity_S, tag='S')))
-        #all_triples.append((S,make_short_uri('crm:P999'), RF.Literal(deep_get(data, ['S', 'path'])+'-'+recID)))
+        all_triples.append((S,make_short_uri('crm:P999'), RF.Literal(entity_S)))
         k = len(all_triples)
-        for po in deep_get(data, ['PO']):
+        for po in data.PO:
             all_triples.extend(get_po_triples(S, recID,  po, **kw))
         if len(all_triples)>k:
             for t in all_triples:graph.add(t)
@@ -135,22 +135,22 @@ def add_triples(graph, data, recID, **kw):
 def get_po_triples(S, rec_id, po, **kw) -> list:
     '''Compile triples from PO data'''
     triples = []
-    if po.get('isValid'):
-        entity_P = deep_get(po, ['P', 'entity'])
+    if po.valid:
+        entity_P = po.P.entity
         P = make_short_uri(entity_P, tag='P')
-        for po_data in po.get('data'):
-            mode = po_data.get('mode')
+        for po_data in po.data:
+            mode = po_data.mode
             if mode == 'lidoID':
-                id_O = po_data.get('id').strip()
+                id_O = po_data.id.strip()
                 O = make_n4o_id(id_O,tag='O')
                 if (O!=S):
                     #print(po)
-                    entity_O = deep_get(po, ['O', 'entity'])
+                    entity_O = po.O.entity
                     triples.append((O, RF.RDF.type, make_short_uri(entity_O, tag='O')))
                     triples.append((O, make_short_uri('crm:P90_has_value'), RF.Literal(id_O)))
                     triples.append((S, P, O))
             else:
-                if text:=po_data.get('text'):
+                if text:=po_data.text:
                     O = RF.Literal(text.strip())
                     triples.append((S, P, O))
     return triples
@@ -241,5 +241,5 @@ class LidoRDFConverter():
         recID = ' '.join([x.strip() for x in IDs])
         for data in [m.getData(elem) for m in self.mappings]:
             for i, elem_data in enumerate(data):
-                if elem_data.get('valid'):
+                if elem_data.valid:
                     add_triples(graph, elem_data, recID, index=i)
