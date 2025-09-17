@@ -22,14 +22,17 @@ def xpath_lido(elem: etree.Element, path: str) -> list:
 
 
 def lidoExpandNS(s):
+    '''Expands lido: prefix to full namespace'''
     return s.replace('lido:', f'{{{lidoSchemaURI}}}')
 
 
 def lidoCompressNS(s):
+    '''Compresses full namespace to lido: prefix'''
     return s.replace(f'{{{lidoSchemaURI}}}', 'lido:')
 
 
 def md5Hash(s):
+    '''Returns the MD5 hash of a string'''
     return hashlib.md5(s.encode()).hexdigest()
 
 
@@ -67,7 +70,6 @@ class lxpath():
             return ch[0]
 
 
-
 '''Mapping lido tags to its ID tags (lxpath)'''
 LIDO_ID_MAP = {
     'lido:lido': lxpath('lido:lidoRecID'),
@@ -87,7 +89,7 @@ LIDO_ID_MAP = {
     'lido:repositoryName': lxpath('lido:legalBodyID'),
     'lido:measurementType': lxpath(),
     'lido:appellationValue': lxpath(),
-    }
+}
 
 '''Valid Lido ID type URIs'''
 LIDO_ID_TYPE_URIS = ('http://terminology.lido-schema.org/lido00099',
@@ -143,13 +145,12 @@ def skipped(elem: etree.Element) -> bool:
     return str2bool(elem.get('skip', 'false'))
 
 
-def fullLidoPath(elem):
+def root_path_as_list(elem):
     '''Return the full lido path of an element'''
-    tags = [elem.tag.replace(f'{{{lidoSchemaURI}}}', '')]
-    if tags[0] != 'lido':
-        parent = elem.getparent()
-        if notNone(parent):
-            tags = fullLidoPath(parent) + tags
+    tags = elem.tag.replace(f'{{{lidoSchemaURI}}}', '')
+    parent = elem.getparent()
+    if notNone(parent):
+        tags = root_path_as_list(parent) + '/' + tags
     return tags
 
 
@@ -160,29 +161,36 @@ class ResultData:
         for k, v in kw.items():
             setattr(self, k, v)
 
+
 @dataclass
 class Info:
-    text:str = ''
-    attrib:dict = None
-    mode:str = ''
-    id:str = ''
-    index:int = -1
+    '''Information about an element'''
+    text: str = ''
+    attrib: dict = None
+    mode: str = ''
+    id: str = ''
+    index: int = -1
+
 
 def getLidoInfo(elem, i):
-    t = elem.text.strip() if elem.text else ''
-    a = elem.attrib
-    if ids := getIDs(elem):
-        return Info(t, a, 'lidoID', ids[0])
+    '''Returns Info for an element'''
+    text = elem.text.strip() if elem.text else ''
+    info = Info(text=text, attrib=elem.attrib, index=i)
+    if rpl := getIDs(elem):
+        info.mode = 'lidoID'
+        info.id = rpl[0]
     else:
-        ids = '/'.join(fullLidoPath(elem) + [str(i)])
-        return Info(text=t, attrib=a, mode='path', id=ids,index=i)
+        info.mode = 'path'
+        info.id = root_path_as_list(elem) + '/'+str(i)
+    return info
+
 
 @dataclass
-class ExP:
-    '''Linking of path and an entity'''
+class LinkEP:
+    '''Linking of path and entity'''
     path: str = ''
-    entity : str = ''
-    var : str = ''
+    entity: str = ''
+    var: str = ''
 
     def isRoot(self):
         '''Tests if the path is the root element'''
@@ -198,15 +206,16 @@ class ExP:
         return xpath_lido(elem, xpath)
 
 
-def stripPath(link: ExP, txt: str) -> str:
+def stripPath(link: LinkEP, txt: str) -> str:
     return txt.removeprefix(link.path)
 
 
 @dataclass
 class Condition():
+    '''Condition for filtering elements'''
     access: str = ''
     values: set = None
- 
+
     def add(self, path, value):
         if self.values is None:
             self.values = set()
@@ -228,41 +237,47 @@ class Condition():
             return False
         return True
 
+
 @dataclass
 class PO_Data:
-    P: ExP = None
-    O: ExP = None
-    data: list = None
+    '''Data for a single PO'''
+    P: LinkEP = None
+    O: LinkEP = None
+    infos: list = None
     valid: bool = False
+
 
 @dataclass
 class PO():
-    P: ExP = None
-    O: ExP = None
+    '''Mapping for a single PO'''
+    P: LinkEP = None
+    O: LinkEP = None
     condition: Condition = field(default_factory=Condition)
 
     def isValid(self, elem):
         return self.condition.isValid(elem)
 
     def evaluate(self, elem):
-        data = [getLidoInfo(e, i) for i, e in enumerate(self.O.subs(elem))]
-        return PO_Data(P=self.P, O=self.O, data=data, valid=self.isValid(elem))
+        infos = [getLidoInfo(e, i) for i, e in enumerate(self.O.subs(elem))]
+        return PO_Data(P=self.P, O=self.O, infos=infos, valid=self.isValid(elem))
 
 
 @dataclass
 class Mapping_Data:
-    S: ExP = None
+    '''Data for a single mapping'''
+    S: LinkEP = None
     POs: list = None
     valid: bool = False
     info: Info = None
-    
+
+
 @dataclass
 class Mapping:
-    S: ExP = None
+    '''Mapping for a single S with multiple POs'''
+    S: LinkEP = None
     POs: list = field(default_factory=list)
     condition: Condition = field(default_factory=Condition)
     intermediates: list = field(default_factory=list)
-
 
     def isValid(self, elem):
         return self.condition.isValid(elem)
@@ -274,10 +289,6 @@ class Mapping:
     def evaluate(self, elem):
         return [self.evaluate_n(e, i) for i, e in enumerate(self.S.subs(elem))]
 
-    def __str__(self):
-        poStr = '\n'.join([f"\t{x}" for x in self.POs])
-        return f"{self.S}:\n{poStr}"
-
     def addPO(self, po: PO):
         self.POs.append(po)
 
@@ -285,15 +296,18 @@ class Mapping:
         if intermediate:
             self.intermediates.append(intermediate)
 
+
 Mappings = list[Mapping]
+'''List of mappings'''
 
 
-def makeExP(pathElem: etree.Element, typeElem: etree.Element, varStr: str = '') -> ExP | None:
+def makeExP(pathElem: etree.Element, typeElem: etree.Element, varStr: str = '') -> LinkEP | None:
+    '''Creates an LinkEP from path and type elements'''
     if notNone(pathElem, typeElem):
         pathText = pathElem.text
         typeText = typeElem.text
         if typeText and pathText:
-            return ExP(pathText.strip(), typeText.strip(), varStr)
+            return LinkEP(pathText.strip(), typeText.strip(), varStr)
 
 
 def mappingsFromNode(mappingElem) -> Mappings:
@@ -335,34 +349,6 @@ def mappings_from_file(fileName: str) -> Mappings | None:
     '''Returns all mappings from a file'''
     s = Path(fileName).read_text(encoding='UTF-8')
     return mappings_from_str(s)
-
-
-class NS():
-    """ docstring
-    """
-
-    def __init__(self, prefix, uri):
-        self.prefix = prefix
-        self.uri = uri
-
-    def __len__(self):
-        if self.prefix:
-            return 1
-        return 0
-
-    def toDict(self):
-        return {'prefix': self.prefix, 'uri': self.uri}
-
-    def __repr__(self):
-        return str(self.toDict())
-
-
-def getNamespaces(fname: str):
-    '''Returns all namepsaces from a file'''
-    mNS = lambda e: NS(e.get('prefix'), e.get('uri'))
-    elements = etree.iterparse(fname, events=("end",), tag=(
-        'namespace'), encoding='UTF-8', remove_blank_text=True)
-    return [mNS(elem) for _, elem in elements if elem.get('prefix')]
 
 
 if __name__ == "__main__":

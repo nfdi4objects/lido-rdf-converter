@@ -3,21 +3,7 @@ import json
 from lxml import etree
 
 
-NS = {'path': 'http://www.w3.org/2001/XMLSchema', 'label': 'lido'}
 namespaces = {'xs': 'http://www.w3.org/2001/XMLSchema'}
-
-
-class NameInfo():
-    def __init__(self, prefix, entity):
-        self.prefix = prefix
-        self.entity = entity
-
-    def __hash__(self):
-        return hash(self.entity)
-
-    def __str__(self):
-        lbl = NS.get('label')
-        return f'{lbl}:{self.entity}'
 
 
 def processElement(elem, f=None):

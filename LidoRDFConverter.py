@@ -116,42 +116,38 @@ def pd(*args):
     
 uri_ref = RF.term.URIRef
 
-def add_triples(graph, mapping_data, recID, **kw):
+def add_triples(graph, mapping:x3ml.Mapping, recID:str, **kw):
     '''Add triples to the graph'''
-    info = mapping_data.info
+    info = mapping.info
     if id_S := info.id.strip():
         if info.mode != 'lidoID': id_S = recID + '-' + id_S
         S = make_n4o_id(id_S,tag='S')
-        entity_S = mapping_data.S.entity
         all_triples = []
-        all_triples.append((S, RF.RDF.type, make_short_uri(entity_S, tag='S')))
+        all_triples.append((S, RF.RDF.type, make_short_uri(mapping.S.entity, tag='S')))
         #all_triples.append((S,make_short_uri('crm:P999'), RF.Literal(id_S)))
         num_S_triples = len(all_triples)
-        for po in mapping_data.POs:
+        for po in mapping.POs:
             all_triples.extend(get_po_triples(S, recID,  po, **kw))
         if len(all_triples) > num_S_triples:
             for t in all_triples:
                 graph.add(t)
 
-def get_po_triples(S, recID, po, **kw) -> list:
+def get_po_triples(S, recID, po:x3ml.PO, **kw) -> list:
     '''Compile triples from PO data'''
     triples = []
     if po.valid:
-        entity_P = po.P.entity
-        P = make_short_uri(entity_P, tag='P')
-        for po_data in po.data:
-            mode = po_data.mode
-            if mode == 'lidoID':
-                id_O = po_data.id.strip()
+        P = make_short_uri(po.P.entity, tag='P')
+        for info in po.infos:
+            if info.mode == 'lidoID':
+                id_O = info.id.strip()
                 O = make_n4o_id(id_O,tag='O')
                 if (O!=S):
                     #print(po)
-                    entity_O = po.O.entity
-                    triples.append((O, RF.RDF.type, make_short_uri(entity_O, tag='O')))
+                    triples.append((O, RF.RDF.type, make_short_uri(po.O.entity, tag='O')))
                     triples.append((O, make_short_uri('crm:P90_has_value'), RF.Literal(id_O)))
                     triples.append((S, P, O))
             else:
-                if text:=po_data.text:
+                if text:=info.text:
                     O = RF.Literal(text.strip())
                     triples.append((S, P, O))
     return triples
