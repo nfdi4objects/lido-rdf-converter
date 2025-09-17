@@ -4,6 +4,7 @@ import sys
 import hashlib
 import json
 from pathlib import Path
+from dataclasses import dataclass, field
 
 lidoSchemaURI = 'http://www.lido-schema.org'
 lidoSchemaXSD = 'http://www.lido-schema.org/schema/v1.0/lido-v1.0.xsd'
@@ -159,41 +160,40 @@ class ResultData:
         for k, v in kw.items():
             setattr(self, k, v)
 
+@dataclass
+class Info:
+    text:str = ''
+    attrib:dict = None
+    mode:str = ''
+    id:str = ''
+    index:int = -1
 
 def getLidoInfo(elem, i):
     t = elem.text.strip() if elem.text else ''
     a = elem.attrib
     if ids := getIDs(elem):
-        return ResultData(text=t, attrib=a, mode='lidoID', id=ids[0])
+        return Info(t, a, 'lidoID', ids[0])
     else:
         ids = '/'.join(fullLidoPath(elem) + [str(i)])
-        return ResultData(text=t, attrib=a, mode='path', id=ids)
+        return Info(text=t, attrib=a, mode='path', id=ids,index=i)
 
-
+@dataclass
 class ExP:
-    '''Linking a XML path to a entity label'''
-
-    def __init__(self, path: str, entity: str, var: str = ''):
-        self.path: str = path
-        self.entity = entity
-        self.var = var
+    '''Linking of path and an entity'''
+    path: str = ''
+    entity : str = ''
+    var : str = ''
 
     def isRoot(self):
+        '''Tests if the path is the root element'''
         return self.path.startswith('//')
 
-    def __str__(self):
-        return f"{self.path}|{self.entity}"
-
     def isLiteral(self):
+        '''Tests if the entity is a literal'''
         return self.entity.startswith('http')
 
-    def classLabel(self):
-        return self.entity.split(':')[-1]
-
-    def sPath(self):
-        return self.path.replace('lido:', '')
-
     def subs(self, elem) -> list:
+        '''Returns all subelements for the given path'''
         xpath = "." if self.isRoot() else f".//{self.path}"
         return xpath_lido(elem, xpath)
 
@@ -202,17 +202,14 @@ def stripPath(link: ExP, txt: str) -> str:
     return txt.removeprefix(link.path)
 
 
+@dataclass
 class Condition():
-    def __init__(self):
-        self.access = ''
-        self.values = set()
-
-    def toDict(self):
-        if self.values:
-            return {'access': self.access, 'values': [str(x) for x in self.values]}
-        return {}
-
+    access: str = ''
+    values: set = None
+ 
     def add(self, path, value):
+        if self.values is None:
+            self.values = set()
         self.access = path
         self.values.add(value)
 
@@ -231,38 +228,48 @@ class Condition():
             return False
         return True
 
+@dataclass
+class PO_Data:
+    P: ExP = None
+    O: ExP = None
+    data: list = None
+    valid: bool = False
 
+@dataclass
 class PO():
-    def __init__(self, p: ExP, o: ExP):
-        self.P = p
-        self.O = o
-        self.intermediates = []
-        self.condition = Condition()
-
-    def __str__(self):
-        return f"{self.P} -> {self.O}"
+    P: ExP = None
+    O: ExP = None
+    condition: Condition = field(default_factory=Condition)
 
     def isValid(self, elem):
         return self.condition.isValid(elem)
 
     def evaluate(self, elem):
         data = [getLidoInfo(e, i) for i, e in enumerate(self.O.subs(elem))]
-        return ResultData(P=self.P, O=self.O, data=data, valid=self.isValid(elem))
+        return PO_Data(P=self.P, O=self.O, data=data, valid=self.isValid(elem))
 
 
+@dataclass
+class Mapping_Data:
+    S: ExP = None
+    POs: list = None
+    valid: bool = False
+    info: Info = None
+    
+@dataclass
 class Mapping:
-    def __init__(self, s: ExP, n=0):
-        self.S = s
-        self.n = n
-        self.condition = Condition()
-        self.POs = []
+    S: ExP = None
+    POs: list = field(default_factory=list)
+    condition: Condition = field(default_factory=Condition)
+    intermediates: list = field(default_factory=list)
+
 
     def isValid(self, elem):
         return self.condition.isValid(elem)
 
     def evaluate_n(self, elem, i):
         POs = [po.evaluate(elem) for po in self.POs]
-        return ResultData(S=self.S, POs=POs, valid=self.isValid(elem), info=getLidoInfo(elem, i))
+        return Mapping_Data(S=self.S, POs=POs, valid=self.isValid(elem), info=getLidoInfo(elem, i))
 
     def evaluate(self, elem):
         return [self.evaluate_n(e, i) for i, e in enumerate(self.S.subs(elem))]
@@ -277,7 +284,6 @@ class Mapping:
     def addIntermediate(self, intermediate):
         if intermediate:
             self.intermediates.append(intermediate)
-
 
 Mappings = list[Mapping]
 
@@ -304,7 +310,7 @@ def mappingsFromNode(mappingElem) -> Mappings:
                 if pExP := makeExP(linkElem.find(PATH_SRR), linkElem.find(PATH_TRR)):
                     varStr = findVar(linkElem)
                     if oExP := makeExP(linkElem.find(RANGE_SN), linkElem.find(RANGE_TYPE), varStr):
-                        po = PO(pExP, oExP)
+                        po = PO(P=pExP, O=oExP)
                         for cndElem in linkElem.findall(PATH_TRE):
                             po.condition.add(
                                 stripPath(oExP, cndElem.text), cndElem.get('value'))
