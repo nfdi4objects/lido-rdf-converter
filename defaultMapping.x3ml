@@ -6789,6 +6789,25 @@
             <link>
                 <path>
                     <source_relation>
+                        <relation>lido:descriptiveMetadata/lido:objectIdentificationWrap/lido:titleWrap/lido:titleSet[@lido:type]</relation>
+                    </source_relation>
+                    <target_relation>
+                        <relationship>crm:P2_has_type</relationship>
+                    </target_relation>
+                </path>
+                <range>
+                    <source_node>lido:descriptiveMetadata/lido:objectIdentificationWrap/lido:titleWrap/lido:titleSet[@lido:type]</source_node>
+                    <target_node>
+                        <entity variable="Ap1">
+                            <type>crm:E55Type</type>
+                            <instance_info/>
+                        </entity>
+                    </target_node>
+                </range>
+            </link>
+            <link>
+                <path>
+                    <source_relation>
                         <relation>lido:descriptiveMetadata/lido:objectIdentificationWrap/lido:titleWrap/lido:titleSet/lido:sourceAppellation</relation>
                     </source_relation>
                     <target_relation>

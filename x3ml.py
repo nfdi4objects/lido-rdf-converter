@@ -13,12 +13,7 @@ gmlSchemaURI = 'http://www.opengis.net/gml'
 skosSchemaURL = 'http://www.w3.org/2004/02/skos/core'
 oaiSchemaURL = 'http://www.openarchives.org/OAI/2.0/'
 xmlnsURI = 'http://www.w3.org/XML/1998/namespace'
-lidoNS = {'lido': lidoSchemaURI, 'gml': gmlSchemaURI, 'skos': skosSchemaURL}
-
-
-def xpath_lido(elem: etree.Element, path: str) -> list:
-    '''Wrapper for xpath with Lido namespaces'''
-    return elem.xpath(path, namespaces=lidoNS)
+lidoNS = {'lido': lidoSchemaURI, 'gml': gmlSchemaURI, 'skos': skosSchemaURL, 'xml':xmlnsURI}
 
 
 def lidoExpandNS(s):
@@ -34,6 +29,16 @@ def lidoCompressNS(s):
 def md5Hash(s):
     '''Returns the MD5 hash of a string'''
     return hashlib.md5(s.encode()).hexdigest()
+
+def xpath_lido(elem: etree.Element, path: str) -> list:
+    '''Wrapper for xpath with Lido namespaces'''
+    elems = elem.xpath(path, namespaces=lidoNS)
+    if '@' in path and not elem.text: 
+        attr_name = lidoExpandNS(path.split('[@')[-1].strip(']'))
+        for elem in elems:
+            elem.text = elem.get(attr_name)
+    return elems
+
 
 
 DOMAIN_PATH = './domain/source_node'
@@ -86,9 +91,7 @@ LIDO_ID_MAP = {
     'lido:recordType': lxpath('lido:conceptID'),
     'lido:rightsHolder': lxpath('lido:legalBodyID'),
     'lido:resourceSet': lxpath('lido:resourceID'),
-    'lido:repositoryName': lxpath('lido:legalBodyID'),
-    'lido:measurementType': lxpath(),
-    'lido:appellationValue': lxpath(),
+    'lido:repositoryName': lxpath('lido:legalBodyID')
 }
 
 '''Valid Lido ID type URIs'''
@@ -154,14 +157,6 @@ def root_path_as_list(elem):
     return tags
 
 
-class ResultData:
-    '''Generic result data class for S, P, O, PO, Mapping'''
-
-    def __init__(self, **kw):
-        for k, v in kw.items():
-            setattr(self, k, v)
-
-
 @dataclass
 class Info:
     '''Information about an element'''
@@ -170,12 +165,14 @@ class Info:
     mode: str = ''
     id: str = ''
     index: int = -1
+    lang: str = ''
 
 
 def getLidoInfo(elem, i):
     '''Returns Info for an element'''
     text = elem.text.strip() if elem.text else ''
-    info = Info(text=text, attrib=elem.attrib, index=i)
+    lang = elem.get('{http://www.w3.org/XML/1998/namespace}lang','') 
+    info = Info(text=text, attrib=elem.attrib, index=i,lang=lang)
     if rpl := getIDs(elem):
         info.mode = 'lidoID'
         info.id = rpl[0]

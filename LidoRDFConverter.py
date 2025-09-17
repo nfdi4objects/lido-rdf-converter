@@ -120,7 +120,7 @@ def add_triples(graph, mapping:x3ml.Mapping, recID:str, **kw):
     '''Add triples to the graph'''
     info = mapping.info
     if id_S := info.id.strip():
-        if info.mode != 'lidoID': id_S = recID + '-' + id_S
+        id_S = recID + '-' + id_S
         S = make_n4o_id(id_S,tag='S')
         all_triples = []
         all_triples.append((S, RF.RDF.type, make_short_uri(mapping.S.entity, tag='S')))
@@ -139,16 +139,16 @@ def get_po_triples(S, recID, po:x3ml.PO, **kw) -> list:
         P = make_short_uri(po.P.entity, tag='P')
         for info in po.infos:
             if info.mode == 'lidoID':
-                id_O = info.id.strip()
+                id_O = recID + '-' + info.id.strip()
                 O = make_n4o_id(id_O,tag='O')
                 if (O!=S):
                     #print(po)
                     triples.append((O, RF.RDF.type, make_short_uri(po.O.entity, tag='O')))
-                    triples.append((O, make_short_uri('crm:P90_has_value'), RF.Literal(id_O)))
+                    triples.append((O, make_short_uri('crm:P90_has_value'), RF.Literal(info.id.strip(),lang=info.lang)))
                     triples.append((S, P, O))
             else:
                 if text:=info.text:
-                    O = RF.Literal(text.strip())
+                    O = RF.Literal(text.strip(),lang=info.lang) 
                     triples.append((S, P, O))
     return triples
 
