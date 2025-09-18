@@ -15,7 +15,7 @@ from lxml import etree
 NAMESPACE_MAP = {
     "n4o": RF.Namespace('http://graph.nfdi4objects.net/id/'),
     "crm": RF.Namespace("http://www.cidoc-crm.org/cidoc-crm/"),
-    "geo": RF.Namespace('http://www.ontotext.com/plugins/geosparql#')
+    "geosparql": RF.Namespace('http://www.ontotext.com/plugins/geosparql#')
 }
 LIDO_TAG = x3ml.expand_with_namespaces('lido:lido')
 OAI_SCHEMA_URL = 'http://www.openarchives.org/OAI/2.0/'
@@ -147,7 +147,7 @@ def get_po_triples(S, recID, po: x3ml.PO, **kw) -> list:
                 O = make_n4o_id(id_O, tag='O')
                 if (O != S):
                     triples.append((O, RF.RDF.type, make_short_uri(po.O.entity, tag='O')))
-                    triples.append((O, make_short_uri('crm:P90_has_value'), RF.Literal(info.id.strip(), lang=info.lang)))
+                    #triples.append((O, make_short_uri('crm:P90_has_value'), RF.Literal(info.id.strip(), lang=info.lang)))
                     triples.append((S, P, O))
             else:
                 if text := info.text:
@@ -164,7 +164,7 @@ def updateNS(elem):
             if x3ml.notNone(parent):
                 if parent.nsmap:
                     updateNS.first = True
-                    x3ml.supported_NS.update(parent.nsmap)
+                    x3ml.used_namespaces.update(parent.nsmap)
 
 
 class LidoRDFConverter():

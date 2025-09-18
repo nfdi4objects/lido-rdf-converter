@@ -40,7 +40,7 @@
         <namespace prefix="crm" uri="http://www.cidoc-crm.org/cidoc-crm/"/>
         <namespace prefix="lido" uri="http://www.lido-schema.org/"/>
         <namespace prefix="gml" uri="http://www.opengis.net/gml/3.2"/>
-        <namespace prefix="geo" uri="http://www.ontotext.com/plugins/geosparql#"/>
+        <namespace prefix="geosparql" uri="http://www.ontotext.com/plugins/geosparql#"/>
     </namespaces>
     <mappings>
         <mapping skip='false'>
@@ -8174,7 +8174,7 @@
                         <relation>lido:gml/gml:Point/gml:pos</relation>
                     </source_relation>
                     <target_relation>
-                        <relationship>geo:asWKT</relationship>
+                        <relationship>geosparql:asWKT</relationship>
                     </target_relation>
                 </path>
                 <range>

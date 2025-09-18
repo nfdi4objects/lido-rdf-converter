@@ -6,26 +6,33 @@ import json
 from pathlib import Path
 from dataclasses import dataclass, field
 
-supported_NS = {
-    'lido': 'http://www.lido-schema.org', 
-    'gml': 'http://www.opengis.net/gml', 
+used_namespaces = {
+    'lido': 'http://www.lido-schema.org',
+    'gml': 'http://www.opengis.net/gml',
     'skos': 'http://www.w3.org/2004/02/skos/core#',
     'xml': 'http://www.w3.org/XML/1998/namespace'
 }
 
 
-def expand_with_namespaces(s):
-    '''Expands prefix to full namespace'''
-    for k, v in supported_NS.items():
-        s = s.replace(f'{k}:', f'{{{v}}}')
-    return s
+def expand_with_namespaces(xmlTag, namespaces = used_namespaces):
+    '''Expands a short tag, assume tags like prefix:tag'''
+    tokens = xmlTag.split(':', 2)
+    if len(tokens) == 2:
+        for prefix, ns in namespaces.items():
+            if prefix == tokens[0]:
+                return f'{{{ns}}}{tokens[1]}'
+    return xmlTag
 
 
-def compress_with_namespaces(s):
-    '''Compresses full namespace to prefix'''
-    for k, v in supported_NS.items():
-        s = s.replace(f'{{{v}}}', f'{k}:')
-    return s
+def compress_with_namespaces(xmlTag, namespaces = used_namespaces):
+    '''Compresses a long tag, assume tags like {namespace}tag'''
+    tokens = xmlTag.split('}', 2)
+    if len(tokens) == 2:
+        ns_uri = tokens[0].lstrip('{')
+        for prefix, ns in namespaces.items():
+            if ns == ns_uri:
+                return f'{prefix}:{tokens[1]}'
+    return xmlTag
 
 
 def md5Hash(s):
@@ -33,14 +40,14 @@ def md5Hash(s):
     return hashlib.md5(s.encode()).hexdigest()
 
 
-def xpath_lido(elem: etree.Element, path: str) -> list:
+def xpath_lido(elem: etree.Element, path_to_subs: str) -> list:
     '''Wrapper for xpath with Lido namespaces'''
-    elems = elem.xpath(path, namespaces=supported_NS)
-    if '@' in path and not elem.text:
-        attr_name = expand_with_namespaces(path.split('[@')[-1].strip(']'))
-        for elem in elems:
-            elem.text = elem.get(attr_name)
-    return elems
+    sub_elements = elem.xpath(path_to_subs, namespaces=used_namespaces)
+    if '@' in path_to_subs and not elem.text:
+        attr_name = expand_with_namespaces(path_to_subs.split('[@')[-1].strip(']'))
+        for se in sub_elements:
+            se.text = se.get(attr_name)
+    return sub_elements
 
 
 DOMAIN_PATH = './domain/source_node'
@@ -54,11 +61,6 @@ PATH_TRE = './path/target_relation/if/or/if/equals'
 RANGE_SN = './range/source_node'
 RANGE_ENTT = './range/target_node/entity'
 RANGE_TYPE = './range/target_node/entity/type'
-
-COLLECTION_ID_TAG = 'cID'
-COLLECTION_TAG = 'collection'
-PATH_ID_TAG = 'lidoPath'
-
 
 class lxpath():
     '''Wrapper for lidoXPath'''
@@ -107,12 +109,9 @@ def executeS(fun, x, default=None):
     return fun(x) if notNone(x) else default
 
 
-def hasText(elem: etree.Element) -> bool:
-    return notNone(elem.text)
-
-
 def getIDs(elem):
     '''Returns all texts from valid Id elements'''
+    hasText = lambda t : notNone(t.text)
     validItems = filter(hasText, getIdElements(elem))
     return list(map(lambda x: x.text, validItems))
 
@@ -144,7 +143,7 @@ def skipped(elem: etree.Element) -> bool:
 
 def root_path_as_list(elem):
     '''Return the full lido path of an element'''
-    tags = elem.tag.replace(f"{{{ supported_NS.get('lido','') }}}", '')
+    tags = elem.tag.replace(f"{{{ used_namespaces.get('lido','') }}}", '')
     parent = elem.getparent()
     if notNone(parent):
         tags = root_path_as_list(parent) + '/' + tags
@@ -216,7 +215,7 @@ class Condition():
     def isValid(self, elem) -> bool:
         if self.values:
             if self.access.endswith('/text()'):
-                pathValues = elem.xpath(f"./{self.access}", namespaces=supported_NS)
+                pathValues = elem.xpath(f"./{self.access}", namespaces=used_namespaces)
                 if self.values.intersection(pathValues):
                     return True
             else:
