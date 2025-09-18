@@ -17,8 +17,9 @@ NAMESPACE_MAP = {
     "crm": RF.Namespace("http://www.cidoc-crm.org/cidoc-crm/"),
     "geo": RF.Namespace('http://www.ontotext.com/plugins/geosparql#')
 }
-LIDO_TAG = f'{{{x3ml.lidoSchemaURI}}}lido'
-RESUMPTION_TAG = f'{{{x3ml.oaiSchemaURL}}}resumptionToken'
+LIDO_TAG = x3ml.expand_with_namespaces('lido:lido')
+OAI_SCHEMA_URL = 'http://www.openarchives.org/OAI/2.0/'
+RESUMPTION_TAG = f'{{{OAI_SCHEMA_URL}}}resumptionToken'
 
 
 def make_short_uri(uri_str, **kw):
@@ -110,21 +111,23 @@ def make_n4o_id(text: str, **kw) -> str:
     """Creates a N4O ID from text and specify"""
     return NAMESPACE_MAP['n4o'][f"{hash(text)}"]
 
+
 def pd(*args):
-    print([json.dumps(x,indent=2) for x in args])
-    
-    
+    print([json.dumps(x, indent=2) for x in args])
+
+
 uri_ref = RF.term.URIRef
 
-def add_triples(graph, mapping:x3ml.Mapping, recID:str, **kw):
+
+def add_triples(graph, mapping: x3ml.Mapping, recID: str, **kw):
     '''Add triples to the graph'''
     info = mapping.info
     if id_S := info.id.strip():
         id_S = recID + '-' + id_S
-        S = make_n4o_id(id_S,tag='S')
+        S = make_n4o_id(id_S, tag='S')
         all_triples = []
         all_triples.append((S, RF.RDF.type, make_short_uri(mapping.S.entity, tag='S')))
-        #all_triples.append((S,make_short_uri('crm:P999'), RF.Literal(id_S)))
+        # all_triples.append((S,make_short_uri('crm:P999'), RF.Literal(id_S)))
         num_S_triples = len(all_triples)
         for po in mapping.POs:
             all_triples.extend(get_po_triples(S, recID,  po, **kw))
@@ -132,7 +135,8 @@ def add_triples(graph, mapping:x3ml.Mapping, recID:str, **kw):
             for t in all_triples:
                 graph.add(t)
 
-def get_po_triples(S, recID, po:x3ml.PO, **kw) -> list:
+
+def get_po_triples(S, recID, po: x3ml.PO, **kw) -> list:
     '''Compile triples from PO data'''
     triples = []
     if po.valid:
@@ -140,17 +144,27 @@ def get_po_triples(S, recID, po:x3ml.PO, **kw) -> list:
         for info in po.infos:
             if info.mode == 'lidoID':
                 id_O = recID + '-' + info.id.strip()
-                O = make_n4o_id(id_O,tag='O')
-                if (O!=S):
+                O = make_n4o_id(id_O, tag='O')
+                if (O != S):
                     triples.append((O, RF.RDF.type, make_short_uri(po.O.entity, tag='O')))
-                    triples.append((O, make_short_uri('crm:P90_has_value'), RF.Literal(info.id.strip(),lang=info.lang)))
+                    triples.append((O, make_short_uri('crm:P90_has_value'), RF.Literal(info.id.strip(), lang=info.lang)))
                     triples.append((S, P, O))
             else:
-                if text:=info.text:
-                    O = RF.Literal(text.strip(),lang=info.lang) 
+                if text := info.text:
+                    O = RF.Literal(text.strip(), lang=info.lang)
                     triples.append((S, P, O))
     return triples
 
+
+def updateNS(elem):
+    '''Updates the supported namespaces from the parent XML element (only one update)'''
+    if x3ml.notNone(elem):
+        if not hasattr(updateNS, "first"):
+            parent = elem.getparent()
+            if x3ml.notNone(parent):
+                if parent.nsmap:
+                    updateNS.first = True
+                    x3ml.supported_NS.update(parent.nsmap)
 
 
 class LidoRDFConverter():
@@ -199,6 +213,7 @@ class LidoRDFConverter():
         for _, elem in etree.iterparse(
                 lido_file, events=("end",),
                 tag=valid_tag, encoding='UTF-8', remove_blank_text=True):
+            updateNS(elem)
             token = self._process_valid_element(graph, elem)
         if processor:
             processor(graph, token)
@@ -233,6 +248,7 @@ class LidoRDFConverter():
 
     def _process_lido_element(self, elem, graph):
         '''Create graph LIDO root element w.r.t given mappings'''
+        # get record ID
         IDs = x3ml.xpath_lido(elem, "./lido:lidoRecID/text()")
         recID = ' '.join([x.strip() for x in IDs])
         for data in [m.evaluate(elem) for m in self.mappings]:

@@ -6,39 +6,41 @@ import json
 from pathlib import Path
 from dataclasses import dataclass, field
 
-lidoSchemaURI = 'http://www.lido-schema.org'
-lidoSchemaXSD = 'http://www.lido-schema.org/schema/v1.0/lido-v1.0.xsd'
-lidoSchemaXSI = 'http://www.w3.org/2001/XMLSchema-instance'
-gmlSchemaURI = 'http://www.opengis.net/gml'
-skosSchemaURL = 'http://www.w3.org/2004/02/skos/core#'
-oaiSchemaURL = 'http://www.openarchives.org/OAI/2.0/'
-xmlnsURI = 'http://www.w3.org/XML/1998/namespace'
-suported_NS = {'lido': lidoSchemaURI, 'gml': gmlSchemaURI, 'skos': skosSchemaURL, 'xml':xmlnsURI}
+supported_NS = {
+    'lido': 'http://www.lido-schema.org', 
+    'gml': 'http://www.opengis.net/gml', 
+    'skos': 'http://www.w3.org/2004/02/skos/core#',
+    'xml': 'http://www.w3.org/XML/1998/namespace'
+}
 
 
-def lidoExpandNS(s):
-    '''Expands lido: prefix to full namespace'''
-    return s.replace('lido:', f'{{{lidoSchemaURI}}}').replace('skos:', f'{{{skosSchemaURL}}}').replace('gml:', f'{{{gmlSchemaURI}}}')
+def expand_with_namespaces(s):
+    '''Expands prefix to full namespace'''
+    for k, v in supported_NS.items():
+        s = s.replace(f'{k}:', f'{{{v}}}')
+    return s
 
 
-def lidoCompressNS(s):
-    '''Compresses full namespace to lido: prefix'''
-    return s.replace(f'{{{lidoSchemaURI}}}', 'lido:')
+def compress_with_namespaces(s):
+    '''Compresses full namespace to prefix'''
+    for k, v in supported_NS.items():
+        s = s.replace(f'{{{v}}}', f'{k}:')
+    return s
 
 
 def md5Hash(s):
     '''Returns the MD5 hash of a string'''
     return hashlib.md5(s.encode()).hexdigest()
 
+
 def xpath_lido(elem: etree.Element, path: str) -> list:
     '''Wrapper for xpath with Lido namespaces'''
-    elems = elem.xpath(path, namespaces=suported_NS)
-    if '@' in path and not elem.text: 
-        attr_name = lidoExpandNS(path.split('[@')[-1].strip(']'))
+    elems = elem.xpath(path, namespaces=supported_NS)
+    if '@' in path and not elem.text:
+        attr_name = expand_with_namespaces(path.split('[@')[-1].strip(']'))
         for elem in elems:
             elem.text = elem.get(attr_name)
     return elems
-
 
 
 DOMAIN_PATH = './domain/source_node'
@@ -94,14 +96,6 @@ LIDO_ID_MAP = {
     'lido:repositoryName': lxpath('lido:legalBodyID')
 }
 
-'''Valid Lido ID type URIs'''
-LIDO_ID_TYPE_URIS = ('http://terminology.lido-schema.org/lido00099',
-                     'http://terminology.lido-schema.org/identifier_type/uri', 'uri')
-
-'''Valid Lido type attributes'''
-LIDO_TYPE_ATTR = lidoExpandNS('lido:type')
-XML_LANG_ATTR = '{{http://www.w3.org/XML/1998/namespace}}lang'
-
 
 def notNone(*args) -> bool:
     '''Tests all args to not None'''
@@ -125,7 +119,7 @@ def getIDs(elem):
 
 def getIdElements(elem):
     '''Returns all ID child elements'''
-    tag = lidoCompressNS(elem.tag)
+    tag = compress_with_namespaces(elem.tag)
     if lxp := LIDO_ID_MAP.get(tag):
         if isinstance(lxp, lxpath):
             return lxp.children(elem)
@@ -150,7 +144,7 @@ def skipped(elem: etree.Element) -> bool:
 
 def root_path_as_list(elem):
     '''Return the full lido path of an element'''
-    tags = elem.tag.replace(f'{{{lidoSchemaURI}}}', '')
+    tags = elem.tag.replace(f"{{{ supported_NS.get('lido','') }}}", '')
     parent = elem.getparent()
     if notNone(parent):
         tags = root_path_as_list(parent) + '/' + tags
@@ -171,8 +165,8 @@ class Info:
 def getLidoInfo(elem, i):
     '''Returns Info for an element'''
     text = elem.text.strip() if elem.text else ''
-    lang = elem.get('{http://www.w3.org/XML/1998/namespace}lang','') 
-    info = Info(text=text, attrib=elem.attrib, index=i,lang=lang)
+    lang = elem.get(expand_with_namespaces('xml:lang'), '')
+    info = Info(text=text, attrib=elem.attrib, index=i, lang=lang)
     if rpl := getIDs(elem):
         info.mode = 'lidoID'
         info.id = rpl[0]
@@ -222,12 +216,12 @@ class Condition():
     def isValid(self, elem) -> bool:
         if self.values:
             if self.access.endswith('/text()'):
-                pathValues = elem.xpath(f"./{self.access}", namespaces=suported_NS)
+                pathValues = elem.xpath(f"./{self.access}", namespaces=supported_NS)
                 if self.values.intersection(pathValues):
                     return True
             else:
                 # assume path as an attribute label
-                attrName = lidoExpandNS(self.access)
+                attrName = expand_with_namespaces(self.access)
                 attrValue = elem.get(attrName, '')
                 if attrValue in self.values:
                     return True
@@ -331,8 +325,7 @@ def mappingsFromNode(mappingElem) -> Mappings:
 def mappings_from_str(xmlStr: str) -> Mappings | None:
     '''Returns all mappings from a string'''
     mappings = []
-    parser = etree.XMLPullParser(events=("end",), tag=(
-        'mapping'), encoding='UTF-8', remove_blank_text=True)
+    parser = etree.XMLPullParser(events=("end",), tag=('mapping'), encoding='UTF-8', remove_blank_text=True)
     parser.feed(xmlStr)
     for _, elem in parser.read_events():
         if not str2bool(elem.get('skip', 'false')):
@@ -342,8 +335,8 @@ def mappings_from_str(xmlStr: str) -> Mappings | None:
 
 def mappings_from_file(fileName: str) -> Mappings | None:
     '''Returns all mappings from a file'''
-    s = Path(fileName).read_text(encoding='UTF-8')
-    return mappings_from_str(s)
+    xmlStr = Path(fileName).read_text(encoding='UTF-8')
+    return mappings_from_str(xmlStr)
 
 
 if __name__ == "__main__":
