@@ -80,19 +80,19 @@
                         <if>
                             <or>
                                 <if>
-                                    <equals value="creation">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/lido:term/text()</equals>
+                                    <equals value="creation">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/skos:Concept/skos:prefLabel/text()</equals>
                                 </if>
                                 <if>
-                                    <equals value="Herstellung">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/lido:term/text()</equals>
+                                    <equals value="Herstellung">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/skos:Concept/skos:prefLabel/text()</equals>
                                 </if>
                                 <if>
-                                    <equals value="design">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/lido:term/text()</equals>
+                                    <equals value="design">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/skos:Concept/skos:prefLabel/text()</equals>
                                 </if>
                                 <if>
-                                    <equals value="Entwurf">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/lido:term/text()</equals>
+                                    <equals value="Entwurf">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/skos:Concept/skos:prefLabel/text()</equals>
                                 </if>
                                 <if>
-                                    <equals value="production">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/lido:term/text()</equals>
+                                    <equals value="production">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/skos:Concept/skos:prefLabel/text()</equals>
                                 </if>
                             </or>
                         </if>
@@ -117,10 +117,10 @@
                         <if>
                             <or>
                                 <if>
-                                    <equals value="provenance">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/lido:term/text()</equals>
+                                    <equals value="provenance">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/skos:Concept/skos:prefLabel/text()</equals>
                                 </if>
                                 <if>
-                                    <equals value="Herkunft">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/lido:term/text()</equals>
+                                    <equals value="Herkunft">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/skos:Concept/skos:prefLabel/text()</equals>
                                 </if>
                             </or>
                         </if>
@@ -159,7 +159,7 @@
                         <if>
                             <or>
                                 <if>
-                                    <equals value="Move">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/lido:term/text()</equals>
+                                    <equals value="Move">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/skos:Concept/skos:prefLabel/text()</equals>
                                 </if>
                             </or>
                         </if>
@@ -198,10 +198,10 @@
                         <if>
                             <or>
                                 <if>
-                                    <equals value="restoration">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/lido:term/text()</equals>
+                                    <equals value="restoration">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/skos:Concept/skos:prefLabel/text()</equals>
                                 </if>
                                 <if>
-                                    <equals value="Restaurierung">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/lido:term/text()</equals>
+                                    <equals value="Restaurierung">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/skos:Concept/skos:prefLabel/text()</equals>
                                 </if>
                             </or>
                         </if>
@@ -7363,10 +7363,10 @@
                         <if>
                             <or>
                                 <if>
-                                    <equals value="creation">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/lido:term/text()</equals>
+                                    <equals value="creation">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/skos:Concept/skos:prefLabel/text()</equals>
                                 </if>
                                 <if>
-                                    <equals value="Herstellung">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/lido:term/text()</equals>
+                                    <equals value="Herstellung">lido:descriptiveMetadata/lido:eventWrap/lido:eventSet/lido:event/lido:eventType/skos:Concept/skos:prefLabel/text()</equals>
                                 </if>
                             </or>
                         </if>

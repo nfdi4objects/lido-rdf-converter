@@ -10,15 +10,15 @@ lidoSchemaURI = 'http://www.lido-schema.org'
 lidoSchemaXSD = 'http://www.lido-schema.org/schema/v1.0/lido-v1.0.xsd'
 lidoSchemaXSI = 'http://www.w3.org/2001/XMLSchema-instance'
 gmlSchemaURI = 'http://www.opengis.net/gml'
-skosSchemaURL = 'http://www.w3.org/2004/02/skos/core'
+skosSchemaURL = 'http://www.w3.org/2004/02/skos/core#'
 oaiSchemaURL = 'http://www.openarchives.org/OAI/2.0/'
 xmlnsURI = 'http://www.w3.org/XML/1998/namespace'
-lidoNS = {'lido': lidoSchemaURI, 'gml': gmlSchemaURI, 'skos': skosSchemaURL, 'xml':xmlnsURI}
+suported_NS = {'lido': lidoSchemaURI, 'gml': gmlSchemaURI, 'skos': skosSchemaURL, 'xml':xmlnsURI}
 
 
 def lidoExpandNS(s):
     '''Expands lido: prefix to full namespace'''
-    return s.replace('lido:', f'{{{lidoSchemaURI}}}')
+    return s.replace('lido:', f'{{{lidoSchemaURI}}}').replace('skos:', f'{{{skosSchemaURL}}}').replace('gml:', f'{{{gmlSchemaURI}}}')
 
 
 def lidoCompressNS(s):
@@ -32,7 +32,7 @@ def md5Hash(s):
 
 def xpath_lido(elem: etree.Element, path: str) -> list:
     '''Wrapper for xpath with Lido namespaces'''
-    elems = elem.xpath(path, namespaces=lidoNS)
+    elems = elem.xpath(path, namespaces=suported_NS)
     if '@' in path and not elem.text: 
         attr_name = lidoExpandNS(path.split('[@')[-1].strip(']'))
         for elem in elems:
@@ -222,8 +222,8 @@ class Condition():
     def isValid(self, elem) -> bool:
         if self.values:
             if self.access.endswith('/text()'):
-                pathValue = xpath_lido(elem, f"./{self.access}")
-                if self.values.intersection(pathValue):
+                pathValues = elem.xpath(f"./{self.access}", namespaces=suported_NS)
+                if self.values.intersection(pathValues):
                     return True
             else:
                 # assume path as an attribute label
@@ -313,18 +313,16 @@ def mappingsFromNode(mappingElem) -> Mappings:
     if sExP := makeExP(mappingElem.find(DOMAIN_PATH), mappingElem.find(DOMAIN_TYPE)):
         mapping = Mapping(sExP)
         # Find domain conditions
-        for cndElem in mappingElem.findall(DOMAIN_COND):
-            mapping.condition.add(
-                stripPath(sExP, cndElem.text), cndElem.get('value'))
+        for elemS in mappingElem.findall(DOMAIN_COND):
+            mapping.condition.add(elemS.text, elemS.get('value'))
         for linkElem in mappingElem.findall('./link'):
             if not skipped(linkElem):
                 if pExP := makeExP(linkElem.find(PATH_SRR), linkElem.find(PATH_TRR)):
                     varStr = findVar(linkElem)
                     if oExP := makeExP(linkElem.find(RANGE_SN), linkElem.find(RANGE_TYPE), varStr):
                         po = PO(P=pExP, O=oExP)
-                        for cndElem in linkElem.findall(PATH_TRE):
-                            po.condition.add(
-                                stripPath(oExP, cndElem.text), cndElem.get('value'))
+                        for elemO in linkElem.findall(PATH_TRE):
+                            po.condition.add(elemO.text, elemO.get('value'))
                         mapping.addPO(po)
         mappings.append(mapping)
     return mappings

@@ -142,7 +142,6 @@ def get_po_triples(S, recID, po:x3ml.PO, **kw) -> list:
                 id_O = recID + '-' + info.id.strip()
                 O = make_n4o_id(id_O,tag='O')
                 if (O!=S):
-                    #print(po)
                     triples.append((O, RF.RDF.type, make_short_uri(po.O.entity, tag='O')))
                     triples.append((O, make_short_uri('crm:P90_has_value'), RF.Literal(info.id.strip(),lang=info.lang)))
                     triples.append((S, P, O))
