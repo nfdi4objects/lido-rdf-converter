@@ -43,7 +43,7 @@
         <namespace prefix="geosparql" uri="http://www.ontotext.com/plugins/geosparql#"/>
     </namespaces>
     <mappings>
-        <mapping skip='false'>
+        <mapping skip="false">
             <domain>
                 <source_node>//lido:lido</source_node>
                 <target_node>
@@ -3056,6 +3056,42 @@
                     </entity>
                 </target_node>
             </domain>
+             <link>
+                <path>
+                    <source_relation>
+                        <relation>lido:eventMaterialsTech/lido:materialsTech/lido:termMaterialsTech/skos:Concept/skos:prefLabel</relation>
+                    </source_relation>
+                    <target_relation>
+                        <relationship>crm:P45_consists_of</relationship>
+                    </target_relation>
+                </path>
+                <range>
+                    <source_node>lido:eventMaterialsTech/lido:materialsTech/lido:termMaterialsTech/skos:Concept/skos:prefLabel</source_node>
+                    <target_node>
+                        <entity>
+                            <type>http://www.w3.org/2000/01/rdf-schema#Literal</type>
+                        </entity>
+                    </target_node>
+                </range>
+            </link>
+             <link>
+                <path>
+                    <source_relation>
+                        <relation>lido:eventMaterialsTech/lido:materialsTech/lido:termMaterialsTech/skos:Concept[@rdf:about]</relation>
+                    </source_relation>
+                    <target_relation>
+                        <relationship>crm:P45_consists_of</relationship>
+                    </target_relation>
+                </path>
+                <range>
+                    <source_node>lido:eventMaterialsTech/lido:materialsTech/lido:termMaterialsTech/skos:Concept[@rdf:about]</source_node>
+                    <target_node>
+                        <entity>
+                            <type>http://www.w3.org/2000/01/rdf-schema#Literal</type>
+                        </entity>
+                    </target_node>
+                </range>
+            </link>
             <link>
                 <path>
                     <source_relation>
@@ -4220,14 +4256,14 @@
             <link>
                 <path>
                     <source_relation>
-                        <relation>lido:measurementUnit</relation>
+                        <relation>lido:measurementUnit/skos:Concept/skos:prefLabel</relation>
                     </source_relation>
                     <target_relation>
                         <relationship>crm:P91_has_unit</relationship>
                     </target_relation>
                 </path>
                 <range>
-                    <source_node>lido:measurementUnit</source_node>
+                    <source_node>lido:measurementUnit/skos:Concept/skos:prefLabel</source_node>
                     <target_node>
                         <entity>
                             <type>crm:E58_Measurement_Unit</type>
@@ -6651,14 +6687,14 @@
             <link>
                 <path>
                     <source_relation>
-                        <relation>lido:descriptiveMetadata/lido:objectClassificationWrap/lido:objectWorkTypeWrap/lido:objectWorkType</relation>
+                        <relation>lido:descriptiveMetadata/lido:objectClassificationWrap/lido:objectWorkTypeWrap/lido:objectWorkType/skos:Concept/skos:prefLabel</relation>
                     </source_relation>
                     <target_relation>
                         <relationship>crm:P2_has_type</relationship>
                     </target_relation>
                 </path>
                 <range>
-                    <source_node>lido:descriptiveMetadata/lido:objectClassificationWrap/lido:objectWorkTypeWrap/lido:objectWorkType</source_node>
+                    <source_node>lido:descriptiveMetadata/lido:objectClassificationWrap/lido:objectWorkTypeWrap/lido:objectWorkType/skos:Concept/skos:prefLabel</source_node>
                     <target_node>
                         <entity>
                             <type>crm:E55_Type</type>
@@ -6669,14 +6705,14 @@
             <link>
                 <path>
                     <source_relation>
-                        <relation>lido:descriptiveMetadata/lido:objectClassificationWrap/lido:classificationWrap/lido:classification</relation>
+                        <relation>lido:descriptiveMetadata/lido:objectClassificationWrap/lido:classificationWrap/lido:classification/skos:Concept/skos:prefLabel</relation>
                     </source_relation>
                     <target_relation>
                         <relationship>crm:P2_has_type</relationship>
                     </target_relation>
                 </path>
                 <range>
-                    <source_node>lido:descriptiveMetadata/lido:objectClassificationWrap/lido:classificationWrap/lido:classification</source_node>
+                    <source_node>lido:descriptiveMetadata/lido:objectClassificationWrap/lido:classificationWrap/lido:classification/skos:Concept/skos:prefLabel</source_node>
                     <target_node>
                         <entity>
                             <type>crm:E55_Type</type>
@@ -7150,10 +7186,10 @@
             <link>
                 <path>
                     <source_relation>
-                        <relation>lido:measurementUnit</relation>
+                        <relation>lido:measurementUnit/skos:Concept/skos:prefLabel</relation>
                     </source_relation>
                     <target_relation>
-                        <relationship>crm:P91_has_unit</relationship>
+                        <relationship>crm:P91_has_unit/skos:Concept/skos:prefLabel</relationship>
                     </target_relation>
                 </path>
                 <range>
@@ -9434,7 +9470,7 @@
                 </range>
             </link>
         </mapping>
-        <mapping skip = 'true'>
+        <mapping skip = 'false'>
             <domain>
                 <source_node>lido:event</source_node>
                 <target_node>
@@ -9446,7 +9482,7 @@
                     </entity>
                 </target_node>
             </domain>
-            <link>
+           <link>
                 <path>
                     <source_relation>
                         <relation>lido:eventID</relation>
@@ -10501,7 +10537,7 @@
                     </target_node>
                 </range>
             </link>
-            <link skip="false">
+            <link>
                 <path>
                     <source_relation>
                         <relation>lido:eventType/lido:term</relation>

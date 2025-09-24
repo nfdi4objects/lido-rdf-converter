@@ -166,12 +166,14 @@ def getLidoInfo(elem, i):
     text = elem.text.strip() if elem.text else ''
     lang = elem.get(expand_with_namespaces('xml:lang'), '')
     info = Info(text=text, attrib=elem.attrib, index=i, lang=lang)
-    if rpl := getIDs(elem):
+    if rpl := getIDs(elem): # Has an explicit ID
         info.mode = 'lidoID'
         info.id = rpl[0]
-    else:
+    elif len(elem) > 0 and not text: # Has subelements, use path
         info.mode = 'path'
         info.id = root_path_as_list(elem) + '/'+str(i)
+    else: # Just text
+        info.mode = 'text'
     return info
 
 
@@ -217,7 +219,7 @@ class Condition():
             if self.access.endswith('/text()'):
                 pathValues = elem.xpath(f"./{self.access}", namespaces=used_namespaces)
                 if self.values.intersection(pathValues):
-                    return True
+                   return True
             else:
                 # assume path as an attribute label
                 attrName = expand_with_namespaces(self.access)

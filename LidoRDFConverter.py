@@ -127,7 +127,7 @@ def add_triples(graph, mapping: x3ml.Mapping, recID: str, **kw):
         S = make_n4o_id(id_S, tag='S')
         all_triples = []
         all_triples.append((S, RF.RDF.type, make_short_uri(mapping.S.entity, tag='S')))
-        # all_triples.append((S,make_short_uri('crm:P999'), RF.Literal(id_S)))
+        #all_triples.append((S,make_short_uri('crm:P999'), RF.Literal(id_S)))
         num_S_triples = len(all_triples)
         for po in mapping.POs:
             all_triples.extend(get_po_triples(S, recID,  po, **kw))
@@ -142,7 +142,7 @@ def get_po_triples(S, recID, po: x3ml.PO, **kw) -> list:
     if po.valid:
         P = make_short_uri(po.P.entity, tag='P')
         for info in po.infos:
-            if info.mode == 'lidoID':
+            if info.mode == 'lidoID' or info.mode == 'path':
                 id_O = recID + '-' + info.id.strip()
                 O = make_n4o_id(id_O, tag='O')
                 if (O != S):
