@@ -42,13 +42,14 @@ def lido2rdf(source, mapping):
         g, _ = converter.parse_file(source)
         return g
 
+VERSION = "0.1.0"
 
 def main():
     def apFormatter(prog):
         return argparse.HelpFormatter(prog, max_help_position=50)
 
     parser = argparse.ArgumentParser(
-        prog="lido2rdf", description="Convert LIDO to RDF using X3ML mapping", formatter_class=apFormatter)
+        prog="lido2rdf", description=f"Convert LIDO to RDF using X3ML mapping (version={VERSION})", formatter_class=apFormatter)
 
     formats = ",".join(SUFFIX_FORMAT_MAP.keys())
     parser.add_argument("-o", '--output', metavar="NAME", dest="target",
