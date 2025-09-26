@@ -10,7 +10,8 @@ used_namespaces = {
     'lido': 'http://www.lido-schema.org',
     'gml': 'http://www.opengis.net/gml',
     'skos': 'http://www.w3.org/2004/02/skos/core#',
-    'xml': 'http://www.w3.org/XML/1998/namespace'
+    'xml': 'http://www.w3.org/XML/1998/namespace',
+    'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#' 
 }
 
 
