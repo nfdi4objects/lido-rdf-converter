@@ -415,10 +415,10 @@
       }
     }).mount('#app');
 
-    function makeEditor(label, style = "ace/theme/monokai", fmt = "ace/mode/xml") {
+    function makeEditor(label, fmt = "ace/mode/xml") {
       // Returns an ace editor object
       var ed = ace.edit(label);
-      ed.setTheme(style);
+      //ed.setTheme("") //ace/theme/monokai");
       ed.session.setMode(fmt);
       ed.setPrintMarginColumn(-1);
       return ed;
@@ -428,7 +428,7 @@
     var lidoEditor = makeEditor("lidoEditor");
     lidoEditor.setValue(app.lido);
     lidoEditor.on('change', function() {onLidoChanged()});
-    var rdfEditor = makeEditor("rdfEditor", "", "ace/mode/turtle");
+    var rdfEditor = makeEditor("rdfEditor", "ace/mode/turtle");
     rdfEditor.setValue('')
 
     function getLido(mode=0) {

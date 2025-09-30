@@ -102,8 +102,8 @@ Therefore, you can use these shell commands:
 
 ~~~sh
 cd ./lidoapp_bp/static
-npm init -y 
-npm install
+npm ci
+cd ../..
 ~~~
 
 Then start `app.py` (optionally with argument `--port`):
