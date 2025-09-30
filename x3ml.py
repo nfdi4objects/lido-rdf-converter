@@ -11,11 +11,11 @@ used_namespaces = {
     'gml': 'http://www.opengis.net/gml',
     'skos': 'http://www.w3.org/2004/02/skos/core#',
     'xml': 'http://www.w3.org/XML/1998/namespace',
-    'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#' 
+    'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
 }
 
 
-def expand_with_namespaces(xmlTag, namespaces = used_namespaces):
+def expand_with_namespaces(xmlTag, namespaces=used_namespaces):
     '''Expands a short tag, assume tags like prefix:tag'''
     tokens = xmlTag.split(':', 2)
     if len(tokens) == 2:
@@ -25,7 +25,7 @@ def expand_with_namespaces(xmlTag, namespaces = used_namespaces):
     return xmlTag
 
 
-def compress_with_namespaces(xmlTag, namespaces = used_namespaces):
+def compress_with_namespaces(xmlTag, namespaces=used_namespaces):
     '''Compresses a long tag, assume tags like {namespace}tag'''
     tokens = xmlTag.split('}', 2)
     if len(tokens) == 2:
@@ -45,7 +45,8 @@ def xpath_lido(elem: etree.Element, path_to_subs: str) -> list:
     '''Wrapper for xpath with Lido namespaces'''
     sub_elements = elem.xpath(path_to_subs, namespaces=used_namespaces)
     if '@' in path_to_subs and not elem.text:
-        attr_name = expand_with_namespaces(path_to_subs.split('[@')[-1].strip(']'))
+        attr_name = expand_with_namespaces(
+            path_to_subs.split('[@')[-1].strip(']'))
         for se in sub_elements:
             se.text = se.get(attr_name)
     return sub_elements
@@ -62,6 +63,7 @@ PATH_TRE = './path/target_relation/if/or/if/equals'
 RANGE_SN = './range/source_node'
 RANGE_ENTT = './range/target_node/entity'
 RANGE_TYPE = './range/target_node/entity/type'
+
 
 class lxpath():
     '''Wrapper for lidoXPath'''
@@ -112,7 +114,7 @@ def executeS(fun, x, default=None):
 
 def getIDs(elem):
     '''Returns all texts from valid Id elements'''
-    hasText = lambda t : notNone(t.text)
+    def hasText(t): return notNone(t.text)
     validItems = filter(hasText, getIdElements(elem))
     return list(map(lambda x: x.text, validItems))
 
@@ -144,7 +146,7 @@ def skipped(elem: etree.Element) -> bool:
 
 def root_path_as_list(elem):
     '''Return the full lido path of an element'''
-    tags = elem.tag.replace(f"{{{ used_namespaces.get('lido','') }}}", '')
+    tags = elem.tag.replace(f"{{{used_namespaces.get('lido', '')}}}", '')
     parent = elem.getparent()
     if notNone(parent):
         tags = root_path_as_list(parent) + '/' + tags
@@ -167,13 +169,13 @@ def getLidoInfo(elem, i):
     text = elem.text.strip() if elem.text else ''
     lang = elem.get(expand_with_namespaces('xml:lang'), '')
     info = Info(text=text, attrib=elem.attrib, index=i, lang=lang)
-    if rpl := getIDs(elem): # Has an explicit ID
+    if rpl := getIDs(elem):  # Has an explicit ID
         info.mode = 'lidoID'
         info.id = rpl[0]
-    elif len(elem) > 0 and not text: # Has subelements, use path
+    elif len(elem) > 0 and not text:  # Has subelements, use path
         info.mode = 'path'
         info.id = root_path_as_list(elem) + '/'+str(i)
-    else: # Just text
+    else:  # Just text
         info.mode = 'text'
     return info
 
@@ -218,9 +220,10 @@ class Condition():
     def isValid(self, elem) -> bool:
         if self.values:
             if self.access.endswith('/text()'):
-                pathValues = elem.xpath(f"./{self.access}", namespaces=used_namespaces)
+                pathValues = elem.xpath(
+                    f"./{self.access}", namespaces=used_namespaces)
                 if self.values.intersection(pathValues):
-                   return True
+                    return True
             else:
                 # assume path as an attribute label
                 attrName = expand_with_namespaces(self.access)
@@ -327,7 +330,8 @@ def mappingsFromNode(mappingElem) -> Mappings:
 def mappings_from_str(xmlStr: str) -> Mappings | None:
     '''Returns all mappings from a string'''
     mappings = []
-    parser = etree.XMLPullParser(events=("end",), tag=('mapping'), encoding='UTF-8', remove_blank_text=True)
+    parser = etree.XMLPullParser(events=("end",), tag=(
+        'mapping'), encoding='UTF-8', remove_blank_text=True)
     parser.feed(xmlStr)
     for _, elem in parser.read_events():
         if not str2bool(elem.get('skip', 'false')):
