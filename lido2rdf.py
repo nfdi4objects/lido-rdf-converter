@@ -10,10 +10,9 @@ from urllib.error import HTTPError, URLError
 from pathlib import Path
 from LidoRDFConverter import LidoRDFConverter
 
-SCHEMA_RE = re.compile("^(https?|file):")
+VERSION = "0.1.0"
 
-SUFFIX_FORMAT_MAP = {'ttl': 'turtle',
-                     'nt': 'nt', 'json': 'json-ld', 'xml': 'xml'}
+SUFFIX_FORMAT_MAP = {'ttl': 'turtle', 'nt': 'nt', 'json': 'json-ld', 'xml': 'xml'}
 '''Maps file suffixes to formats'''
 
 
@@ -23,28 +22,28 @@ def error(msg):
     exit(1)
 
 
-def getValidFormat(formatStr, fileName):
+def getValidFormat(format_str, file_name) -> str:
     '''Returns a valid format string'''
-    suffix = formatStr or Path(fileName).suffix.strip('.')
+    suffix = format_str or Path(file_name).suffix.strip('.')
     return SUFFIX_FORMAT_MAP.get(suffix, 'nt')
 
 
-def lido2rdf(source, mapping):
+def lido2rdf(input, mapping_file, **kw) -> LidoRDFConverter.Graph | None:
     '''Applies a x3ml mapping to a LIDO file'''
-    converter = LidoRDFConverter(mapping)
-    if SCHEMA_RE.match(source):
-        return converter.process_url(source, rdf_folder='rdfData')
+    converter = LidoRDFConverter(mapping_file)
+    isRessource = lambda s: re.compile("^(https?|file):").match(s)
+    if isRessource(input):
+        kw['rdf_folder']='rdfData'
+        return converter.process_url(input, **kw)
     else:
-        if source == "-":
-            source = BytesIO()
-            source.write(stdin.buffer.read())
-            source.seek(0)
-        g, _ = converter.parse_file(source)
-        return g
+        if input == "-":
+            input = BytesIO()
+            input.write(stdin.buffer.read())
+            input.seek(0)
+        return converter.parsqqe_file(input)[0]
 
-VERSION = "0.1.0"
 
-def main():
+def cli_convert():
     def apFormatter(prog):
         return argparse.HelpFormatter(prog, max_help_position=50)
 
@@ -53,7 +52,7 @@ def main():
 
     formats = ",".join(SUFFIX_FORMAT_MAP.keys())
     parser.add_argument("-o", '--output', metavar="NAME", dest="target",
-                        default='-', help="RDF output file (default: -)")
+                        default='/dev/stdout', help="RDF output file (default: -)")
     parser.add_argument("-t", '--to', dest="format",
                         help=f"RDF output format ({formats})")
     parser.add_argument('-m', '--mapping', dest="mapping", default='defaultMapping.x3ml',
@@ -66,17 +65,12 @@ def main():
         parser.print_help()
     else:
         try:
-            if graph := lido2rdf(args.source, args.mapping):
-                formatStr = getValidFormat(args.format, args.target)
-                # Process result graph
-                if args.target == "-":
-                    print(graph.serialize(format=formatStr))
-                else:
-                    graph.serialize(destination=args.target,
-                                    format=formatStr, encoding='utf-8')
+            format = getValidFormat(args.format, args.target)
+            if graph := lido2rdf(args.source, args.mapping, suffix=args.format, format=format):
+                graph.serialize(destination=args.target, format=format, encoding='utf-8')
         except (HTTPError, URLError) as exception:
             error(exception)
 
 
 if __name__ == "__main__":
-    main()
+    cli_convert()

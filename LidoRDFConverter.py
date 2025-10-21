@@ -1,4 +1,3 @@
-import json
 import re
 import time
 import x3ml
@@ -22,7 +21,7 @@ OAI_SCHEMA_URL = 'http://www.openarchives.org/OAI/2.0/'
 RESUMPTION_TAG = f'{{{OAI_SCHEMA_URL}}}resumptionToken'
 
 
-def make_short_uri(uri_str, **kw):
+def make_short_uri(uri_str, **kw) -> RF.term.URIRef:
     '''Returns URI' like e.g. crm:Enn_cccc'''
     # tag = kw.get('tag',None)
     for k, v in NAMESPACE_MAP.items():
@@ -31,15 +30,9 @@ def make_short_uri(uri_str, **kw):
     return RF.term.URIRef(uri_str)
 
 
-def deep_get(nested_dict, keys):
-    if not keys or nested_dict is None:
-        return nested_dict
-    return deep_get(nested_dict.get(keys[0]), keys[1:])
-
-
-def isHttp(s) -> bool:
+def isHttp(url) -> bool:
     """Checks if a string is a valid HTTP URL."""
-    return re.match(r"^https?:", s) is not None
+    return re.match(r"^https?:", url) is not None
 
 
 def proper_uri(uri: str | None) -> str | None:
@@ -82,7 +75,7 @@ def request_to_buffer(req: ulr.Request) -> str:
         return buffer
 
 
-def make_result_graph():
+def make_result_graph() -> RF.Graph:
     '''Creates an RDF graph with bound namespaces'''
     graph = RF.Graph()
     for k, v in NAMESPACE_MAP.items():
@@ -97,7 +90,7 @@ def make_clean_subdir(dir_path):
     os.mkdir(dir_path)
 
 
-def hash(s):
+def hash(s:str):
     '''Returns a hash of the string s'''
     return x3ml.md5Hash(s)
 
@@ -112,14 +105,10 @@ def make_n4o_id(text: str, **kw) -> str:
     return NAMESPACE_MAP['n4o'][f"{hash(text)}"]
 
 
-def pd(*args):
-    print([json.dumps(x, indent=2) for x in args])
+#def pd(*args): print([json.dumps(x, indent=2) for x in args])
 
 
-uri_ref = RF.term.URIRef
-
-
-def add_triples(graph, mapping: x3ml.Mapping, recID: str, **kw):
+def add_triples(graph, mapping: x3ml.Mapping, recID: str, **kw) -> None:
     '''Add triples to the graph'''
     info = mapping.info
     if id_S := info.id.strip():
@@ -156,7 +145,7 @@ def get_po_triples(S, recID, po: x3ml.PO, **kw) -> list:
     return triples
 
 
-def updateNS(elem):
+def updateNS(elem)-> None:
     '''Updates the supported namespaces from the parent XML element (only one update)'''
     if x3ml.notNone(elem):
         if not hasattr(updateNS, "first"):
@@ -168,8 +157,11 @@ def updateNS(elem):
 
 
 class LidoRDFConverter():
+    '''Converts LIDO XML files to RDF graphs using X3ML mappings'''
     def __init__(self, file_path):
         self.mappings = x3ml.mappings_from_file(file_path) if file_path else []
+        
+    Graph = RF.Graph
 
     @classmethod
     def from_str(cls, mapping_str):
@@ -177,60 +169,59 @@ class LidoRDFConverter():
         obj.mappings = x3ml.mappings_from_str(mapping_str)
         return obj
 
-    def process_url(self, url: str, **kw):
-        rdf_folder = kw.get('rdf_folder', 'data')
-        make_clean_subdir(rdf_folder)
-
-        def serialize(g, t):
-            file = f'./{rdf_folder}/{t}.ttl'
-            g.serialize(destination=file, format='ttl')
-
-        '''Transfers all LIDO elements'''
-        headers = {'User-Agent': 'pyoaiharvester/3.0',
-                   'Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
-        request = ulr.Request(url, headers=headers)
+    def process_url(self, url: str, **kw)-> Graph:
         if url.startswith('http'):
-            request = create_oai_request(
-                url, 'ListRecords&metadataPrefix=lido')
+            rdf_folder = kw.get('rdf_folder', 'data')
+            make_clean_subdir(rdf_folder)
+
+            suffix = kw.get('suffix', 'ttl')
+            def serializer(graph, token):
+                file = f'./{rdf_folder}/{token}.{suffix}'
+                graph.serialize(destination=file, format=suffix, encoding='utf-8')
+                
+            request = create_oai_request( url, 'ListRecords&metadataPrefix=lido')
             while request:
                 buffer = request_to_buffer(request)
-                graph, rs_token = self.parse_file(buffer, processor=serialize)
+                graph, rs_token = self.parse_file(buffer, processor=serializer)
                 if not rs_token:
                     print('No more resumptionToken')
                     break
                 request = create_oai_request(
                     url, f"ListRecords&resumptionToken={rs_token}")
         else:
+            headers = {'Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
+            request = ulr.Request(url, headers=headers)
             with ulr.urlopen(request) as response:
                 graph, _ = self.parse_file(response)
                 return graph
 
-    def parse_file(self, lido_file, **kw):
+    def parse_file(self, lido_file, **kw) -> tuple[RF.Graph, str]:
+        '''Parses a LIDO file and returns the RDF graph and a resumption token'''
         graph = make_result_graph()
         processor = kw.get('processor')
         valid_tag = (LIDO_TAG, RESUMPTION_TAG, 'error')
-        token = None
+        next_token = ''
         for _, elem in etree.iterparse(
                 lido_file, events=("end",),
                 tag=valid_tag, encoding='UTF-8', remove_blank_text=True):
             updateNS(elem)
-            token = self._process_valid_element(graph, elem)
+            next_token = self._process_valid_element(graph, elem)
         if processor:
-            processor(graph, token)
-        return graph, token
+            processor(graph, next_token)
+        return graph, next_token
 
-    def parse_string(self, lido_str):
-        graph = make_result_graph()
-        valid_tag = (LIDO_TAG)
-        parser = etree.XMLPullParser(
-            events=("end",), tag=valid_tag, encoding='UTF-8', remove_blank_text=True)
+    def parse_string(self, lido_str) -> RF.Graph:
+        '''Parses a LIDO string and returns the RDF graph'''
+        parser = etree.XMLPullParser(events=("end",), tag=(LIDO_TAG), encoding='UTF-8', remove_blank_text=True)
         parser.feed(lido_str)
+        graph = make_result_graph()
         for _, elem in parser.read_events():
             self._process_lido_element(elem, graph)
         return graph
 
-    def _process_valid_element(self, graph, elem):
-        token = None
+    def _process_valid_element(self, graph, elem)-> str:
+        '''Process valid LIDO or resumptionToken elements'''
+        token = ''
         if RESUMPTION_TAG == elem.tag:
             token = elem.text
             print('completeListSize', elem.attrib['completeListSize'])
@@ -246,11 +237,10 @@ class LidoRDFConverter():
             elem.clear()
         return token
 
-    def _process_lido_element(self, elem, graph):
+    def _process_lido_element(self, elem, graph) -> None:
         '''Create graph LIDO root element w.r.t given mappings'''
-        # get record ID
-        IDs = x3ml.xpath_lido(elem, "./lido:lidoRecID/text()")
-        recID = ' '.join([x.strip() for x in IDs])
+        recIDs = x3ml.xpath_lido(elem, "./lido:lidoRecID/text()")
+        recID = ' '.join([x.strip() for x in recIDs])
         for data in [m.evaluate(elem) for m in self.mappings]:
             for i, elem_data in enumerate(data):
                 if elem_data.valid:
