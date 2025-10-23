@@ -8,3 +8,4 @@ oai_buffer.xml
 web-app/work/
 *.db
 node_modules/
+rdfData/

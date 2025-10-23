@@ -44,7 +44,7 @@ def proper_uri(uri: str | None) -> str | None:
         return uri_t
 
 
-def create_oai_request(server_uri: str, command: str) -> ulr.Request | None:
+def oai_request(server_uri: str, command: str) -> ulr.Request | None:
     """Primary function for requesting OAI-PMH data from repository,
        checking for errors, handling possible compression and returning
        the XML string to the rest of the script for writing to a file."""
@@ -62,11 +62,11 @@ def create_oai_request(server_uri: str, command: str) -> ulr.Request | None:
                 return None
             print(f'Waiting {retry_wait} seconds')
             time.sleep(retry_wait)
-            return create_oai_request(server_uri, command)
+            return oai_request(server_uri, command)
         return None
 
 
-def request_to_buffer(req: ulr.Request) -> str:
+def read_request(req: ulr.Request) -> str:
     '''Write request response in a file'''
     with ulr.urlopen(req) as response:
         buffer = BytesIO()
@@ -153,7 +153,8 @@ def updateNS(elem)-> None:
             if x3ml.notNone(parent):
                 if parent.nsmap:
                     updateNS.first = True
-                    x3ml.used_namespaces.update(parent.nsmap)
+                    nsmap = dict(filter(lambda item: item[0], parent.nsmap.items())) #remove None keys
+                    x3ml.used_namespaces.update(nsmap)
 
 
 class LidoRDFConverter():
@@ -170,44 +171,42 @@ class LidoRDFConverter():
         return obj
 
     def process_url(self, url: str, **kw)-> Graph:
-        if url.startswith('http'):
-            rdf_folder = kw.get('rdf_folder', 'data')
-            make_clean_subdir(rdf_folder)
-
-            suffix = kw.get('suffix', 'ttl')
-            def serializer(graph, token):
-                file = f'./{rdf_folder}/{token}.{suffix}'
-                graph.serialize(destination=file, format=suffix, encoding='utf-8')
-                
-            request = create_oai_request( url, 'ListRecords&metadataPrefix=lido')
-            while request:
-                buffer = request_to_buffer(request)
-                graph, rs_token = self.parse_file(buffer, processor=serializer)
-                if not rs_token:
-                    print('No more resumptionToken')
-                    break
-                request = create_oai_request(
-                    url, f"ListRecords&resumptionToken={rs_token}")
-        else:
+        if url.endswith('.xml'):
+            '''Fetches and parses a single LIDO XML file from a URL'''
             headers = {'Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
+            print('Fetching LIDO XML from URL:', url)
             request = ulr.Request(url, headers=headers)
             with ulr.urlopen(request) as response:
                 graph, _ = self.parse_file(response)
                 return graph
+        else:
+            '''Fetches and processes LIDO records from an OAI-PMH endpoint'''
+            rdf_folder = kw.get('rdf_folder', 'data')
+            suffix = kw.get('suffix', 'ttl')
 
-    def parse_file(self, lido_file, **kw) -> tuple[RF.Graph, str]:
+            make_clean_subdir(rdf_folder)
+
+            def serialize(graph, token):
+                file = f'./{rdf_folder}/{token}.{suffix}'
+                graph.serialize(destination=file, format=suffix, encoding='utf-8')
+                
+            request = oai_request( url, 'ListRecords&metadataPrefix=lido')
+            while request:
+                buffer = read_request(request)
+                graph, rs_token = self.parse_file(buffer)
+                serialize(graph, rs_token)
+                if not rs_token:
+                    break
+                request = oai_request(url, f"ListRecords&resumptionToken={rs_token}")
+
+    def parse_file(self, lido_file) -> tuple[RF.Graph, str]:
         '''Parses a LIDO file and returns the RDF graph and a resumption token'''
         graph = make_result_graph()
-        processor = kw.get('processor')
         valid_tag = (LIDO_TAG, RESUMPTION_TAG, 'error')
         next_token = ''
-        for _, elem in etree.iterparse(
-                lido_file, events=("end",),
-                tag=valid_tag, encoding='UTF-8', remove_blank_text=True):
+        for _, elem in etree.iterparse(lido_file, events=("end",),  tag=valid_tag, encoding='UTF-8', remove_blank_text=True):
             updateNS(elem)
             next_token = self._process_valid_element(graph, elem)
-        if processor:
-            processor(graph, next_token)
         return graph, next_token
 
     def parse_string(self, lido_str) -> RF.Graph:

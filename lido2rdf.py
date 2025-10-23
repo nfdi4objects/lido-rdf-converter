@@ -33,14 +33,13 @@ def lido2rdf(input, mapping_file, **kw) -> LidoRDFConverter.Graph | None:
     converter = LidoRDFConverter(mapping_file)
     isRessource = lambda s: re.compile("^(https?|file):").match(s)
     if isRessource(input):
-        kw['rdf_folder']='rdfData'
         return converter.process_url(input, **kw)
     else:
         if input == "-":
             input = BytesIO()
             input.write(stdin.buffer.read())
             input.seek(0)
-        return converter.parsqqe_file(input)[0]
+        return converter.parse_file(input)[0]
 
 
 def cli_convert():
@@ -59,6 +58,8 @@ def cli_convert():
                         help="X3ML mapping file (default: defaultMapping.x3ml)")
     parser.add_argument('source', metavar='LIDO-XML', nargs="?",
                         default="-", help='LIDO file or URL (default: -)')
+    parser.add_argument('--rdf-folder', metavar="NAME", dest="rdf_folder",
+                        default='rdfData', help="RDF output folder for OAI-PMH processing (default: rdfData)")
 
     args = parser.parse_args()
     if args.source == "-" and stdin.isatty():
@@ -66,7 +67,7 @@ def cli_convert():
     else:
         try:
             format = getValidFormat(args.format, args.target)
-            if graph := lido2rdf(args.source, args.mapping, suffix=args.format, format=format):
+            if graph := lido2rdf(args.source, args.mapping, suffix=args.format, format=format, rdf_folder=args.rdf_folder):
                 graph.serialize(destination=args.target, format=format, encoding='utf-8')
         except (HTTPError, URLError) as exception:
             error(exception)

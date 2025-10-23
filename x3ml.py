@@ -14,28 +14,28 @@ used_namespaces = {
 }
 
 
-def expand_with_namespaces(xmlTag, namespaces = used_namespaces):
+def expand_with_namespaces(xml_tag, namespaces=used_namespaces):
     '''Expands a short tag, assume tags like prefix:tag'''
-    tokens = xmlTag.split(':', 2)
+    tokens = xml_tag.split(':', 2)
     if len(tokens) == 2:
         for prefix, ns in namespaces.items():
             if prefix == tokens[0]:
                 return f'{{{ns}}}{tokens[1]}'
-    return xmlTag
+    return xml_tag
 
 
-def compress_with_namespaces(xmlTag, namespaces = used_namespaces):
+def compress_with_namespaces(xml_tag, namespaces=used_namespaces):
     '''Compresses a long tag, assume tags like {namespace}tag'''
-    tokens = xmlTag.split('}', 2)
+    tokens = xml_tag.split('}', 2)
     if len(tokens) == 2:
         ns_uri = tokens[0].lstrip('{')
         for prefix, ns in namespaces.items():
             if ns == ns_uri:
                 return f'{prefix}:{tokens[1]}'
-    return xmlTag
+    return xml_tag
 
 
-def md5Hash(s):
+def md5Hash(s: str) -> str:
     '''Returns the MD5 hash of a string'''
     return hashlib.md5(s.encode()).hexdigest()
 
@@ -61,6 +61,7 @@ PATH_TRE = './path/target_relation/if/or/if/equals'
 RANGE_SN = './range/source_node'
 RANGE_ENTT = './range/target_node/entity'
 RANGE_TYPE = './range/target_node/entity/type'
+
 
 class lxpath():
     '''Wrapper for lidoXPath'''
@@ -104,14 +105,14 @@ def notNone(*args) -> bool:
     return not any(x is None for x in args)
 
 
-def executeS(fun, x, default=None):
+def executeS(func, x, default=None):
     '''Applies a function on a valid argument'''
-    return fun(x) if notNone(x) else default
+    return func(x) if notNone(x) else default
 
 
 def getIDs(elem):
     '''Returns all texts from valid Id elements'''
-    hasText = lambda t : notNone(t.text)
+    def hasText(t): return notNone(t.text)
     validItems = filter(hasText, getIdElements(elem))
     return list(map(lambda x: x.text, validItems))
 
@@ -130,14 +131,17 @@ def getIdElements(elem):
 
 
 def findVar(elem: etree.Element) -> str | None:
+    '''Finds the variable attribute'''
     return executeS(lambda x: x.get('variable', ''), elem.find(RANGE_ENTT + "[@variable]"), '')
 
 
-def str2bool(bstr) -> bool:
-    return bstr.lower() in ("yes", "true", "t", "1")
+def str2bool(bool_str) -> bool:
+    '''Converts a string to boolean'''
+    return bool_str.lower() in ("yes", "true", "t", "1")
 
 
 def skipped(elem: etree.Element) -> bool:
+    '''Tests if an element is marked as skipped'''
     return str2bool(elem.get('skip', 'false'))
 
 
@@ -165,21 +169,22 @@ def getLidoInfo(elem, i):
     '''Returns Info for an element'''
     text = elem.text.strip() if elem.text else ''
     lang = elem.get(expand_with_namespaces('xml:lang'), '')
+    
     info = Info(text=text, attrib=elem.attrib, index=i, lang=lang)
-    if rpl := getIDs(elem): # Has an explicit ID
+    if ids := getIDs(elem):  # Has an explicit ID
         info.mode = 'lidoID'
-        info.id = rpl[0]
-    elif len(elem) > 0 and not text: # Has subelements, use path
+        info.id = ids[0]
+    elif len(elem) > 0 and not text:  # Has subelements, use path
         info.mode = 'path'
         info.id = root_path_as_list(elem) + '/'+str(i)
-    else: # Just text
+    else:  # Just text
         info.mode = 'text'
     return info
 
 
 @dataclass
-class LinkEP:
-    '''Linking of path and entity'''
+class EntityPathRecord:
+    '''Linking of entity and path'''
     path: str = ''
     entity: str = ''
     var: str = ''
@@ -198,7 +203,7 @@ class LinkEP:
         return xpath_lido(elem, xpath)
 
 
-def stripPath(link: LinkEP, txt: str) -> str:
+def stripPath(link: EntityPathRecord, txt: str) -> str:
     return txt.removeprefix(link.path)
 
 
@@ -219,7 +224,7 @@ class Condition():
             if self.access.endswith('/text()'):
                 pathValues = elem.xpath(f"./{self.access}", namespaces=used_namespaces)
                 if self.values.intersection(pathValues):
-                   return True
+                    return True
             else:
                 # assume path as an attribute label
                 attrName = expand_with_namespaces(self.access)
@@ -233,8 +238,8 @@ class Condition():
 @dataclass
 class PO_Data:
     '''Data for a single PO'''
-    P: LinkEP = None
-    O: LinkEP = None
+    P: EntityPathRecord = None
+    O: EntityPathRecord = None
     infos: list = None
     valid: bool = False
 
@@ -242,8 +247,8 @@ class PO_Data:
 @dataclass
 class PO():
     '''Mapping for a single PO'''
-    P: LinkEP = None
-    O: LinkEP = None
+    P: EntityPathRecord = None
+    O: EntityPathRecord = None
     condition: Condition = field(default_factory=Condition)
 
     def isValid(self, elem):
@@ -257,7 +262,7 @@ class PO():
 @dataclass
 class Mapping_Data:
     '''Data for a single mapping'''
-    S: LinkEP = None
+    S: EntityPathRecord = None
     POs: list = None
     valid: bool = False
     info: Info = None
@@ -266,7 +271,7 @@ class Mapping_Data:
 @dataclass
 class Mapping:
     '''Mapping for a single S with multiple POs'''
-    S: LinkEP = None
+    S: EntityPathRecord = None
     POs: list = field(default_factory=list)
     condition: Condition = field(default_factory=Condition)
     intermediates: list = field(default_factory=list)
@@ -293,13 +298,13 @@ Mappings = list[Mapping]
 '''List of mappings'''
 
 
-def makeExP(pathElem: etree.Element, typeElem: etree.Element, varStr: str = '') -> LinkEP | None:
-    '''Creates an LinkEP from path and type elements'''
+def makeExP(pathElem: etree.Element, typeElem: etree.Element, varStr: str = '') -> EntityPathRecord | None:
+    '''Creates an EntityPathRecord from path and type elements'''
     if notNone(pathElem, typeElem):
         pathText = pathElem.text
         typeText = typeElem.text
         if typeText and pathText:
-            return LinkEP(pathText.strip(), typeText.strip(), varStr)
+            return EntityPathRecord(pathText.strip(), typeText.strip(), varStr)
 
 
 def mappingsFromNode(mappingElem) -> Mappings:
