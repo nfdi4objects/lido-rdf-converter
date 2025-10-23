@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
+    
+    <xs:element name="generator_policy">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="generator" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:unique name="uniqueGeneratorName">
+            <xs:selector xpath="generator"/>
+            <xs:field xpath="@name"/>
+        </xs:unique>
+    </xs:element>
+
+    <xs:element name="generator">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:choice>
+                    <xs:element ref="pattern" minOccurs="1" maxOccurs="1"/>
+                    <xs:element ref="custom" minOccurs="1" maxOccurs="1"/>
+                </xs:choice>
+                <xs:element ref="description" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute name="name" use="required"/>
+            <xs:attribute name="prefix"/>
+            <xs:attribute name="shorten"/>
+            <xs:attribute name="uuid"/>
+            <xs:attribute name="type">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="any" />
+                        <xs:enumeration value="instance" />
+                        <xs:enumeration value="label" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="pattern">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string"/>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="custom">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="set-arg" minOccurs="1" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:attribute name="name" use="required"/>
+                        <xs:attribute name="type" use="optional"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            <xs:attribute name="generatorClass" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="description">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string"/>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    
+</xs:schema>
