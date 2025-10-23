@@ -50,15 +50,16 @@ def cli_convert():
         prog="lido2rdf", description=f"Convert LIDO to RDF using X3ML mapping (version={VERSION})", formatter_class=apFormatter)
 
     formats = ",".join(SUFFIX_FORMAT_MAP.keys())
-    parser.add_argument("-o", '--output', metavar="NAME", dest="target",
-                        default='/dev/stdout', help="RDF output file (default: -)")
-    parser.add_argument("-t", '--to', dest="format",
-                        help=f"RDF output format ({formats})")
-    parser.add_argument('-m', '--mapping', dest="mapping", default='defaultMapping.x3ml',
-                        help="X3ML mapping file (default: defaultMapping.x3ml)")
+
     parser.add_argument('source', metavar='LIDO-XML', nargs="?",
                         default="-", help='LIDO file or URL (default: -)')
-    parser.add_argument('--rdf-folder', metavar="NAME", dest="rdf_folder",
+    parser.add_argument("-o", '--output', metavar="FILE", dest="target",
+                        default='/dev/stdout', help="RDF output file (default: -)")
+    parser.add_argument("-t", '--type', dest="format",
+                        help=f"RDF output format ({formats})")
+    parser.add_argument('-m', '--mapping', dest="mapping", metavar="X3ML", default='defaultMapping.x3ml',
+                        help="X3ML mapping file (default: defaultMapping.x3ml)")
+    parser.add_argument('--rdf-folder', metavar="DIR", dest="rdf_folder",
                         default='rdfData', help="RDF output folder for OAI-PMH processing (default: rdfData)")
 
     args = parser.parse_args()

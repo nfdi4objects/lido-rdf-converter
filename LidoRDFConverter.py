@@ -67,12 +67,12 @@ def oai_request(server_uri: str, command: str) -> ulr.Request | None:
 
 
 def read_request(req: ulr.Request) -> str:
-    '''Write request response in a file'''
+    '''Write request response in a buffer file'''
     with ulr.urlopen(req) as response:
-        buffer = BytesIO()
-        buffer.write(response.read())
-        buffer.seek(0)
-        return buffer
+        temp_filename = 'oai.buffer.xml'
+        with open(temp_filename, 'w') as out_file:
+            out_file.write(response.read().decode('utf-8'))
+        return temp_filename
 
 
 def make_result_graph() -> RF.Graph:
@@ -146,16 +146,15 @@ def get_po_triples(S, recID, po: x3ml.PO, **kw) -> list:
 
 
 def updateNS(elem)-> None:
-    '''Updates the supported namespaces from the parent XML element (only one update)'''
+    '''Updates the supported namespaces from the XML element (only one update)'''
     if x3ml.notNone(elem):
         if not hasattr(updateNS, "first"):
-            parent = elem.getparent()
-            if x3ml.notNone(parent):
-                if parent.nsmap:
-                    updateNS.first = True
-                    nsmap = dict(filter(lambda item: item[0], parent.nsmap.items())) #remove None keys
-                    x3ml.used_namespaces.update(nsmap)
+            x3ml.used_namespaces.update(get_ns(elem) )
+            updateNS.first = True
 
+def get_ns(elem):
+    '''Returns the save namespace map from an XML element'''
+    return dict(filter(lambda item: item[0], elem.nsmap.items()))
 
 class LidoRDFConverter():
     '''Converts LIDO XML files to RDF graphs using X3ML mappings'''
@@ -174,7 +173,6 @@ class LidoRDFConverter():
         if url.endswith('.xml'):
             '''Fetches and parses a single LIDO XML file from a URL'''
             headers = {'Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
-            print('Fetching LIDO XML from URL:', url)
             request = ulr.Request(url, headers=headers)
             with ulr.urlopen(request) as response:
                 graph, _ = self.parse_file(response)
@@ -192,8 +190,8 @@ class LidoRDFConverter():
                 
             request = oai_request( url, 'ListRecords&metadataPrefix=lido')
             while request:
-                buffer = read_request(request)
-                graph, rs_token = self.parse_file(buffer)
+                buffer_file = read_request(request)
+                graph, rs_token = self.parse_file(buffer_file)
                 serialize(graph, rs_token)
                 if not rs_token:
                     break
