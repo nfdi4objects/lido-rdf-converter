@@ -2,18 +2,15 @@ import unittest
 from generator import Arg, Custom, Generator, load_policy, save_policy
 import tempfile
 import os
-
 import xml.etree.ElementTree as ET
-
 class TestGenerator(unittest.TestCase):
     def test_arg_serialization(self):
         arg = Arg(name="test_name", type="test_type")
         elem = ET.Element("arg")
         arg.to_xml(elem)
-        
         deserialized = Arg.from_xml(elem)
-        self.assertEqual(arg.name, deserialized.name)
-        self.assertEqual(arg.type, deserialized.type)
+        self.assertIsNot(arg, deserialized)
+        self.assertEqual(arg, deserialized)
 
     def test_custom_serialization(self):
         custom = Custom(
@@ -22,11 +19,9 @@ class TestGenerator(unittest.TestCase):
         )
         elem = ET.Element("custom")
         custom.to_xml(elem)
-        
         deserialized = Custom.from_xml(elem)
-        self.assertEqual(custom.class_name, deserialized.class_name)
-        self.assertEqual(len(custom.args), len(deserialized.args))
-        self.assertEqual(custom.args[0].name, deserialized.args[0].name)
+        self.assertIsNot(custom, deserialized)
+        self.assertEqual(custom, deserialized)
 
     def test_generator_serialization(self):
         generator = Generator(
@@ -40,27 +35,50 @@ class TestGenerator(unittest.TestCase):
         )
         elem = ET.Element("generator")
         generator.to_xml(elem)
-        
         deserialized = Generator.from_xml(elem)
-        self.assertEqual(generator.pattern, deserialized.pattern)
-        self.assertEqual(generator.description, deserialized.description)
-        self.assertEqual(generator.name, deserialized.name)
+        self.assertIsNot(generator, deserialized)
+        self.assertEqual(generator, deserialized)
 
     def test_policy_save_load(self):
         generators = [
             Generator(name="gen1", pattern="pattern1"),
             Generator(name="gen2", pattern="pattern2")
         ]
-        
+
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             save_policy(tmp.name, generators)
             loaded = load_policy(tmp.name)
-            
-        self.assertEqual(len(generators), len(loaded))
-        self.assertEqual(generators[0].name, loaded[0].name)
-        self.assertEqual(generators[1].pattern, loaded[1].pattern)
-        
+
+        self.assertIsNot(generators, loaded)
+        self.assertEqual(generators, loaded)
+
         os.unlink(tmp.name)
+
+    def test_arg_clone(self):
+        arg = Arg(name="orig_name", type="orig_type")
+        cloned = arg.clone()
+        self.assertIsNot(arg, cloned)
+        self.assertEqual(arg, cloned)
+
+    def test_custom_clone(self):
+        custom = Custom(class_name="OrigClass", args=[Arg("a1", "t1"), Arg("a2", "t2")])
+        cloned = custom.clone()
+        self.assertIsNot(custom, cloned)
+        self.assertEqual(custom, cloned)
+
+    def test_generator_clone(self):
+        gen = Generator(
+            pattern="pat",
+            custom=Custom(class_name="C", args=[Arg("x", "tx")]),
+            description="desc",
+            name="gname",
+            prefix="pf",
+            shorten="sh",
+            type="tt"
+        )
+        cloned = gen.clone()
+        self.assertIsNot(gen, cloned)
+        self.assertEqual(gen, cloned)
 
 if __name__ == '__main__':
     unittest.main()
