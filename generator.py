@@ -10,17 +10,17 @@ class Arg:
     name: str
     type: str = ''
 
-    def to_xml(self, root):
+    def to_xml(self, elem):
         """Serialize the dataclass to an XML string."""
-        root.attrib[ARG_NAME_TAG] = str(self.name)
-        root.attrib[ARG_TYPE_TAG] = str(self.type)
-        return root
+        elem.attrib[ARG_NAME_TAG] = str(self.name)
+        elem.attrib[ARG_TYPE_TAG] = str(self.type)
+        return elem
 
     @classmethod
-    def from_xml(cls, root):
+    def from_xml(cls, elem):
         """Deserialize an XML string into a dataclass instance."""
-        name = root.get(ARG_NAME_TAG, '')
-        type = root.get(ARG_TYPE_TAG, '')
+        name = elem.get(ARG_NAME_TAG, '')
+        type = elem.get(ARG_TYPE_TAG, '')
         return cls(name=name, type=type)
 
 
@@ -32,17 +32,19 @@ class Custom:
     args: list = field(default_factory=list)
     class_name: str = ''
 
-    def to_xml(self, root) -> str:
-        root.attrib[CUSTOM_CLASS_TAG] = self.class_name
+    def to_xml(self, elem) -> str:
+        elem.attrib[CUSTOM_CLASS_TAG] = self.class_name
         for x in self.args:
-            x.to_xml(ET.SubElement(root, CUSTOM_SETARG_TAG))
-        return root
+            x.to_xml(ET.SubElement(elem, CUSTOM_SETARG_TAG))
+        return elem
     
     @classmethod
-    def from_xml(cls, root):
-        args = [Arg.from_xml(child) for child in root.findall(f'./{CUSTOM_SETARG_TAG}')]
-        class_name = root.get(CUSTOM_CLASS_TAG, '')
+    def from_xml(cls, elem):
+        args = [Arg.from_xml(child) for child in elem.findall(f'./{CUSTOM_SETARG_TAG}')]
+        class_name = elem.get(CUSTOM_CLASS_TAG, '')
         return cls(class_name=class_name, args=args)
+
+################################################################################################
 
 def get_sub_text(elem, name, dflt=''):
     name_elem = elem.find(f'./{name}')
@@ -66,25 +68,25 @@ class Generator:
     shorten: str = ''
     type: str = ''
 
-    def to_xml(self, root):
+    def to_xml(self, elem):
         '''Serialize the dataclass to an XML element.'''
-        ET.SubElement(root, GEN_DESCRIPTION_TAG).text = self.description
+        ET.SubElement(elem, GEN_DESCRIPTION_TAG).text = self.description
         if self.custom:
-            self.custom.to_xml(ET.SubElement(root, GEN_CUSTOM_TAG))
+            self.custom.to_xml(ET.SubElement(elem, GEN_CUSTOM_TAG))
         if self.pattern:
-            ET.SubElement(root, GEN_PATTERN_TAG).text = self.pattern
+            ET.SubElement(elem, GEN_PATTERN_TAG).text = self.pattern
             
-        root.attrib['name'] = self.name
-        root.attrib['prefix'] = self.prefix
-        root.attrib['shorten'] = self.shorten
-        root.attrib['type'] = self.type
-        return root
+        elem.attrib['name'] = self.name
+        elem.attrib['prefix'] = self.prefix
+        elem.attrib['shorten'] = self.shorten
+        elem.attrib['type'] = self.type
+        return elem
 
     def save_to_file(self, file_path: str):
         """Save the serialized XML to a file."""
         with open(file_path, 'w', encoding='utf-8') as file:
-            root = ET.Element(GEN_BASETAG)
-            file.write(ET.tostring(self.to_xml(root), encoding='unicode'))
+            elem = ET.Element(GEN_BASETAG)
+            file.write(ET.tostring(self.to_xml(elem), encoding='unicode'))
 
     @classmethod
     def from_xml(cls, root):
@@ -110,3 +112,19 @@ class Generator:
         with open(file_path, 'r', encoding='utf-8') as file:
             xml_data = file.read()
         return cls.from_xml(ET.fromstring(xml_data))
+    
+GeneratorPolicy = list[Generator]
+POLICY_BASE_TAG = 'generator_policy'
+
+def load_policy(filen_name: str) -> GeneratorPolicy:
+    """Load a list of Generators from an XML file."""
+    root = ET.parse(filen_name)
+    return [Generator.from_xml(child) for child in root.findall(f'./{GEN_BASETAG}')]
+
+def save_policy(filen_name: str, policy: GeneratorPolicy):
+    """Save a list of Generators to an XML file."""
+    with open(filen_name, 'w', encoding='utf-8') as file:
+        root = ET.Element(POLICY_BASE_TAG)
+        for gen in policy:
+            gen.to_xml(ET.SubElement(root, GEN_BASETAG))
+        file.write(ET.tostring(root, encoding='unicode'))
