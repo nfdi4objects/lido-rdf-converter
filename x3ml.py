@@ -68,12 +68,15 @@ def compress_with_namespaces(xml_tag, namespaces=used_namespaces):
 def xpath_lido(elem: etree.Element, path_to_subs: str) -> list:
     '''Wrapper for xpath with Lido namespaces'''
     sub_elements = elem.xpath(path_to_subs, namespaces=used_namespaces)
-    if '@' in path_to_subs and not elem.text:
-        transform_subs(path_to_subs, sub_elements)
+    if '@' in path_to_subs:
+        if elem.text: elem.text = elem.text.strip()
+        if not elem.text:
+            transform_subs(path_to_subs, sub_elements)
     return sub_elements
 
 def transform_subs(path_to_subs, sub_elements):
-    attr_name = expand_with_namespaces(path_to_subs.split('[@')[-1].strip(']'))
+    s = path_to_subs.split('[@')[-1].strip(']')
+    attr_name = expand_with_namespaces(s)
     for se in sub_elements:
         se.text = se.get(attr_name)
 
