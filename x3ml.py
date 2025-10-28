@@ -6,6 +6,36 @@ import json
 from pathlib import Path
 from dataclasses import dataclass, field
 
+############################################################################################################################
+
+
+def not_none(*args) -> bool:
+    '''Tests all args to not None'''
+    return not any(x is None for x in args)
+
+
+def apply_valid_arg(func, x, default=None):
+    '''Applies a function on a valid argument'''
+    return func(x) if not_none(x) else default
+
+
+def str2bool(bool_str) -> bool:
+    '''Converts a string to boolean'''
+    return bool_str.lower() in ("yes", "true", "t", "1")
+
+
+def skipped(elem: etree.Element) -> bool:
+    '''Tests if an element is marked as skipped'''
+    return str2bool(elem.get('skip', 'false'))
+
+
+def md5Hash(s: str) -> str:
+    '''Returns the MD5 hash of a string'''
+    return hashlib.md5(s.encode()).hexdigest()
+
+############################################################################################################################
+
+
 used_namespaces = {
     'lido': 'http://www.lido-schema.org',
     'gml': 'http://www.opengis.net/gml',
@@ -35,159 +65,157 @@ def compress_with_namespaces(xml_tag, namespaces=used_namespaces):
     return xml_tag
 
 
-def md5Hash(s: str) -> str:
-    '''Returns the MD5 hash of a string'''
-    return hashlib.md5(s.encode()).hexdigest()
-
-
 def xpath_lido(elem: etree.Element, path_to_subs: str) -> list:
     '''Wrapper for xpath with Lido namespaces'''
     sub_elements = elem.xpath(path_to_subs, namespaces=used_namespaces)
     if '@' in path_to_subs and not elem.text:
-        attr_name = expand_with_namespaces(path_to_subs.split('[@')[-1].strip(']'))
-        for se in sub_elements:
-            se.text = se.get(attr_name)
+        transform_subs(path_to_subs, sub_elements)
     return sub_elements
 
-
-DOMAIN_PATH = './domain/source_node'
-DOMAIN_TYPE = './domain/target_node/entity/type'
-DOMAIN_COND = './domain/target_node/if/or/if/equals'
-
-PATH_SRR = './path/source_relation/relation'
-PATH_TRR = './path/target_relation/relationship'
-PATH_TRE = './path/target_relation/if/or/if/equals'
-
-RANGE_SN = './range/source_node'
-RANGE_ENTT = './range/target_node/entity'
-RANGE_TYPE = './range/target_node/entity/type'
-
-
-class lxpath():
-    '''Wrapper for lidoXPath'''
-
-    def __init__(self, tag=None):
-        self.tag = tag
-
-    def children(self, elem):
-        '''Returns all child elements'''
-        if not self.tag:
-            return [elem]
-        return xpath_lido(elem, f"./{self.tag}")
-
-    def firstId(self, elem):
-        if ch := self.children(elem):
-            return ch[0]
-
-
-'''Mapping lido tags to its ID tags (lxpath)'''
-LIDO_ID_MAP = {
-    'lido:lido': lxpath('lido:lidoRecID'),
-    'lido:event': lxpath('lido:eventID'),
-    'lido:eventType': lxpath('lido:eventID'),
-    'lido:actor': lxpath('lido:actorID'),
-    'lido:category': lxpath('lido:conceptID'),
-    'lido:repositorySet': lxpath('lido:workID'),
-    'lido:place': [lxpath('lido:placeID'), lxpath('lido:namePlaceSet/lido:appellationValue')],
-    'lido:namePlaceSet': lxpath('lido:appellationValue'),
-    'lido:subjectConcept': lxpath('lido:conceptID'),
-    'lido:recordWrap': lxpath('lido:recordID'),
-    'lido:object': lxpath('lido:objectID'),
-    'lido:recordType': lxpath('lido:conceptID'),
-    'lido:rightsHolder': lxpath('lido:legalBodyID'),
-    'lido:resourceSet': lxpath('lido:resourceID'),
-    'lido:repositoryName': lxpath('lido:legalBodyID')
-}
-
-
-def notNone(*args) -> bool:
-    '''Tests all args to not None'''
-    return not any(x is None for x in args)
-
-
-def executeS(func, x, default=None):
-    '''Applies a function on a valid argument'''
-    return func(x) if notNone(x) else default
-
-
-def getIDs(elem):
-    '''Returns all texts from valid Id elements'''
-    def hasText(t): return notNone(t.text)
-    validItems = filter(hasText, getIdElements(elem))
-    return list(map(lambda x: x.text, validItems))
-
-
-def getIdElements(elem):
-    '''Returns all ID child elements'''
-    tag = compress_with_namespaces(elem.tag)
-    if lxp := LIDO_ID_MAP.get(tag):
-        if isinstance(lxp, lxpath):
-            return lxp.children(elem)
-        if isinstance(lxp, list):
-            for l in lxp:
-                if ch := l.children(elem):
-                    return ch
-    return []
-
-
-def findVar(elem: etree.Element) -> str | None:
-    '''Finds the variable attribute'''
-    return executeS(lambda x: x.get('variable', ''), elem.find(RANGE_ENTT + "[@variable]"), '')
-
-
-def str2bool(bool_str) -> bool:
-    '''Converts a string to boolean'''
-    return bool_str.lower() in ("yes", "true", "t", "1")
-
-
-def skipped(elem: etree.Element) -> bool:
-    '''Tests if an element is marked as skipped'''
-    return str2bool(elem.get('skip', 'false'))
+def transform_subs(path_to_subs, sub_elements):
+    attr_name = expand_with_namespaces(path_to_subs.split('[@')[-1].strip(']'))
+    for se in sub_elements:
+        se.text = se.get(attr_name)
 
 
 def root_path_as_list(elem):
     '''Return the full lido path of an element'''
     tags = elem.tag.replace(f"{{{ used_namespaces.get('lido','') }}}", '')
     parent = elem.getparent()
-    if notNone(parent):
+    if not_none(parent):
         tags = root_path_as_list(parent) + '/' + tags
     return tags
 
+
+############################################################################################################################
+
+DOMAIN_SN_PATH = './domain/source_node'
+DOMAIN_ET_PATH = './domain/target_node/entity/type'
+DOMAIN_COND_PATH = './domain/target_node/if/or/if/equals'
+
+PATH_SRR_PATH = './path/source_relation/relation'
+PATH_TRR_PATH = './path/target_relation/relationship'
+PATH_COND_PATH = './path/target_relation/if/or/if/equals'
+
+RANGE_SN_PATH = './range/source_node'
+RANGE_ENTITY_PATH = './range/target_node/entity'
+RANGE_ET_PATH = './range/target_node/entity/type'
+
+
+def findVar(elem: etree.Element) -> str | None:
+    '''Finds the variable attribute'''
+    return apply_valid_arg(lambda x: x.get('variable', ''), elem.find(RANGE_ENTITY_PATH + "[@variable]"), '')
+
+
+def findGen(elem: etree.Element) -> str | None:
+    '''Finds the generator name attribute'''
+    return apply_valid_arg(lambda x: x.get('name', ''), elem.find(RANGE_ENTITY_PATH + "/instance_generator[@name]"), '')
+
+
+############################################################################################################################
+@dataclass
+class ID_Host():
+    '''Host for ID tags'''
+    tag: str
+
+    def elements(self, elem: etree.Element) -> list:
+        '''Returns child elements'''
+        if not self.tag:
+            return [elem]
+        return xpath_lido(elem, f"./{self.tag}")
+
+
+@dataclass
+class ID_Host_List():
+    '''Host for multiple ID tags'''
+    tags: list = field(default_factory=list)
+
+    def elements(self, elem: etree.Element) -> list:
+        '''Returns first child elements from multiple tags'''
+        for tag in self.tags:
+            if ch := ID_Host(tag=tag).elements(elem):
+                return ch
+        return []
+
+
+'''Mapping lido tags to its ID tags'''
+LIDO_ID_MAP = {
+    'lido:lido': ID_Host('lido:lidoRecID'),
+    'lido:event': ID_Host('lido:eventID'),
+    'lido:eventType': ID_Host('lido:eventID'),
+    'lido:actor': ID_Host('lido:actorID'),
+    'lido:category': ID_Host('lido:conceptID'),
+    'lido:repositorySet': ID_Host('lido:workID'),
+    'lido:place': ID_Host_List(['lido:placeID', 'lido:namePlaceSet/lido:appellationValue']),
+    'lido:namePlaceSet': ID_Host('lido:appellationValue'),
+    'lido:subjectConcept': ID_Host('lido:conceptID'),
+    'lido:recordWrap': ID_Host('lido:recordID'),
+    'lido:object': ID_Host('lido:objectID'),
+    'lido:recordType': ID_Host('lido:conceptID'),
+    'lido:rightsHolder': ID_Host('lido:legalBodyID'),
+    'lido:resourceSet': ID_Host('lido:resourceID'),
+    'lido:repositoryName': ID_Host('lido:legalBodyID')
+}
+
+
+def get_ID_elements(elem):
+    '''Returns all ID child elements'''
+    tag = compress_with_namespaces(elem.tag)
+    if id_host := LIDO_ID_MAP.get(tag):
+        return id_host.elements(elem)
+    return []
+
+
+def get_IDs(elem):
+    '''Returns all texts from valid Id elements'''
+    validItems = filter(lambda t: not_none(t.text), get_ID_elements(elem))
+    return list(map(lambda x: x.text, validItems))
+
+
+############################################################################################################################
 
 @dataclass
 class Info:
     '''Information about an element'''
     text: str = ''
-    attrib: dict = None
+    attrib: dict = field(default_factory=dict)
     mode: str = ''
     id: str = ''
     index: int = -1
     lang: str = ''
 
+    @classmethod
+    def from_elem(cls, elem, i):
+        '''Creates an Info object from an element'''
+        text = elem.text.strip() if elem.text else ''
+        lang = elem.get(expand_with_namespaces('xml:lang'), '')
 
-def getLidoInfo(elem, i):
-    '''Returns Info for an element'''
-    text = elem.text.strip() if elem.text else ''
-    lang = elem.get(expand_with_namespaces('xml:lang'), '')
-    
-    info = Info(text=text, attrib=elem.attrib, index=i, lang=lang)
-    if ids := getIDs(elem):  # Has an explicit ID
-        info.mode = 'lidoID'
-        info.id = ids[0]
-    elif len(elem) > 0 and not text:  # Has subelements, use path
-        info.mode = 'path'
-        info.id = root_path_as_list(elem) + '/'+str(i)
-    else:  # Just text
-        info.mode = 'text'
-    return info
+        info = cls(text=text, attrib=elem.attrib, index=i, lang=lang)
+        # Priority of ID assignment
+        if ids := get_IDs(elem):
+            # Has an explicit ID
+            info.mode = 'lidoID'
+            info.id = ids[0]
+        elif len(elem) > 0 and not text:
+            # Has subelements, use path as ID
+            info.mode = 'path'
+            info.id = root_path_as_list(elem) + '/'+str(i)
+        else:
+            # Just text
+            info.mode = 'text'
 
+        return info
+
+
+############################################################################################################################
 
 @dataclass
-class EntityPathRecord:
+class ExP:
     '''Linking of entity and path'''
     path: str = ''
     entity: str = ''
-    var: str = ''
+    variable: str = ''
+    generator: str = ''
 
     def isRoot(self):
         '''Tests if the path is the root element'''
@@ -202,76 +230,84 @@ class EntityPathRecord:
         xpath = "." if self.isRoot() else f".//{self.path}"
         return xpath_lido(elem, xpath)
 
+    @classmethod
+    def fromElements(cls, path_elem: etree.Element, entity_elem: etree.Element, variable: str = '', gen: str = ''):
+        '''Creates an cls object from path and type elements'''
+        if not_none(path_elem, entity_elem):
+            path = path_elem.text
+            entity = entity_elem.text
+            if entity and path:
+                return cls(path=path.strip(), entity=entity.strip(), variable=variable, generator=gen)
 
-def stripPath(link: EntityPathRecord, txt: str) -> str:
+
+def stripPath(link: ExP, txt: str) -> str:
     return txt.removeprefix(link.path)
 
+
+############################################################################################################################
 
 @dataclass
 class Condition():
     '''Condition for filtering elements'''
     access: str = ''
-    values: set = None
+    values: set = field(default_factory=set)
 
     def add(self, path, value):
-        if self.values is None:
-            self.values = set()
         self.access = path
         self.values.add(value)
 
     def isValid(self, elem) -> bool:
-        if self.values:
+        if len(self.values) > 0:
             if self.access.endswith('/text()'):
                 pathValues = elem.xpath(f"./{self.access}", namespaces=used_namespaces)
-                if self.values.intersection(pathValues):
-                    return True
+                return self.values.intersection(pathValues) != set()
             else:
                 # assume path as an attribute label
                 attrName = expand_with_namespaces(self.access)
                 attrValue = elem.get(attrName, '')
-                if attrValue in self.values:
-                    return True
-            return False
+                return attrValue in self.values
         return True
 
 
+############################################################################################################################
 @dataclass
 class PO_Data:
     '''Data for a single PO'''
-    P: EntityPathRecord = None
-    O: EntityPathRecord = None
-    infos: list = None
+    P: ExP = None
+    O: ExP = None
+    infos: list = field(default_factory=list)
     valid: bool = False
 
 
 @dataclass
 class PO():
     '''Mapping for a single PO'''
-    P: EntityPathRecord = None
-    O: EntityPathRecord = None
+    P: ExP = None
+    O: ExP = None
     condition: Condition = field(default_factory=Condition)
 
     def isValid(self, elem):
         return self.condition.isValid(elem)
 
     def evaluate(self, elem):
-        infos = [getLidoInfo(e, i) for i, e in enumerate(self.O.subs(elem))]
+        infos = [Info.from_elem(e, i) for i, e in enumerate(self.O.subs(elem))]
         return PO_Data(P=self.P, O=self.O, infos=infos, valid=self.isValid(elem))
 
 
+############################################################################################################################
 @dataclass
 class Mapping_Data:
     '''Data for a single mapping'''
-    S: EntityPathRecord = None
-    POs: list = None
+    S: ExP = None
+    POs: list = field(default_factory=list)
     valid: bool = False
-    info: Info = None
+    info: Info = field(default_factory=Info)
 
 
 @dataclass
 class Mapping:
     '''Mapping for a single S with multiple POs'''
-    S: EntityPathRecord = None
+    S: ExP = None
     POs: list = field(default_factory=list)
     condition: Condition = field(default_factory=Condition)
     intermediates: list = field(default_factory=list)
@@ -281,7 +317,7 @@ class Mapping:
 
     def evaluate_n(self, elem, i):
         POs = [po.evaluate(elem) for po in self.POs]
-        return Mapping_Data(S=self.S, POs=POs, valid=self.isValid(elem), info=getLidoInfo(elem, i))
+        return Mapping_Data(S=self.S, POs=POs, valid=self.isValid(elem), info=Info.from_elem(elem, i))
 
     def evaluate(self, elem):
         return [self.evaluate_n(e, i) for i, e in enumerate(self.S.subs(elem))]
@@ -293,35 +329,29 @@ class Mapping:
         if intermediate:
             self.intermediates.append(intermediate)
 
+############################################################################################################################
+
 
 Mappings = list[Mapping]
 '''List of mappings'''
 
 
-def makeExP(pathElem: etree.Element, typeElem: etree.Element, varStr: str = '') -> EntityPathRecord | None:
-    '''Creates an EntityPathRecord from path and type elements'''
-    if notNone(pathElem, typeElem):
-        pathText = pathElem.text
-        typeText = typeElem.text
-        if typeText and pathText:
-            return EntityPathRecord(pathText.strip(), typeText.strip(), varStr)
-
-
-def mappingsFromNode(mappingElem) -> Mappings:
-    '''Reads single mappings from an x3ml mapping node'''
+def mappingsFromNode(elem) -> Mappings:
+    '''Reads single mappings from an x3ml mapping element'''
     mappings = []
-    if sExP := makeExP(mappingElem.find(DOMAIN_PATH), mappingElem.find(DOMAIN_TYPE)):
-        mapping = Mapping(sExP)
+    if subject_ExP := ExP.fromElements(elem.find(DOMAIN_SN_PATH), elem.find(DOMAIN_ET_PATH)):
+        mapping = Mapping(subject_ExP)
         # Find domain conditions
-        for elemS in mappingElem.findall(DOMAIN_COND):
-            mapping.condition.add(elemS.text, elemS.get('value'))
-        for linkElem in mappingElem.findall('./link'):
-            if not skipped(linkElem):
-                if pExP := makeExP(linkElem.find(PATH_SRR), linkElem.find(PATH_TRR)):
-                    varStr = findVar(linkElem)
-                    if oExP := makeExP(linkElem.find(RANGE_SN), linkElem.find(RANGE_TYPE), varStr):
-                        po = PO(P=pExP, O=oExP)
-                        for elemO in linkElem.findall(PATH_TRE):
+        for elem_d in elem.findall(DOMAIN_COND_PATH):
+            mapping.condition.add(elem_d.text, elem_d.get('value'))
+        for elem_l in elem.findall('./link'):
+            if not skipped(elem_l):
+                if predicate_ExP := ExP.fromElements(elem_l.find(PATH_SRR_PATH), elem_l.find(PATH_TRR_PATH)):
+                    varStr = findVar(elem_l)
+                    genStr = findGen(elem_l)
+                    if object_ExP := ExP.fromElements(elem_l.find(RANGE_SN_PATH), elem_l.find(RANGE_ET_PATH), varStr, genStr):
+                        po = PO(P=predicate_ExP, O=object_ExP)
+                        for elemO in elem_l.findall(PATH_COND_PATH):
                             po.condition.add(elemO.text, elemO.get('value'))
                         mapping.addPO(po)
         mappings.append(mapping)
@@ -344,6 +374,8 @@ def mappings_from_file(fileName: str) -> Mappings | None:
     xmlStr = Path(fileName).read_text(encoding='UTF-8')
     return mappings_from_str(xmlStr)
 
+
+############################################################################################################################
 
 if __name__ == "__main__":
     args = sys.argv[1:]

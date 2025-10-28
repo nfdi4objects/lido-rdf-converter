@@ -147,7 +147,7 @@ def get_po_triples(S, recID, po: x3ml.PO, **kw) -> list:
 
 def updateNS(elem)-> None:
     '''Updates the supported namespaces from the XML element (only one update)'''
-    if x3ml.notNone(elem):
+    if x3ml.not_none(elem):
         if not hasattr(updateNS, "first"):
             x3ml.used_namespaces.update(get_ns(elem) )
             updateNS.first = True
