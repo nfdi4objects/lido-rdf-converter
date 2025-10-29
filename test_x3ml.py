@@ -1,6 +1,5 @@
 import hashlib
 from lxml import etree
-import pytest
 import x3ml
 
 LIDO_NS = x3ml.used_namespaces['lido']

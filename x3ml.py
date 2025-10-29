@@ -5,6 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 from dataclasses import dataclass, field
+import re
 
 ############################################################################################################################
 
@@ -33,6 +34,13 @@ def md5Hash(s: str) -> str:
     '''Returns the MD5 hash of a string'''
     return hashlib.md5(s.encode()).hexdigest()
 
+
+def strip_elem_text(elem):
+    '''Strips the text of an element'''
+    if elem.text:
+        elem.text = elem.text.strip()
+    return elem
+
 ############################################################################################################################
 
 
@@ -46,39 +54,41 @@ used_namespaces = {
 
 def expand_with_namespaces(xml_tag, namespaces=used_namespaces):
     '''Expands a short tag, assume tags like prefix:tag'''
-    tokens = xml_tag.split(':', 2)
+    tokens = xml_tag.split(':', 1)
     if len(tokens) == 2:
-        for prefix, ns in namespaces.items():
-            if prefix == tokens[0]:
-                return f'{{{ns}}}{tokens[1]}'
+        p, t = tokens
+        if p in namespaces:
+            return f'{{{namespaces[p]}}}{t}'
     return xml_tag
 
 
 def compress_with_namespaces(xml_tag, namespaces=used_namespaces):
     '''Compresses a long tag, assume tags like {namespace}tag'''
-    tokens = xml_tag.split('}', 2)
-    if len(tokens) == 2:
-        ns_uri = tokens[0].lstrip('{')
+    if m := re.search(r'^{(.*)}', xml_tag):  # has namespace, pattern {namespace}localname
+        ns_uri = m.group(1)
         for prefix, ns in namespaces.items():
             if ns == ns_uri:
-                return f'{prefix}:{tokens[1]}'
+                local_name = xml_tag[len(m.group(0)):]
+                return f'{prefix}:{local_name}'
     return xml_tag
 
 
 def xpath_lido(elem: etree.Element, path_to_subs: str) -> list:
     '''Wrapper for xpath with Lido namespaces'''
     sub_elements = elem.xpath(path_to_subs, namespaces=used_namespaces)
-    if '@' in path_to_subs:
-        if elem.text: elem.text = elem.text.strip()
+    if re.search(r'\[@(.*)\]', path_to_subs):  # has attribute filter, pattern [@attr]
+        strip_elem_text(elem)
         if not elem.text:
             transform_subs(path_to_subs, sub_elements)
     return sub_elements
 
+
 def transform_subs(path_to_subs, sub_elements):
-    s = path_to_subs.split('[@')[-1].strip(']')
-    attr_name = expand_with_namespaces(s)
-    for se in sub_elements:
-        se.text = se.get(attr_name)
+    '''Transforms sub-elements by populating text from attribute'''
+    if m := re.search(r'\[@(.*)\]', path_to_subs):  # has attribute filter, pattern [@attr]
+        attr_name = expand_with_namespaces(m.group(1))
+        for se in sub_elements:
+            se.text = se.get(attr_name)
 
 
 def root_path_as_list(elem):
@@ -123,9 +133,9 @@ class ID_Host():
 
     def elements(self, elem: etree.Element) -> list:
         '''Returns child elements'''
-        if not self.tag:
-            return [elem]
-        return xpath_lido(elem, f"./{self.tag}")
+        if self.tag:
+            return xpath_lido(elem, f"./{self.tag}")
+        return []
 
 
 @dataclass
@@ -141,7 +151,7 @@ class ID_Host_List():
         return []
 
 
-'''Mapping lido tags to its ID tags'''
+'''Mapping lido tags to its ID hosts'''
 LIDO_ID_MAP = {
     'lido:lido': ID_Host('lido:lidoRecID'),
     'lido:event': ID_Host('lido:eventID'),
@@ -170,7 +180,7 @@ def get_ID_elements(elem):
 
 
 def get_IDs(elem):
-    '''Returns all texts from valid Id elements'''
+    '''Returns all ID values from an element'''
     validItems = filter(lambda t: not_none(t.text), get_ID_elements(elem))
     return list(map(lambda x: x.text, validItems))
 
@@ -190,7 +200,7 @@ class Info:
     @classmethod
     def from_elem(cls, elem, i):
         '''Creates an Info object from an element'''
-        text = elem.text.strip() if elem.text else ''
+        text = strip_elem_text(elem).text or ''
         lang = elem.get(expand_with_namespaces('xml:lang'), '')
 
         info = cls(text=text, attrib=elem.attrib, index=i, lang=lang)
@@ -237,8 +247,8 @@ class ExP:
     def fromElements(cls, path_elem: etree.Element, entity_elem: etree.Element, variable: str = '', gen: str = ''):
         '''Creates an cls object from path and type elements'''
         if not_none(path_elem, entity_elem):
-            path = path_elem.text
-            entity = entity_elem.text
+            path = path_elem.text or ''
+            entity = entity_elem.text or ''
             if entity and path:
                 return cls(path=path.strip(), entity=entity.strip(), variable=variable, generator=gen)
 

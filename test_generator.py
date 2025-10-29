@@ -56,13 +56,13 @@ class TestGenerator(unittest.TestCase):
 
     def test_arg_clone(self):
         arg = Arg(name="orig_name", type="orig_type")
-        cloned = arg.clone()
+        cloned = Arg.clone(arg)
         self.assertIsNot(arg, cloned)
         self.assertEqual(arg, cloned)
 
     def test_custom_clone(self):
         custom = Custom(class_name="OrigClass", args=[Arg("a1", "t1"), Arg("a2", "t2")])
-        cloned = custom.clone()
+        cloned = Custom.clone(custom)
         self.assertIsNot(custom, cloned)
         self.assertEqual(custom, cloned)
 
@@ -76,7 +76,7 @@ class TestGenerator(unittest.TestCase):
             shorten="sh",
             type="tt"
         )
-        cloned = gen.clone()
+        cloned = Generator.clone(gen)
         self.assertIsNot(gen, cloned)
         self.assertEqual(gen, cloned)
 
