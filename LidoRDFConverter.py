@@ -159,14 +159,14 @@ def get_ns(elem):
 class LidoRDFConverter():
     '''Converts LIDO XML files to RDF graphs using X3ML mappings'''
     def __init__(self, file_path):
-        self.mappings = x3ml.mappings_from_file(file_path) if file_path else []
+        self.mappings = x3ml.Mappings.from_file(file_path)
         
     Graph = RF.Graph
 
     @classmethod
     def from_str(cls, mapping_str):
         obj = cls('')
-        obj.mappings = x3ml.mappings_from_str(mapping_str)
+        obj.mappings = x3ml.Mappings.from_str(mapping_str)
         return obj
 
     def process_url(self, url: str, **kw)-> Graph:

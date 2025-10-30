@@ -189,11 +189,34 @@ def test_mappings_from_str_parsing_simple():
       </mapping>
     </root>
     '''
-    mappings = x3ml.mappings_from_str(xml)
-    assert isinstance(mappings, list)
+    mappings = x3ml.Mappings.from_str(xml)
+    assert isinstance(mappings, x3ml.Mappings)
     assert len(mappings) == 1
     m = mappings[0]
     assert isinstance(m, x3ml.Mapping)
     assert m.S.path == "lido:recordWrap"
     assert len(m.POs) == 1
     assert m.POs[0].O.path == "lido:recordID"
+
+def test_find_var_returns_variable_value():
+    # build element with ./range/target_node/entity[@variable="v1"]
+    link = etree.Element("link")
+    range_el = etree.SubElement(link, "range")
+    target_node = etree.SubElement(range_el, "target_node")
+    entity = etree.SubElement(target_node, "entity")
+    entity.set("variable", "v1")
+    assert x3ml.find_var(link) == "v1"
+
+
+def test_find_var_entity_without_attribute_returns_empty():
+    link = etree.Element("link")
+    range_el = etree.SubElement(link, "range")
+    target_node = etree.SubElement(range_el, "target_node")
+    etree.SubElement(target_node, "entity")  # no variable attribute
+    assert x3ml.find_var(link) == ""
+
+
+def test_find_var_no_entity_returns_empty():
+    # link without the expected path should return the default empty string
+    link = etree.Element("link")
+    assert x3ml.find_var(link) == ""

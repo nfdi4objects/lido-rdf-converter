@@ -115,12 +115,12 @@ RANGE_ENTITY_PATH = './range/target_node/entity'
 RANGE_ET_PATH = './range/target_node/entity/type'
 
 
-def findVar(elem: etree.Element) -> str | None:
+def find_var(elem: etree.Element) -> str | None:
     '''Finds the variable attribute'''
     return apply_valid_arg(lambda x: x.get('variable', ''), elem.find(RANGE_ENTITY_PATH + "[@variable]"), '')
 
 
-def findGen(elem: etree.Element) -> str | None:
+def find_gen(elem: etree.Element) -> str | None:
     '''Finds the generator name attribute'''
     return apply_valid_arg(lambda x: x.get('name', ''), elem.find(RANGE_ENTITY_PATH + "/instance_generator[@name]"), '')
 
@@ -345,12 +345,41 @@ class Mapping:
 ############################################################################################################################
 
 
-Mappings = list[Mapping]
-'''List of mappings'''
+@dataclass
+class Mappings:
+    '''Collection of multiple mappings'''
+    mappings: list = field(default_factory=list)
+
+    def __iter__(self): return self.mappings.__iter__()
+    def __len__(self): return self.mappings.__len__()
+    def __getitem__(self, item): return self.mappings.__getitem__(item)
+    def __add__(self, other): return Mappings(self.mappings + other.mappings)
+
+    @classmethod
+    def from_element(cls, elem):
+        '''Returns all mappings from an XML element'''
+        return cls(mapping_list(elem))
+
+    @classmethod
+    def from_str(cls, xml_str: str):
+        '''Returns all mappings from a string'''
+        parser = etree.XMLPullParser(events=("end",), tag=('mapping'), encoding='UTF-8', remove_blank_text=True)
+        parser.feed(xml_str)
+        mappings = cls()
+        for _, elem in parser.read_events():
+            if not str2bool(elem.get('skip', 'false')):
+                mappings += cls(mapping_list(elem))
+        return mappings
+
+    @classmethod
+    def from_file(cls, fileName: str):
+        '''Returns all mappings from a file'''
+        xml_str = Path(fileName).read_text(encoding='UTF-8')
+        return cls().from_str(xml_str)
 
 
-def mappingsFromNode(elem) -> Mappings:
-    '''Reads single mappings from an x3ml mapping element'''
+def mapping_list(elem)-> list:
+    '''Reads a list of mappings from an x3ml mapping element'''
     mappings = []
     if subject_ExP := ExP.fromElements(elem.find(DOMAIN_SN_PATH), elem.find(DOMAIN_ET_PATH)):
         mapping = Mapping(subject_ExP)
@@ -360,8 +389,8 @@ def mappingsFromNode(elem) -> Mappings:
         for elem_l in elem.findall('./link'):
             if not skipped(elem_l):
                 if predicate_ExP := ExP.fromElements(elem_l.find(PATH_SRR_PATH), elem_l.find(PATH_TRR_PATH)):
-                    varStr = findVar(elem_l)
-                    genStr = findGen(elem_l)
+                    varStr = find_var(elem_l)
+                    genStr = find_gen(elem_l)
                     if object_ExP := ExP.fromElements(elem_l.find(RANGE_SN_PATH), elem_l.find(RANGE_ET_PATH), varStr, genStr):
                         po = PO(P=predicate_ExP, O=object_ExP)
                         for elemO in elem_l.findall(PATH_COND_PATH):
@@ -370,28 +399,11 @@ def mappingsFromNode(elem) -> Mappings:
         mappings.append(mapping)
     return mappings
 
-
-def mappings_from_str(xmlStr: str) -> Mappings | None:
-    '''Returns all mappings from a string'''
-    mappings = []
-    parser = etree.XMLPullParser(events=("end",), tag=('mapping'), encoding='UTF-8', remove_blank_text=True)
-    parser.feed(xmlStr)
-    for _, elem in parser.read_events():
-        if not str2bool(elem.get('skip', 'false')):
-            mappings += mappingsFromNode(elem)
-    return mappings
-
-
-def mappings_from_file(fileName: str) -> Mappings | None:
-    '''Returns all mappings from a file'''
-    xmlStr = Path(fileName).read_text(encoding='UTF-8')
-    return mappings_from_str(xmlStr)
-
-
 ############################################################################################################################
+
 
 if __name__ == "__main__":
     args = sys.argv[1:]
     mappings = args[0] if len(args) == 1 else "defaultMapping.x3ml"
-    for t in mappings_from_file(mappings):
+    for t in Mappings.from_file(mappings):
         print(json.dumps(t.toDict(), indent=3))
