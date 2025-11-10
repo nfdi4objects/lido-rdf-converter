@@ -374,8 +374,11 @@ class Mappings:
     @classmethod
     def from_file(cls, fileName: str):
         '''Returns all mappings from a file'''
-        xml_str = Path(fileName).read_text(encoding='UTF-8')
-        return cls().from_str(xml_str)
+        p = Path(fileName)
+        if p.is_file():
+            xml_str = p.read_text(encoding='UTF-8')
+            return cls().from_str(xml_str)
+        return cls()
 
 
 def mapping_list(elem)-> list:

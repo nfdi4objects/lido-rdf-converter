@@ -10537,7 +10537,7 @@
                     </target_node>
                 </range>
             </link>
-            <link>
+            <link skip='true'>
                 <path>
                     <source_relation>
                         <relation>lido:eventType/lido:term</relation>
