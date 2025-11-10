@@ -11,6 +11,8 @@ def graphFromFile(file_path):
         'http://www.cidoc-crm.org/cidoc-crm/'))
     graph.namespace_manager.bind('skos', rdflib.URIRef(
         'http://www.w3.org/2004/02/skos/core#'))
+    graph.namespace_manager.bind('rdf', rdflib.URIRef(
+        'http://www.w3.org/1999/02/22-rdf-syntax-ns#'))
     graph.parse(file_path)
     return graph
 

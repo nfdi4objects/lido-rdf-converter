@@ -48,7 +48,8 @@ used_namespaces = {
     'lido': 'http://www.lido-schema.org',
     'gml': 'http://www.opengis.net/gml',
     'skos': 'http://www.w3.org/2004/02/skos/core#',
-    'xml': 'http://www.w3.org/XML/1998/namespace'
+    'xml': 'http://www.w3.org/XML/1998/namespace',
+    'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
 }
 
 
@@ -93,7 +94,7 @@ def transform_subs(path_to_subs, sub_elements):
 
 def root_path_as_list(elem):
     '''Return the full lido path of an element'''
-    tags = elem.tag.replace(f"{{{ used_namespaces.get('lido','') }}}", '')
+    tags = elem.tag.replace(f"{{{used_namespaces.get('lido', '')}}}", '')
     parent = elem.getparent()
     if not_none(parent):
         tags = root_path_as_list(parent) + '/' + tags

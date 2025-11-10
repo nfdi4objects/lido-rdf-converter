@@ -16,6 +16,11 @@
   <datalist id="DLCidocClasses"></datalist>
   <datalist id="DLCidocProperties"></datalist>
   <datalist id="DLLidoClasses"></datalist>
+  <style>
+   .btn { margin-left: 0.8em; } 
+   h4 { padding: 0.2em; }
+   .row { --bs-gutter-x: 2px; }
+  </style>
 </head>
 
 <body>
@@ -82,7 +87,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="uploadLidoModalLabel">Uploading Lido file</h5>
+            <h5 class="modal-title" id="uploadLidoModalLabel">Upload LIDO/XML file</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
@@ -103,14 +108,13 @@
     <div class="row">
       <div class="col-2"></div>
       <div class="col-8">
-        <h4><span class="label label-default">Mappings (x3ml)</span></h4>
-        <p>
-          <button type="button" class="btn btn-primary btn-sm" @click="addMapping">Add mapping</button>&nbsp;
-          <button type="button" class="btn btn-primary btn-sm" @click="clearMappings">Clear all</button>&nbsp;
-          <button type="button" class="btn btn-primary btn-sm" @click="resetMappings">Reset</button>&nbsp;
-          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal">Upload</button>&nbsp;
-          <a href="downloadX3ml" target="blank"><button class='btn btn-primary btn-sm'>Download</button></a>&nbsp;
-        </p>
+        <h4>Mappings (x3ml)
+          <button type="button" class="btn btn-primary btn-sm" @click="addMapping">Add mapping</button>
+          <button type="button" class="btn btn-primary btn-sm" @click="clearMappings">Clear all</button>
+          <button type="button" class="btn btn-primary btn-sm" @click="resetMappings">Reset</button>
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal">Upload</button>
+          <a href="downloadX3ml" target="blank"><button class='btn btn-primary btn-sm'>Download</button></a>
+        </h4>
         <div id="acc" class="accordion accordion-flush" style="overflow-y: scroll; height:600px; width: 100%;">
           <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
             <h2 class="accordion-header" :id="'M' + i">
@@ -176,18 +180,15 @@
     </div>
     <div class="row">
       <div class="col">
-        <h4>Lido source (xml)</h4>
-        <p>
-          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadLidoModal">Upload Lido</button>&nbsp;
-          <button type="button" class="btn btn-primary btn-sm" onclick="getLido(1)">Reset</button>&nbsp;
-        </p>
+        <h4>LIDO/XML
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadLidoModal">Upload</button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="getLido(1)">Reset</button>
+          <button type="button" class="btn btn-success btn-sm" style="float:right" onclick="runMappings()">Apply mappings</button>
+        </h4>
         <div id="lidoEditor" style="height:600px"></div>
       </div>
       <div class="col">
-        <h4>RDF Output (ttl)</h4>
-        <p>
-          <button type="button" class="btn btn-success btn-sm" onclick="runMappings()">Apply mappings</button>&nbsp;
-        </p>
+        <h4>RDF/Turtle</h4>
         <div id="rdfEditor"></div>
       </div>
     </div>
@@ -415,10 +416,10 @@
       }
     }).mount('#app');
 
-    function makeEditor(label, style = "ace/theme/monokai", fmt = "ace/mode/xml") {
+    function makeEditor(label, fmt = "ace/mode/xml") {
       // Returns an ace editor object
       var ed = ace.edit(label);
-      ed.setTheme(style);
+      //ed.setTheme("") //ace/theme/monokai");
       ed.session.setMode(fmt);
       ed.setPrintMarginColumn(-1);
       return ed;
@@ -428,7 +429,7 @@
     var lidoEditor = makeEditor("lidoEditor");
     lidoEditor.setValue(app.lido);
     lidoEditor.on('change', function() {onLidoChanged()});
-    var rdfEditor = makeEditor("rdfEditor", "", "ace/mode/turtle");
+    var rdfEditor = makeEditor("rdfEditor", "ace/mode/turtle");
     rdfEditor.setValue('')
 
     function getLido(mode=0) {
