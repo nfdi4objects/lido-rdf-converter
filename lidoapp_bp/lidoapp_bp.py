@@ -144,15 +144,22 @@ def runMappings():
 def convert():
     # TODO: catch error and provide better error response e.g. code 400 for malformed LIDO
     # Valid formats: "xml", "n3", "turtle", "nt", "pretty-xml", "trix", "trig", "nquads", "json-ld", "hext"
-    # Example: curl -X POST -F format='nt' -F file=@FILE HOST:PORT/convert"
+    # Example: curl -X POST -F file=@my_lido_file.xml -F mapping=@my_mapping_file.x3ml -F format='nt' HOST:PORT/convert
     if request.mimetype == "multipart/form-data":
-        lido_xml = request.files['file'].read().decode('utf-8')
+        if 'file' not in request.files:
+            return jsonify({'error': "No LIDO file part in the request."}), 400
+        if 'mapping' in request.files:
+            mapping_data = request.files['mapping'].read().decode('utf-8')
+        else:
+            mapping_data = dlftMappingFile().read_text()
+        lido_data = request.files['file'].read().decode('utf-8')
         format = request.form.get('format','turtle')
     else:
-        lido_xml = request.get_data()
+        mapping_data = dlftMappingFile().read_text()
+        lido_data = request.get_data()
         format ='turtle'
     try:
-        rdf_str = convert_lido_str(lido_xml, dlftMappingFile().read_text(),format=format)
+        rdf_str = convert_lido_str(lido_data, mapping_data,format=format)
         response = make_response(rdf_str, 200)
         response.mime_type = f"text/{format}"
     except Exception as e:
