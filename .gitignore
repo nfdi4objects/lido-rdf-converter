@@ -9,3 +9,4 @@ web-app/work/
 node_modules/
 rdfData/
 oai.buffer.xml
+*.log

@@ -4,15 +4,15 @@ from lidoapp_bp.lidoapp_bp import createLido2RdfService
 from argparse import ArgumentParser, BooleanOptionalAction
 
 app = Flask(__name__)
-l2rService = createLido2RdfService(app)
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument(
-        '-w', '--wsgi', action=BooleanOptionalAction, help="Use WSGI server")
-    parser.add_argument('-p', '--port', type=int,
-                        default=5000, help="Server port")
+    parser.add_argument('-w', '--wsgi', action=BooleanOptionalAction, help="Use WSGI server")
+    parser.add_argument('-p', '--port', type=int, default=5000, help="Server port")
+    parser.add_argument('-l', '--log', action=BooleanOptionalAction, help="Use logger")
     args = parser.parse_args()
+
+    l2rService = createLido2RdfService(app, use_logger=args.log)
 
     if args.wsgi:
         print(f"Starting WSGI server at http://localhost:{args.port}/")

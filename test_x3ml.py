@@ -65,7 +65,7 @@ def test_Info_from_elem_and_lang_and_modes():
     elem.text = "  Hello  "
     elem.set(f'{{{XML_NS}}}lang', "en")
     info = x3ml.Info.from_elem(elem, 0)
-    assert info.text == "Hello"
+    assert info.text ==  "  Hello  "
     assert info.lang == "en"
     assert info.mode == "text"
     # element with subelements and no own text -> path mode

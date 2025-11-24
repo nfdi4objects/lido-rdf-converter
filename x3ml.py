@@ -197,14 +197,16 @@ class Info:
     id: str = ''
     index: int = -1
     lang: str = ''
+    lido_type: str = ''
 
     @classmethod
     def from_elem(cls, elem, i):
         '''Creates an Info object from an element'''
-        text = strip_elem_text(elem).text or ''
+        text = elem.text or ''
         lang = elem.get(expand_with_namespaces('xml:lang'), '')
+        lido_type = elem.get(expand_with_namespaces('lido:type'), '')
 
-        info = cls(text=text, attrib=elem.attrib, index=i, lang=lang)
+        info = cls(text=text, attrib=elem.attrib, index=i, lang=lang, lido_type=lido_type)
         # Priority of ID assignment
         if ids := get_IDs(elem):
             # Has an explicit ID
@@ -219,6 +221,17 @@ class Info:
             info.mode = 'text'
 
         return info
+    
+    def hasID(self) -> bool:
+        '''Tests if the info has an ID'''
+        return self.mode in ('lidoID', 'path')
+
+    def get_id(self, prefix) -> str:
+        '''Returns the ID'''
+        id = self.id.strip()
+        if self.mode == 'path':
+            id = prefix + '-' + id  # make it unique per record
+        return id
 
 
 ############################################################################################################################
@@ -382,7 +395,7 @@ class Mappings:
         return cls()
 
 
-def mapping_list(elem)-> list:
+def mapping_list(elem) -> list:
     '''Reads a list of mappings from an x3ml mapping element'''
     mappings = []
     if subject_ExP := ExP.fromElements(elem.find(DOMAIN_SN_PATH), elem.find(DOMAIN_ET_PATH)):

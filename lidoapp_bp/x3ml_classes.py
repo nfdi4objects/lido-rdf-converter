@@ -61,8 +61,10 @@ class X3Base(JSON_Serializer):
             elem.attrib = self.attributes
         return elem
 
-    def to_str(self):
-        return tostring(self.serialize(Element('x3ml')))
+    def to_str(self, space="  "):
+        elem = self.serialize(Element('x3ml'))
+        indent(elem, space=space)
+        return tostring(elem)
 
     @classmethod
     def from_serial(cls, elem: Element,*args,**kw):

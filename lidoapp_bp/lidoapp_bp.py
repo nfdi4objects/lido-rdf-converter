@@ -6,6 +6,7 @@ from pathlib import Path
 from .x3ml_classes import Mapping, Link, PredicateVariant, Equals, X3ml
 from flask import Blueprint, render_template, request, send_file, jsonify, make_response
 from .database import db, User
+import logging
 
 
 class LidoBP(Blueprint):
@@ -13,15 +14,22 @@ class LidoBP(Blueprint):
         super().__init__('LidoBP', __name__,  template_folder='templates', static_folder='static', static_url_path='/assets')
         self.model = X3ml()
         self.user = user
+        self.logger = logging.getLogger(__name__)
+    
+    def info(self,s):
+        self.logger.info(s)
+
 
 lidoapp_bp = LidoBP()
 
+def index():
+    return render_template('index.html')
 
-def dlftMappingFile(): 
+def dlftMappingFile():
     return Path('./defaultMapping.x3ml')
 
 
-def dlftLidoFile(): 
+def dlftLidoFile():
     return Path('./defaultLido.xml')
 
 
@@ -35,18 +43,30 @@ def convert_lido_str(lido_str, x3ml_str,format='turtle'):
     return ''
 
 
-def registerLidoBlueprint(app,user):
+
+def register_lido_bp(app,user, use_logger=True):
+    '''Registers the Lido Blueprint with the Flask app and initializes it with the given user.'''
     global lidoapp_bp
+    if use_logger:
+        logging.basicConfig(filename='app.log', level=logging.INFO)
+        lidoapp_bp.info('Started')
+    
+    lidoapp_bp.add_url_rule('/', methods=["GET","POST"], view_func=index)
+
     app.register_blueprint(lidoapp_bp)
     lidoapp_bp.model = X3ml.from_serial(ET.XML(user.x3ml))
     lidoapp_bp.user = user
+
     return lidoapp_bp
 
-def fileContent(fileName):
-    file = Path(fileName)
-    return file.read_text() if file.exists() else ''
+def file_content(fileName):
+    '''Returns the content of a file as a string.'''
+    with open(fileName,'r', encoding='utf-8') as file:
+        return  file.read()
+    return ''
 
-def createLido2RdfService(app):
+def createLido2RdfService(app, use_logger=True):
+    '''Creates and configures the Lido to RDF conversion service'''
     db_file = Path('.') / 'lido_conv.db'
     app.config['SQLALCHEMY_DATABASE_URI'] ='sqlite:///' +str(db_file.absolute())
     app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
@@ -54,7 +74,7 @@ def createLido2RdfService(app):
     db.init_app(app)
     app.app_context().push()
 
-    if not db_file.exists(): 
+    if not db_file.exists():
         db.create_all()
 
     if users := User.query.all():
@@ -62,22 +82,19 @@ def createLido2RdfService(app):
         print('Recent first user',firstUser)
     else:
         # Create first user from default files
-        lido = fileContent('./defaultLido.xml')
-        x3ml = fileContent('./defaultMapping.x3ml')
+        lido = file_content('./defaultLido.xml')
+        x3ml = file_content('./defaultMapping.x3ml')
         firstUser = User(id=1,username='master', lido=lido,x3ml=x3ml)
         print('initial new user added', firstUser)
         db.session.add(firstUser)
         db.session.commit()
 
     # Bind all parts
-    return registerLidoBlueprint(app,firstUser)
+    return register_lido_bp(app,firstUser, use_logger=use_logger)
 
 
 #############################################################################
 
-@lidoapp_bp.route('/', methods=["GET","POST"])
-def index():
-    return render_template('index.html')
 
 
 @lidoapp_bp.route('/downloadX3ml')
@@ -164,7 +181,7 @@ def convert():
         response.mime_type = f"text/{format}"
     except Exception as e:
         return jsonify({'error': str(e)}), 400
-    return response        
+    return response
 
 @lidoapp_bp.route('/updateLido', methods=['GET', 'POST'])
 def updateLido():

@@ -6,12 +6,12 @@ import shutil
 import rdflib as RF
 import urllib.request as ulr
 import urllib.parse as ulp
-from io import BytesIO
 from lxml import etree
 
 
 # prefix namespace mapping
 NAMESPACE_MAP = {
+    "lido": RF.Namespace('http://www.lido-schema.org'),
     "n4o": RF.Namespace('http://graph.nfdi4objects.net/id/'),
     "crm": RF.Namespace("http://www.cidoc-crm.org/cidoc-crm/"),
     "geosparql": RF.Namespace('http://www.ontotext.com/plugins/geosparql#')
@@ -30,16 +30,16 @@ def make_short_uri(uri_str, **kw) -> RF.term.URIRef:
     return RF.term.URIRef(uri_str)
 
 
-def isHttp(url) -> bool:
-    """Checks if a string is a valid HTTP URL."""
-    return re.match(r"^https?:", url) is not None
+def isURI(url) -> bool:
+    '''Checks if a string is a valid URI'''
+    return ulp.urlparse(url).netloc != ''
 
 
 def proper_uri(uri: str | None) -> str | None:
     """Returns a proper URI string, replacing spaces with underscores and encoding special characters."""
     if uri:
         uri_t = uri.strip()
-        if isHttp(uri_t):
+        if isURI(uri_t):
             return ulp.quote(uri_t).replace('%3A', ':')
         return uri_t
 
@@ -90,7 +90,7 @@ def make_clean_subdir(dir_path):
     os.mkdir(dir_path)
 
 
-def hash(s:str):
+def hash(s: str):
     '''Returns a hash of the string s'''
     return x3ml.md5Hash(s)
 
@@ -101,11 +101,18 @@ def strip_schema(url: str) -> str:
 
 
 def make_n4o_id(text: str, **kw) -> str:
-    """Creates a N4O ID from text and specify"""
+    """Creates a N4O ID from text"""
     return NAMESPACE_MAP['n4o'][f"{hash(text)}"]
 
 
-#def pd(*args): print([json.dumps(x, indent=2) for x in args])
+def make_object(info):
+    """Creates an RDF object (URIRef or Literal) from info and text"""
+    if isURI(info.text):
+        return RF.URIRef(proper_uri(info.text))
+    return RF.Literal(info.text, lang=info.lang)
+
+
+# def pd(*args): print([json.dumps(x, indent=2) for x in args])
 
 
 def add_triples(graph, mapping: x3ml.Mapping, recID: str, **kw) -> None:
@@ -114,16 +121,11 @@ def add_triples(graph, mapping: x3ml.Mapping, recID: str, **kw) -> None:
     if id_S := info.id.strip():
         id_S = recID + '-' + id_S
         S = make_n4o_id(id_S, tag='S')
-        all_triples = []
-        all_triples.append(
-            (S, RF.RDF.type, make_short_uri(mapping.S.entity, tag='S')))
-        # all_triples.append((S,make_short_uri('crm:P999'), RF.Literal(id_S)))
-        num_S_triples = len(all_triples)
+        triples = [(S, RF.RDF.type, make_short_uri(mapping.S.entity, tag='S'))]
         for po in mapping.POs:
-            all_triples.extend(get_po_triples(S, recID,  po, **kw))
-        if len(all_triples) > num_S_triples:
-            for t in all_triples:
-                graph.add(t)
+            triples += get_po_triples(S, recID,  po, **kw)
+        for t in triples:
+            graph.add(t)
 
 
 def get_po_triples(S, recID, po: x3ml.PO, **kw) -> list:
@@ -132,37 +134,40 @@ def get_po_triples(S, recID, po: x3ml.PO, **kw) -> list:
     if po.valid:
         P = make_short_uri(po.P.entity, tag='P')
         for info in po.infos:
-            if info.mode == 'lidoID' or info.mode == 'path':
-                id_O = recID + '-' + info.id.strip()
+            if info.hasID():
+                id_O = info.get_id(recID)
                 O = make_n4o_id(id_O, tag='O')
                 if (O != S):
-                    triples.append(
-                        (O, RF.RDF.type, make_short_uri(po.O.entity, tag='O')))
-                    # triples.append((O, make_short_uri('crm:P90_has_value'), RF.Literal(info.id.strip(), lang=info.lang)))
+                    Pt = RF.RDF.type
+                    Ot = make_short_uri(po.O.entity, tag='O')
+                    triples.append((S, Pt, Ot))
                     triples.append((S, P, O))
             else:
-                if text := info.text:
-                    O = RF.Literal(text.strip(), lang=info.lang)
+                if info.text:
+                    O = make_object(info)
                     triples.append((S, P, O))
     return triples
 
 
-def updateNS(elem)-> None:
+def updateNS(elem) -> None:
     '''Updates the supported namespaces from the XML element (only one update)'''
     if x3ml.not_none(elem):
         if not hasattr(updateNS, "first"):
-            x3ml.used_namespaces.update(get_ns(elem) )
+            x3ml.used_namespaces.update(get_ns(elem))
             updateNS.first = True
+
 
 def get_ns(elem):
     '''Returns the save namespace map from an XML element'''
     return dict(filter(lambda item: item[0], elem.nsmap.items()))
 
+
 class LidoRDFConverter():
     '''Converts LIDO XML files to RDF graphs using X3ML mappings'''
+
     def __init__(self, file_path):
         self.mappings = x3ml.Mappings.from_file(file_path)
-        
+
     Graph = RF.Graph
 
     @classmethod
@@ -171,7 +176,7 @@ class LidoRDFConverter():
         obj.mappings = x3ml.Mappings.from_str(mapping_str)
         return obj
 
-    def process_url(self, url: str, **kw)-> Graph:
+    def process_url(self, url: str, **kw) -> Graph:
         if url.endswith('.xml'):
             '''Fetches and parses a single LIDO XML file from a URL'''
             headers = {'Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
@@ -189,8 +194,8 @@ class LidoRDFConverter():
             def serialize(graph, token):
                 file = f'./{rdf_folder}/{token}.{suffix}'
                 graph.serialize(destination=file, format=suffix, encoding='utf-8')
-                
-            request = oai_request( url, 'ListRecords&metadataPrefix=lido')
+
+            request = oai_request(url, 'ListRecords&metadataPrefix=lido')
             while request:
                 buffer_file = read_request(request)
                 graph, rs_token = self.parse_file(buffer_file)
@@ -218,7 +223,7 @@ class LidoRDFConverter():
             self._process_lido_element(elem, graph)
         return graph
 
-    def _process_valid_element(self, graph, elem)-> str:
+    def _process_valid_element(self, graph, elem) -> str:
         '''Process valid LIDO or resumptionToken elements'''
         token = ''
         if RESUMPTION_TAG == elem.tag:
