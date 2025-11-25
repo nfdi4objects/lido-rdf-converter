@@ -1,10 +1,10 @@
 .container {
-  width: 90%; 
+  width: 90%;
 }
 
 #lidoEditor {
   height: 500px;
-  width: 100%; /* Adjust width as needed */
+  width: 95%; /* Adjust width as needed */
   font-size: 12px;
   font-family: monospace;
 }
@@ -17,8 +17,79 @@
 }
 
 #rdfEditor {
-    height: 500px;
-    width: 100%; /* Adjust width as needed */
-    font-size: 12px;
-    font-family: monospace;
-  }
+  height: 500px;
+  width: 95%; /* Adjust width as needed */
+  font-size: 12px;
+  font-family: monospace;
+}
+
+/* CSS */
+.button-blue {
+  background-color: #0095ff;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  box-shadow: rgba(255, 255, 255, 0.4) 0 1px 0 0 inset;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  display: inline-block;
+  font-family: -apple-system, system-ui, "Segoe UI", "Liberation Sans",
+    sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1;
+  margin: 2px;
+  outline: none;
+  padding: 8px 0.8em;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: baseline;
+  white-space: nowrap;
+}
+
+.button-blue:hover,
+.button-blue:focus {
+  background-color: #07c;
+}
+
+.button-blue:focus {
+  box-shadow: 0 0 0 4px rgba(0, 149, 255, 0.15);
+}
+
+.button-blue:active {
+  background-color: #0064bd;
+  box-shadow: none;
+}
+
+.visible-scrollbar,
+.invisible-scrollbar,
+.mostly-customized-scrollbar {
+  display: block;
+  width: 10em;
+  overflow: auto;
+  height: 2em;
+  padding: 1em;
+  margin: 1em auto;
+  outline: 2px dashed cornflowerblue;
+}
+
+.invisible-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Demonstrate a "mostly customized" scrollbar
+ * (won't be visible otherwise if width/height is specified) */
+.mostly-customized-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 8px;
+  background-color: #aaaaaa; /* or add it to the track */
+}
+
+/* Add a thumb */
+.mostly-customized-scrollbar::-webkit-scrollbar-thumb {
+  background: black;
+}

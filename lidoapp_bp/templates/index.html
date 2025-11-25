@@ -17,9 +17,18 @@
   <datalist id="DLCidocProperties"></datalist>
   <datalist id="DLLidoClasses"></datalist>
   <style>
-   .btn { margin-left: 0.8em; } 
-   h4 { padding: 0.2em; }
-   .row { --bs-gutter-x: 2px; }
+    .btn {
+      margin-left: 0.8em;
+      margin-top: 0.2em;
+    }
+
+    h4 {
+      padding: 0.2em;
+    }
+
+    .row {
+      --bs-gutter-x: 2px;
+    }
   </style>
 </head>
 
@@ -106,16 +115,15 @@
     </div>
     <!-- Main dialog -->
     <div class="row">
-      <div class="col-2"></div>
-      <div class="col-8">
-        <h4>Mappings (x3ml)
-          <button type="button" class="btn btn-primary btn-sm" @click="addMapping">Add mapping</button>
-          <button type="button" class="btn btn-primary btn-sm" @click="clearMappings">Clear all</button>
-          <button type="button" class="btn btn-primary btn-sm" @click="resetMappings">Reset</button>
-          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal">Upload</button>
-          <a href="downloadX3ml" target="blank"><button class='btn btn-primary btn-sm'>Download</button></a>
-        </h4>
-        <div id="acc" class="accordion accordion-flush" style="overflow-y: scroll; height:600px; width: 100%;">
+      <div class="col-4">
+        <div> Mappings (x3ml)
+          <button type="button" class="button-blue" @click="addMapping">Add mapping</button>
+          <button type="button" class="button-blue" @click="clearMappings">Clear all</button>
+          <button type="button" class="button-blue" @click="resetMappings">Load default</button>
+          <button type="button" class="button-blue" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal">Upload</button>
+          <a href="downloadX3ml" target="blank"><button class='button-blue'>Download</button></a>
+        </div>
+        <div id="acc" class="accordion accordion-flush" style="overflow-y: scroll; height:1000px; width: 100%;">
           <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
             <h2 class="accordion-header" :id="'M' + i">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#C' + i" aria-expanded="false" :aria-controls="'C' + i">
@@ -130,16 +138,16 @@
                   <input class="form-control" list="DLLidoClasses" type="text" name="S-path" :id="i" v-model="mapping.domain.sourceNode.text">
                   <label for="lname">Entity:</label>
                   <input class="form-control" list="DLCidocClasses" type="text" name="S-type" :id="i" v-model="mapping.domain.targetNode.entity.type">
+                  <p>
+                    <button type="button" class="button-blue" @click="applyMappingChanges" :iM="i">Submit</button>
+                    <button type="button" class="button-blue" @click="openMappingConditionEditor" :iM="i">Conditions</button>
+                    <button type="button" class="button-blue" @click="addLink" :iM="i">Add Link</button>
+                    <button type="button" class="button-blue" @click="deleteMapping" :iM="i">Delete</button>
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" value="" :id="'Mapskip' + i" v-model="mapping.attributes.skip">
                     <label class="form-check-label" :for="'Mapskip' + i">Skip</label>
                   </div>
-                  <p>
-                    <button type="button" class="btn btn-primary btn-sm" @click="applyMappingChanges" :iM="i">Submit</button>&nbsp;
-                    <button type="button" class="btn btn-primary btn-sm" @click="openMappingConditionEditor" :iM="i">Conditions</button>&nbsp;
-                    <button type="button" class="btn btn-primary btn-sm" @click="addLink" :iM="i">Add Link</button>&nbsp;
-                    <button type="button" class="btn btn-danger btn-sm" @click="deleteMapping" :iM="i">Delete</button>&nbsp;
-                  </p>
+
                 </div>
 
                 <div class="accordion accordion-flush" :id="'LA' + i">
@@ -163,9 +171,9 @@
                             <label class="form-check-label" :for="'LinkSkip' + i +'-' + j">Skip</label>
                           </div>
                           <br />
-                          <button type="button" class="btn btn-primary btn-sm" @click="applyLinkChanges" :iM="i" :iL="j">Submit</button>&nbsp;
-                          <button type="button" class="btn btn-primary btn-sm" @click="openLinkConditionEditor" :iM="i" :iL="j">Conditions</button>&nbsp;
-                          <button type="button" class="btn btn-danger btn-sm" @click="deleteLink" :iM="i" :iL="j">Delete</button>&nbsp;
+                          <button type="button" class="button-blue" @click="applyLinkChanges" :iM="i" :iL="j">Submit</button>
+                          <button type="button" class="button-blue" @click="openLinkConditionEditor" :iM="i" :iL="j">Conditions</button>
+                          <button type="button" class="button-blue" @click="deleteLink" :iM="i" :iL="j">Delete</button>
                         </form>
                       </div>
                     </div>
@@ -176,20 +184,24 @@
           </div>
         </div>
       </div>
-      <div class="col-2"></div>
-    </div>
-    <div class="row">
       <div class="col">
-        <h4>LIDO/XML
-          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadLidoModal">Upload</button>
-          <button type="button" class="btn btn-primary btn-sm" onclick="getLido(1)">Reset</button>
-          <button type="button" class="btn btn-success btn-sm" style="float:right" onclick="runMappings()">Apply mappings</button>
-        </h4>
-        <div id="lidoEditor" style="height:600px"></div>
-      </div>
-      <div class="col">
-        <h4>RDF/Turtle</h4>
-        <div id="rdfEditor"></div>
+        <div class="row">
+          <div>
+            Result (rdf/turtle):
+            <button type="button" class="button-blue" onclick="runMappings()">Apply mappings</button>
+          </div>
+          <div id="rdfEditor"></div>
+        </div>
+
+        <div class="row">
+          <div>
+            Source (lido/xml):
+            <button type="button" class="button-blue" data-bs-toggle="modal" data-bs-target="#uploadLidoModal">Upload</button>
+            <button type="button" class="button-blue" onclick="getLido(1)">Default</button>
+          </div>
+          <div id="lidoEditor"></div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -428,13 +440,13 @@
     // Creator editors
     var lidoEditor = makeEditor("lidoEditor");
     lidoEditor.setValue(app.lido);
-    lidoEditor.on('change', function() {onLidoChanged()});
+    lidoEditor.on('change', function () { onLidoChanged() });
     var rdfEditor = makeEditor("rdfEditor", "ace/mode/turtle");
     rdfEditor.setValue('')
 
-    function getLido(mode=0) {
+    function getLido(mode = 0) {
       // Loads Lido data from server into the source editor
-      get("loadLido/"+mode)
+      get("loadLido/" + mode)
         .then((response) => response.json())
         .then((jsData) => { lidoEditor.setValue(jsData.lidoData); })
         .catch((err) => { console.error(err); });
@@ -450,11 +462,10 @@
       app.getX3ml();
     }
 
-    function onLidoChanged()
-    {
+    function onLidoChanged() {
       data = { type: '/updateLido', data: lidoEditor.getValue() }
       post('updateLido', data)
-     }
+    }
 
     function addCondition(conditions) {
       // Appends a new condition: use a copy of the 1. entry or a default entry for no recent entries
