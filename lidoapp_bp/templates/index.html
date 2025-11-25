@@ -47,7 +47,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Condition editor</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="button" class="button-blue" data-bs-dismiss="modal" aria-label="Close">Close</button>
           </div>
           <div class="modal-body">
             <div v-for="(item, i) in predicates">
@@ -60,14 +60,14 @@
                   <input class="form-control" type="text" v-model="item.predicate.value">
                 </div>
                 <div class="col-sm-1">
-                  <button type="button" class="btn btn-danger btn-sm" @click="predicates.splice(i, 1)">Delete</button>
+                  <button type="button" class="button-blue" @click="predicates.splice(i, 1)">Delete</button>
                 </div>
               </div>
             </div>
-            <button type="button" class="btn btn-secondary" onclick="addCondition(app.predicates)">Add condition</button>
+            <button type="button" class="button-blue" onclick="addCondition(app.predicates)">Add condition</button>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Dimiss</button>
+            <button type="button" class="button-blue" data-bs-dismiss="modal">Dimiss</button>
             <form novalidate @submit.prevent="applyConditionChanges">
               <input type="submit" class="btn btn-primary" data-bs-dismiss="modal" value="Apply" />
             </form>
@@ -81,7 +81,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="uploadX3mlModalLabel">Uploading X3ml mappings</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="button" class="button-blue" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <form novalidate @submit.prevent="uploadX3ml">
@@ -92,7 +92,7 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="button-blue" data-bs-dismiss="modal">Close</button>
           </div>
         </div>
       </div>
@@ -103,7 +103,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="uploadLidoModalLabel">Upload LIDO/XML file</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="button" class="button-blue" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <form novalidate @submit.prevent="uploadLido">
@@ -114,7 +114,7 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="button-blue" data-bs-dismiss="modal">Close</button>
           </div>
         </div>
       </div>
@@ -123,11 +123,11 @@
     <div class="row">
       <div class="col-4">
         <div> Mappings (x3ml)
-          <button type="button" class="button-blue" @click="addMapping">Add mapping</button>
-          <button type="button" class="button-blue" @click="clearMappings">Clear all</button>
-          <button type="button" class="button-blue" @click="resetMappings">Load default</button>
-          <button type="button" class="button-blue" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal">Upload</button>
-          <a href="downloadX3ml" target="blank"><button class='button-blue'>Download</button></a>
+          <button type="button" class="button-blue" @click="addMapping" title="Add a new mapping rule to the list.">Add mapping</button>
+          <button type="button" class="button-blue" @click="clearMappings" title="Remove all mapping rules.">Clear all</button>
+          <button type="button" class="button-blue" @click="resetMappings" title="Load the default mappings.">Load default</button>
+          <button type="button" class="button-blue" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal" title="Upload a customer mapping.">Upload</button>
+          <a href="downloadX3ml" target="blank"><button class='button-blue' title="Downlooad the current mapping.">Download</button></a>
         </div>
         <div id="acc" class="accordion accordion-flush" style="overflow-y: scroll; height:1000px; width: 100%;">
           <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
@@ -145,10 +145,10 @@
                   <label for="lname">Entity:</label>
                   <input class="form-control" list="DLCidocClasses" type="text" name="S-type" :id="i" v-model="mapping.domain.targetNode.entity.type">
                   <p>
-                    <button type="button" class="button-blue" @click="applyMappingChanges" :iM="i">Submit</button>
-                    <button type="button" class="button-blue" @click="openMappingConditionEditor" :iM="i">Conditions</button>
-                    <button type="button" class="button-blue" @click="addLink" :iM="i">Add Link</button>
-                    <button type="button" class="button-blue" @click="deleteMapping" :iM="i">Delete</button>
+                    <button type="button" class="button-blue" @click="applyMappingChanges" :iM="i" title="Save the settings of this rule">Submit</button>
+                    <button type="button" class="button-blue" @click="openMappingConditionEditor" :iM="i" title="Opens the condition editor.">Conditions</button>
+                    <button type="button" class="button-blue" @click="addLink" :iM="i" title="Add a new link to the rule.">Add Link</button>
+                    <button type="button" class="button-blue" @click="deleteMapping" :iM="i" title="Delete this rule.">Delete</button>
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" value="" :id="'Mapskip' + i" v-model="mapping.attributes.skip">
                     <label class="form-check-label" :for="'Mapskip' + i">Skip</label>
@@ -177,9 +177,9 @@
                             <label class="form-check-label" :for="'LinkSkip' + i +'-' + j">Skip</label>
                           </div>
                           <br />
-                          <button type="button" class="button-blue" @click="applyLinkChanges" :iM="i" :iL="j">Submit</button>
-                          <button type="button" class="button-blue" @click="openLinkConditionEditor" :iM="i" :iL="j">Conditions</button>
-                          <button type="button" class="button-blue" @click="deleteLink" :iM="i" :iL="j">Delete</button>
+                          <button type="button" class="button-blue" @click="applyLinkChanges" :iM="i" :iL="j" title="Save settings.">Save</button>
+                          <button type="button" class="button-blue" @click="openLinkConditionEditor" :iM="i" :iL="j" title="Open the condition dialog.">Conditions</button>
+                          <button type="button" class="button-blue" @click="deleteLink" :iM="i" :iL="j" title="Delete this link.">Delete</button>
                         </form>
                       </div>
                     </div>
@@ -202,8 +202,8 @@
         <div class="row">
           <div>
             Source (lido/xml):
-            <button type="button" class="button-blue" data-bs-toggle="modal" data-bs-target="#uploadLidoModal">Upload</button>
-            <button type="button" class="button-blue" onclick="getLido(1)">Default</button>
+            <button type="button" class="button-blue" data-bs-toggle="modal" data-bs-target="#uploadLidoModal" title="Upload an Lido test file.">Upload</button>
+            <button type="button" class="button-blue" onclick="getLido(1)" title="Load the default test file.">Default</button>
           </div>
           <div id="lidoEditor"></div>
         </div>
