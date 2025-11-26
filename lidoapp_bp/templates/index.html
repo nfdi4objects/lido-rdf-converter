@@ -37,8 +37,9 @@
   <div id="app" class=".container-fluid">
     <div>
       <p class="fw-lighter fs-6" style="background-color: rgb(212, 226, 231)">
-        This is an online editor for Lido-to-RDF mappings (x3ml). The mapping rules are editable in the left section. The right section gives two editors for testing data.
-        The top-left editor shows the result of the mapping for the source data. The source text are shown int the buttom-right editor.
+        This is an online editor for Lido-to-RDF mappings (x3ml). Mapping rules are editable in the left section. Two text fields for applying the rules are shown on the right.<br>
+        The top-right field shows the result of the mapping for the source data shown underneath.
+        <a href="https://www.gbv.de/impressum">imprint</a> | <a href="https://www.gbv.de/kontakt">contact</a>
       </p>
     </div>
     <!-- Condition editor dialog (modal )-->
@@ -121,8 +122,8 @@
     </div>
     <!-- Main dialog -->
     <div class="row">
-      <div class="col-4">
-        <div> Mappings (x3ml):
+      <div class="col-5">
+        <div> Mappings (x3ml):<br>
           <button type="button" class="button-blue" @click="addMapping" title="Add a new mapping rule to the list.">Add mapping</button>
           <button type="button" class="button-blue" @click="clearMappings" title="Remove all mapping rules.">Clear all</button>
           <button type="button" class="button-blue" @click="resetMappings" title="Load the default mappings.">Load default</button>
@@ -160,7 +161,7 @@
                   <div class="accordion-item" v-for="(link, j) in mapping.links" :key="j">
                     <h2 class="accordion-header" :id="'L' + j">
                       <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#D' + j" aria-expanded="false" :aria-controls="'D' + j">
-                        Link ${i+1}$-${j+1}$: "${link.path.sourceRelation.relation.text}$"
+                        Link ${i+1}$-${j+1}$ to: "${link.path.sourceRelation.relation.text}$"
                       </button>
                     </h2>
                     <div :id="'D' + j" class="accordion-collapse collapse hide" :aria-labelledby="'L' + j" :data-bs-parent="'#LA' + i">
@@ -212,12 +213,6 @@
     </div>
   </div>
 
-  <footer>
-    <p class="fw-lighter fs-6">
-      <a href="https://www.gbv.de/impressum">imprint</a> |
-      <a href="https://www.gbv.de/kontakt">contact</a>
-    </p>
-  </footer>
 
   <script>
     function createCidocOptions(optionValues, elementId) {

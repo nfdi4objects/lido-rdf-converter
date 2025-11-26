@@ -14,25 +14,26 @@ NAMESPACE_MAP = {
     "lido": RF.Namespace('http://www.lido-schema.org'),
     "n4o": RF.Namespace('http://graph.nfdi4objects.net/id/'),
     "crm": RF.Namespace("http://www.cidoc-crm.org/cidoc-crm/"),
-    "geosparql": RF.Namespace('http://www.ontotext.com/plugins/geosparql#')
+    "geosparql": RF.Namespace('http://www.ontotext.com/plugins/geosparql#'),
+    "lido_term": RF.Namespace('http://terminology.lido-schema.org/'),
 }
 LIDO_TAG = x3ml.expand_with_namespaces('lido:lido')
 OAI_SCHEMA_URL = 'http://www.openarchives.org/OAI/2.0/'
 RESUMPTION_TAG = f'{{{OAI_SCHEMA_URL}}}resumptionToken'
 
 
-def make_short_uri(uri_str, **kw) -> RF.term.URIRef:
+def make_short_uri(uri:str, **kw) -> RF.term.URIRef:
     '''Returns URI' like e.g. crm:Enn_cccc'''
     # tag = kw.get('tag',None)
     for k, v in NAMESPACE_MAP.items():
-        if uri_str.startswith(f"{k}:"):
-            return v[uri_str.split(':')[-1]]
-    return RF.term.URIRef(uri_str)
+        if uri.startswith(f"{k}:"):
+            return v[uri.split(':')[-1]]
+    return RF.term.URIRef(uri)
 
 
-def isURI(url) -> bool:
+def isURI(uri:str) -> bool:
     '''Checks if a string is a valid URI'''
-    return ulp.urlparse(url).netloc != ''
+    return ulp.urlparse(uri).netloc != ''
 
 
 def proper_uri(uri: str | None) -> str | None:
@@ -83,14 +84,14 @@ def make_result_graph() -> RF.Graph:
     return graph
 
 
-def make_clean_subdir(dir_path):
+def make_clean_subdir(dir_path) -> None:
     '''Creates a clean subdirectory for storing RDF files'''
     if os.path.exists(dir_path):
         shutil.rmtree(dir_path)
     os.mkdir(dir_path)
 
 
-def hash(s: str):
+def hash(s: str) -> str:
     '''Returns a hash of the string s'''
     return x3ml.md5Hash(s)
 
@@ -100,12 +101,12 @@ def strip_schema(url: str) -> str:
     return re.sub(r"^https?:", '', url).strip().strip('/')
 
 
-def make_n4o_id(text: str, **kw) -> str:
+def make_n4o_id(text: str, **kw) -> RF.URIRef:
     """Creates a N4O ID from text"""
     return NAMESPACE_MAP['n4o'][f"{hash(text)}"]
 
 
-def make_object(info):
+def make_object(info) -> RF.URIRef | RF.Literal:
     """Creates an RDF object (URIRef or Literal) from info and text"""
     if isURI(info.text):
         return RF.URIRef(proper_uri(info.text))
@@ -124,8 +125,9 @@ def add_triples(graph, mapping: x3ml.Mapping, recID: str, **kw) -> None:
         triples = [(S, RF.RDF.type, make_short_uri(mapping.S.entity, tag='S'))]
         for po in mapping.POs:
             triples += get_po_triples(S, recID,  po, **kw)
-        for t in triples:
-            graph.add(t)
+        if len(triples) > 1: # at least one PO triple
+            for t in triples:
+                graph.add(t)
 
 
 def get_po_triples(S, recID, po: x3ml.PO, **kw) -> list:
