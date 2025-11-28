@@ -25,6 +25,9 @@ lidoapp_bp = LidoBP()
 def index():
     return render_template('index.html')
 
+def barriere():
+    return render_template('barriere.html')
+
 def dlftMappingFile():
     return Path('./defaultMapping.x3ml')
 
@@ -52,7 +55,7 @@ def register_lido_bp(app,user, use_logger=True):
         lidoapp_bp.info('Started')
     
     lidoapp_bp.add_url_rule('/', methods=["GET","POST"], view_func=index)
-
+    lidoapp_bp.add_url_rule('/barriere', methods=["GET"], view_func=barriere)
     app.register_blueprint(lidoapp_bp)
     lidoapp_bp.model = X3ml.from_serial(ET.XML(user.x3ml))
     lidoapp_bp.user = user
