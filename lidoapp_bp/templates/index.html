@@ -61,16 +61,16 @@
                   <input class="form-control" type="text" v-model="item.predicate.value">
                 </div>
                 <div class="col-sm-1">
-                  <button type="button" class="button-blue" @click="predicates.splice(i, 1)">Delete</button>
+                  <button type="button" class="btn btn-primary btn-sm" @click="predicates.splice(i, 1)">Delete</button>
                 </div>
               </div>
             </div>
-            <button type="button" class="button-blue" onclick="addCondition(app.predicates)">Add condition</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="addCondition(app.predicates)">Add condition</button>
           </div>
           <div class="modal-footer">
-            <button type="button" class="button-blue" data-bs-dismiss="modal">Dimiss</button>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">Dimiss</button>
             <form novalidate @submit.prevent="applyConditionChanges">
-              <input type="submit" class="button-blue" data-bs-dismiss="modal" value="Apply" />
+              <input type="submit" class="btn btn-primary btn-sm" data-bs-dismiss="modal" value="Apply" />
             </form>
           </div>
         </div>
@@ -93,7 +93,7 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="button-blue" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">Close</button>
           </div>
         </div>
       </div>
@@ -115,7 +115,7 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="button-blue" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">Close</button>
           </div>
         </div>
       </div>
@@ -124,11 +124,11 @@
     <div class="row">
       <div class="col-5">
         <div> Mappings (x3ml):<br>
-          <button type="button" class="button-blue" @click="addMapping" title="Add a new mapping rule to the list.">Add mapping</button>
-          <button type="button" class="button-blue" @click="clearMappings" title="Remove all mapping rules.">Clear all</button>
-          <button type="button" class="button-blue" @click="resetMappings" title="Load the default mappings.">Load default</button>
-          <button type="button" class="button-blue" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal" title="Upload a customer mapping.">Upload</button>
-          <a href="downloadX3ml" target="blank"><button class='button-blue' title="Downlooad the current mapping.">Download</button></a>
+          <button type="button" class="btn btn-primary btn-sm " @click="addMapping" title="Add a new mapping rule to the list.">Add mapping</button>
+          <button type="button" class="btn btn-primary btn-sm" @click="clearMappings" title="Remove all mapping rules.">Clear all</button>
+          <button type="button" class="btn btn-primary btn-sm" @click="resetMappings" title="Load the default mappings.">Load default</button>
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal" title="Upload a customer mapping.">Upload</button>
+          <a href="downloadX3ml" target="blank"><button class='btn btn-primary btn-sm' title="Downlooad the current mapping.">Download</button></a>
         </div>
         <div id="acc" class="accordion accordion-flush" style="overflow-y: scroll; height:1000px; width: 100%;">
           <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
@@ -146,10 +146,10 @@
                   <label for="lname">Entity:</label>
                   <input class="form-control" list="DLCidocClasses" type="text" name="S-type" :id="i" v-model="mapping.domain.targetNode.entity.type">
                   <p>
-                    <button type="button" class="button-blue" @click="applyMappingChanges" :iM="i" title="Save the settings of this rule">Submit</button>
-                    <button type="button" class="button-blue" @click="openMappingConditionEditor" :iM="i" title="Opens the condition editor.">Conditions</button>
-                    <button type="button" class="button-blue" @click="addLink" :iM="i" title="Add a new link to the rule.">Add Link</button>
-                    <button type="button" class="button-blue" @click="deleteMapping" :iM="i" title="Delete this rule.">Delete</button>
+                    <button type="button" class="btn btn-primary btn-sm" @click="applyMappingChanges" :iM="i" title="Save the settings of this rule">Submit</button>
+                    <button type="button" class="btn btn-primary btn-sm" @click="openMappingConditionEditor" :iM="i" title="Opens the condition editor.">Conditions</button>
+                    <button type="button" class="btn btn-primary btn-sm" @click="addLink" :iM="i" title="Add a new link to the rule.">Add Link</button>
+                    <button type="button" class="btn btn-primary btn-sm" @click="deleteMapping" :iM="i" title="Delete this rule.">Delete</button>
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" value="" :id="'Mapskip' + i" v-model="mapping.attributes.skip">
                     <label class="form-check-label" :for="'Mapskip' + i">Skip</label>
@@ -178,9 +178,9 @@
                             <label class="form-check-label" :for="'LinkSkip' + i +'-' + j">Skip</label>
                           </div>
                           <br />
-                          <button type="button" class="button-blue" @click="applyLinkChanges" :iM="i" :iL="j" title="Save settings.">Save</button>
-                          <button type="button" class="button-blue" @click="openLinkConditionEditor" :iM="i" :iL="j" title="Open the condition dialog.">Conditions</button>
-                          <button type="button" class="button-blue" @click="deleteLink" :iM="i" :iL="j" title="Delete this link.">Delete</button>
+                          <button type="button" class="btn btn-primary btn-sm" @click="applyLinkChanges" :iM="i" :iL="j" title="Save settings.">Save</button>
+                          <button type="button" class="btn btn-primary btn-sm" @click="openLinkConditionEditor" :iM="i" :iL="j" title="Open the condition dialog.">Conditions</button>
+                          <button type="button" class="btn btn-primary btn-sm" @click="deleteLink" :iM="i" :iL="j" title="Delete this link.">Delete</button>
                         </form>
                       </div>
                     </div>
@@ -195,7 +195,7 @@
         <div class="row">
           <div>
             Result (rdf/turtle):
-            <button type="button" class="button-blue" onclick="runMappings()">Apply mappings</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="runMappings()">Apply mappings</button>
           </div>
           <div id="rdfEditor"></div>
         </div>
@@ -203,8 +203,8 @@
         <div class="row">
           <div>
             Source (lido/xml):
-            <button type="button" class="button-blue" data-bs-toggle="modal" data-bs-target="#uploadLidoModal" title="Upload an Lido test file.">Upload</button>
-            <button type="button" class="button-blue" onclick="getLido(1)" title="Load the default test file.">Default</button>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadLidoModal" title="Upload an Lido test file.">Upload</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="getLido(1)" title="Load the default test file.">Default</button>
           </div>
           <div id="lidoEditor"></div>
         </div>
@@ -279,7 +279,7 @@
                 .then((res) => {
                   this.x3file = null;
                   this.getX3ml();
-                  rdfEditor.setValue('');
+                  rdfEditor.setValue('',-1);
                 });
             });
           }
@@ -306,20 +306,20 @@
         resetMappings() {
           // Post the mapping reset and reloads server data
           post('uploadMapping', { type: 'uploadMapping', data: null })
-            .then((res) => { this.getX3ml(); rdfEditor.setValue(''); });
+            .then((res) => { this.getX3ml(); rdfEditor.setValue('',-1); });
         },
         clearMappings() {
           // Post the deletion of all mapping and reloads server data
           post('clearMappings', { type: 'clearMappings' })
-            .then((res) => { this.getX3ml(); rdfEditor.setValue(''); });
+            .then((res) => { this.getX3ml(); rdfEditor.setValue('',-1); });
         },
         uploadLido() {
           // Loads text from the lido URL into the Lido editor
           if (this.lidoURL) {
             const pText = this.lidoURL.text();
             pText.then((lidoStr) => {
-              lidoEditor.setValue(lidoStr)
-              rdfEditor.setValue('');
+              lidoEditor.setValue(lidoStr,-1)
+              rdfEditor.setValue('',-1);
               this.lidoURL = null
             });
           }
@@ -447,16 +447,16 @@
 
     // Creator editors
     var lidoEditor = makeEditor("lidoEditor");
-    lidoEditor.setValue(app.lido);
+    lidoEditor.setValue(app.lido,-1);
     lidoEditor.on('change', function () { onLidoChanged() });
     var rdfEditor = makeEditor("rdfEditor", "ace/mode/turtle");
-    rdfEditor.setValue('')
+    rdfEditor.setValue('',-1)
 
     function getLido(mode = 0) {
       // Loads Lido data from server into the source editor
       get("loadLido/" + mode)
         .then((response) => response.json())
-        .then((jsData) => { lidoEditor.setValue(jsData.lidoData); })
+        .then((jsData) => { lidoEditor.setValue(jsData.lidoData,-1); })
         .catch((err) => { console.error(err); });
     }
 
@@ -466,7 +466,7 @@
       data = { type: '/runMappings', data: lidoEditor.getValue() }
       post('runMappings', data)
         .then(res => res.json())
-        .then(s => rdfEditor.setValue(s.text));
+        .then(s => rdfEditor.setValue(s.text,-1));
       app.getX3ml();
     }
 
