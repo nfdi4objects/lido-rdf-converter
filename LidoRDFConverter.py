@@ -22,7 +22,7 @@ OAI_SCHEMA_URL = 'http://www.openarchives.org/OAI/2.0/'
 RESUMPTION_TAG = f'{{{OAI_SCHEMA_URL}}}resumptionToken'
 
 
-def make_short_uri(uri:str, **kw) -> RF.term.URIRef:
+def make_short_uri(uri: str, **kw) -> RF.term.URIRef:
     '''Returns URI' like e.g. crm:Enn_cccc'''
     # tag = kw.get('tag',None)
     for k, v in NAMESPACE_MAP.items():
@@ -31,7 +31,7 @@ def make_short_uri(uri:str, **kw) -> RF.term.URIRef:
     return RF.term.URIRef(uri)
 
 
-def isURI(uri:str) -> bool:
+def isURI(uri: str) -> bool:
     '''Checks if a string is a valid URI'''
     return ulp.urlparse(uri).netloc != ''
 
@@ -67,13 +67,13 @@ def oai_request(server_uri: str, command: str) -> ulr.Request | None:
         return None
 
 
-def read_request(req: ulr.Request) -> str:
+def request_to_buffer_file(req: ulr.Request) -> str:
     '''Write request response in a buffer file'''
     with ulr.urlopen(req) as response:
-        temp_filename = 'oai.buffer.xml'
-        with open(temp_filename, 'w') as out_file:
+        buffer_file = 'oai.buffer.xml'
+        with open(buffer_file, 'w') as out_file:
             out_file.write(response.read().decode('utf-8'))
-        return temp_filename
+        return buffer_file
 
 
 def make_result_graph() -> RF.Graph:
@@ -125,7 +125,7 @@ def add_triples(graph, mapping: x3ml.Mapping, recID: str, **kw) -> None:
         triples = [(S, RF.RDF.type, make_short_uri(mapping.S.entity, tag='S'))]
         for po in mapping.POs:
             triples += get_po_triples(S, recID,  po, **kw)
-        if len(triples) > 1: # at least one PO triple
+        if len(triples) > 1:  # at least one PO triple
             for t in triples:
                 graph.add(t)
 
@@ -178,7 +178,7 @@ class LidoRDFConverter():
         obj.mappings = x3ml.Mappings.from_str(mapping_str)
         return obj
 
-    def process_url(self, url: str, **kw) -> Graph:
+    def process_url(self, url: str, **kw) -> Graph | None:
         if url.endswith('.xml'):
             '''Fetches and parses a single LIDO XML file from a URL'''
             headers = {'Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
@@ -189,22 +189,23 @@ class LidoRDFConverter():
         else:
             '''Fetches and processes LIDO records from an OAI-PMH endpoint'''
             rdf_folder = kw.get('rdf_folder', 'data')
-            suffix = kw.get('suffix', 'ttl')
+            format = kw.get('suffix', 'ttl')
 
             make_clean_subdir(rdf_folder)
 
-            def serialize(graph, token):
-                file = f'./{rdf_folder}/{token}.{suffix}'
-                graph.serialize(destination=file, format=suffix, encoding='utf-8')
-
             request = oai_request(url, 'ListRecords&metadataPrefix=lido')
+            index = 0
             while request:
-                buffer_file = read_request(request)
-                graph, rs_token = self.parse_file(buffer_file)
-                serialize(graph, rs_token)
-                if not rs_token:
-                    break
-                request = oai_request(url, f"ListRecords&resumptionToken={rs_token}")
+                buffer_file = request_to_buffer_file(request)
+                graph, token = self.parse_file(buffer_file)
+                destination = f'./{rdf_folder}/lido_records_{index:05d}.{format}'
+                graph.serialize(destination=destination, format=format, encoding='utf-8')
+                if token:
+                    request = oai_request(url, f"ListRecords&resumptionToken={token}")
+                    index += 1
+                else:
+                    request = None
+        return None
 
     def parse_file(self, lido_file) -> tuple[RF.Graph, str]:
         '''Parses a LIDO file and returns the RDF graph and a resumption token'''
@@ -248,6 +249,6 @@ class LidoRDFConverter():
         recIDs = x3ml.xpath_lido(elem, "./lido:lidoRecID/text()")
         recID = ' '.join([x.strip() for x in recIDs])
         for data in [m.evaluate(elem) for m in self.mappings]:
-            for i, elem_data in enumerate(data):
-                if elem_data.valid:
-                    add_triples(graph, elem_data, recID, index=i)
+            for i, mapping_data in enumerate(data):
+                if mapping_data.valid:
+                    add_triples(graph, mapping_data, recID, index=i)
