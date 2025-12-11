@@ -53,19 +53,24 @@
           </div>
           <div class="modal-body">
             <div v-for="(item, i) in conditions">
+            <div v-for="(item, i) in conditions">
               <div class="row  no-gutters">
                 <div class="col-sm-2">Condition path-value:</div>
                 <div class="col-sm-7">
                   <input class="form-control" type="text" v-model="item.xpath">
+                  <input class="form-control" type="text" v-model="item.xpath">
                 </div>
                 <div class="col-sm-2">
+                  <input class="form-control" type="text" v-model="item.value">
                   <input class="form-control" type="text" v-model="item.value">
                 </div>
                 <div class="col-sm-1">
                   <button type="button" class="btn btn-primary btn-sm" @click="conditions.splice(i, 1)">Delete</button>
+                  <button type="button" class="btn btn-primary btn-sm" @click="conditions.splice(i, 1)">Delete</button>
                 </div>
               </div>
             </div>
+            <button type="button" class="btn btn-primary btn-sm" onclick="addCondition(app.conditions)">Add condition</button>
             <button type="button" class="btn btn-primary btn-sm" onclick="addCondition(app.conditions)">Add condition</button>
           </div>
           <div class="modal-footer">
@@ -268,20 +273,7 @@
     }
     var app = Vue.createApp({
       data() {
-        return {
-          x3ml: {},
-          lido: '',
-          x3file: null,
-          lidoURL: null,
-          activeM: -1,
-          activeL: -1,
-          conditions: [],
-          mode: '',
-          modeFormatKeys: new Map(),
-          tmp: ["abc", "abcd", "xxxx"],
-          formatKey: 'n3',
-          useBlankNode: false
-        }
+        return { x3ml: {}, lido: '', x3file: null, lidoURL: null, activeM: -1, activeL: -1, conditions: [], mode: '' }
       },
       delimiters: ["${", "}$"], // for global
       compilerOptions: { delimiters: ["${", "}$"] }, // for standalone
@@ -316,7 +308,7 @@
             });
           }
         },
-        applyConditionChanges() {
+        applyConditionChanges()  {
           if (this.mode == 'map') {
             // Applies condition changes for a mapping
             domain = this.x3ml.mappings[this.activeM].domain
@@ -327,29 +319,11 @@
             link = this.x3ml.mappings[this.activeM].links[this.activeL]
             link.path.targetRelation.conditions = this.conditions;
           }
-          rdfEditor.setValue('', -1);
           this.mode = ''
           this.activeL = -1;
           this.activeM = -1;
           this.conditions = [];
         },
-
-        downloadMappings() {
-          post('json_to_x3ml', { x3ml: this.x3ml })
-            .then(res => res.json())
-            .then(json => {
-              x3ml_str = json.x3ml;
-              const url = window.URL.createObjectURL(new Blob([x3ml_str]));
-              const link = document.createElement('a');
-              link.href = url;
-              link.setAttribute('download', 'mapping.x3ml');
-              document.body.appendChild(link);
-              link.click();
-              link.parentNode.removeChild(link);
-            })
-            .catch(() => alert('An error occurred while downloading the mapping file.'));
-        },
-
         resetMappings() {
           rdfEditor.setValue('', -1);
           this.getDfltX3ml();
@@ -405,6 +379,7 @@
             this.activeL = parseInt(attrs.iL.value);
             link = this.x3ml.mappings[this.activeM].links[this.activeL]
             this.conditions = clone(link.path.targetRelation.conditions);
+            this.conditions = clone(link.path.targetRelation.conditions);
             $('#conditionEditor').modal('show');
           }
         },
@@ -415,6 +390,7 @@
             this.mode = 'map';
             this.activeM = parseInt(attrs.iM.value);
             domain = this.x3ml.mappings[this.activeM].domain
+            this.conditions = clone(domain.targetNode.conditions);
             this.conditions = clone(domain.targetNode.conditions);
             $('#conditionEditor').modal('show');
           }
@@ -515,8 +491,7 @@
         conditions.push(clone(conditions.at(-1)));
       }
       else {
-        // Create a default condition
-        conditions.push({ attributes: {}, tag: "equals", value: "a value", xpath: "a path" });
+        conditions.push({ attributes: {}, tag: "equals", value: "a value", xpath: "a path" } );
       }
     }
 
