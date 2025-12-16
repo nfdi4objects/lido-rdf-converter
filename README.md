@@ -101,7 +101,7 @@ If you want to run the web application by script, you have to install some JS sc
 Therefore, you can use these shell commands:
 
 ~~~sh
-cd ./lidoapp_bp/static
+cd ./static
 npm ci
 cd ../..
 ~~~

@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y npm libxml2-utils
 COPY . .
 RUN chmod +x ./lido2rdf
 RUN chmod +x ./lido2rdf.py
-WORKDIR /app/lidoapp_bp/static
+WORKDIR /app/static
 RUN npm init -y && npm install
 
 WORKDIR /app

@@ -10,3 +10,4 @@ node_modules/
 rdfData/
 oai.buffer.xml
 *.log
+version.txt
