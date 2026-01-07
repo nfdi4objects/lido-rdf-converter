@@ -1,23 +1,27 @@
 import xml.etree.ElementTree as ET
 import LidoRDFConverter as LRC
 from pathlib import Path
-from x3ml_classes import  X3ml
-from flask import  Flask, render_template, request,  jsonify, make_response
+from x3ml_classes import X3ml
+from flask import Flask, render_template, request,  jsonify, make_response
 import logging
 import json
+from dataclasses import dataclass
 
 from waitress import serve
 from argparse import ArgumentParser, BooleanOptionalAction
 
-app = Flask(__name__,template_folder='templates', static_folder='static', static_url_path='/assets')
+app = Flask(__name__, template_folder='templates', static_folder='static', static_url_path='/assets')
+
 
 def dlftMappingFile():
     return Path('./defaultMapping.x3ml')
 
+
 def dlftLidoFile():
     return Path('./defaultLido.xml')
 
-def convert_lido_str(lido_str, x3ml_str,format='turtle'):
+
+def convert_lido_str(lido_str, x3ml_str, format='turtle'):
     '''Converts LIDO XML string to RDF using the provided X3ML mapping string.
     Returns the RDF string in the specified format.'''
     if lido_str:
@@ -26,28 +30,23 @@ def convert_lido_str(lido_str, x3ml_str,format='turtle'):
         return graph.serialize(format=format)
     return ''
 
-def get_version_data():
-    version = Path('./version.txt')
-    if version.exists():
-        ver_str = version.read_text()
-        last_line = ver_str.split('\n')[-1]
-        tokens = last_line.split(':', 3)
-        if len(tokens) == 3: 
-            return {'date':tokens[0],'commit':tokens[1],'version':tokens[2]}
-        return {'date':'','commit':'','version':'0'}
-    return 'unkown'
-
-VERSION_DATA = get_version_data()
-
 #############################################################################
+
 
 @app.route('/')
 def index():
-    return render_template('index.html', version=VERSION_DATA.get('version','unkown'))
+    return render_template('index.html', version=app.config['version'].value)
+
+
+@app.route('/version')
+def version():
+    return jsonify(app.config['version'])
+
 
 @app.route('/barriere')
 def barriere():
     return render_template('barriere.html')
+
 
 @app.route('/json_to_x3ml', methods=['POST'])
 def json_to_x3ml():
@@ -55,7 +54,7 @@ def json_to_x3ml():
     if js := parm.get('x3ml'):
         model = X3ml.fromJSON(js)
         x3ml_str = model.to_str()
-        return jsonify({'status': 'success', 'x3ml': x3ml_str})        
+        return jsonify({'status': 'success', 'x3ml': x3ml_str})
     return jsonify({'status': 'failed', 'message': 'No mapping data provided!'})
 
 
@@ -92,13 +91,15 @@ def upload_mapping():
 def run_mappings():
     response_object = {'status': 'success'}
     parm = request.get_json()
-    lido_data = parm['data']
+    lido_data = parm.get('data','')
     if js := parm.get('x3ml'):
         model = X3ml.fromJSON(js)
-        response_object = {'status': 'success', 'message': 'Mappings applied to Lido!'}
-        response_object['text'] = convert_lido_str(lido_data, model.to_str())
+        format = parm.get('format','turtle')
+        response_object = {'status': 'success', 'message': 'Mappings applied to Lido!', 'format':format}
+        response_object['text'] = convert_lido_str(lido_data, model.to_str(),format=format)
         return jsonify(response_object)
     return jsonify({'status': 'failed', 'message': 'No Lido data provided!'})
+
 
 @app.route('/convert', methods=['POST'])
 def convert():
@@ -113,18 +114,51 @@ def convert():
         else:
             mapping_data = dlftMappingFile().read_text()
         lido_data = request.files['file'].read().decode('utf-8')
-        format = request.form.get('format','turtle')
+        format = request.form.get('format', 'turtle')
     else:
         mapping_data = dlftMappingFile().read_text()
         lido_data = request.get_data()
-        format ='turtle'
+        format = 'turtle'
     try:
-        rdf_str = convert_lido_str(lido_data, mapping_data,format=format)
+        rdf_str = convert_lido_str(lido_data, mapping_data, format=format)
         response = make_response(rdf_str, 200)
         response.mime_type = f"text/{format}"
     except Exception as e:
         return jsonify({'error': str(e)}), 400
     return response
+
+
+@dataclass
+class Version():
+    date: str = ''
+    commit: str = ''
+    value: str = '???'
+
+    def update(self, tokens:list):
+        ''' Updates attributes from tokens '''
+        data = {'date': tokens[0], 'commit': tokens[1], 'value': tokens[2]}
+        self.__dict__.update(data)
+        return self
+
+    @classmethod
+    def from_tokens(cls, tokens):
+        ''' Creates an object from tokens '''
+        if len(tokens) == 3:
+            return cls().update(tokens)
+        return cls()
+
+
+def get_version_data():
+    ''' Reads version data from file into the app configuration'''
+    tokens = []
+    ver_file = Path('./version.txt')
+    if ver_file.exists():
+        # Get last line and split it into 3 tokens
+        text = ver_file.read_text()
+        last_line = text.splitlines()[-1]
+        tokens = last_line.split(':', 3)
+    app.config['version'] = Version.from_tokens(tokens)
+
 
 if __name__ == '__main__':
     parser = ArgumentParser()
@@ -135,8 +169,9 @@ if __name__ == '__main__':
 
     if args.log:
         logging.basicConfig(filename='app.log', level=logging.INFO)
-        
-  
+
+    get_version_data()
+
     if args.wsgi:
         print(f"Starting WSGI server at http://localhost:{args.port}/")
         serve(app, host="0.0.0.0", port=args.port)

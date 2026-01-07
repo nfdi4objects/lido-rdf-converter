@@ -65,14 +65,15 @@ def test_Info_from_elem_and_lang_and_modes():
     elem.text = "  Hello  "
     elem.set(f'{{{XML_NS}}}lang', "en")
     info = x3ml.Info.from_elem(elem, 0)
+    Mode = x3ml.IDMode
     assert info.text ==  "  Hello  "
     assert info.lang == "en"
-    assert info.mode == "text"
+    assert info.mode == Mode.NONE
     # element with subelements and no own text -> path mode
     parent = etree.Element(f'{{{LIDO_NS}}}parent')
     etree.SubElement(parent, f'{{{LIDO_NS}}}child')
     info2 = x3ml.Info.from_elem(parent, 1)
-    assert info2.mode in ("path", "lidoID")  # path expected unless mapped ID is found
+    assert info2.mode in (Mode.LIDO_ID,Mode.PATH)  # path expected unless mapped ID is found
 
 
 def test_ExP_fromElements_and_subs_behavior():

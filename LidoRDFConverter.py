@@ -4,9 +4,18 @@ import x3ml
 import os
 import shutil
 import rdflib as RF
+from rdflib.namespace import NamespaceManager
 import urllib.request as ulr
 import urllib.parse as ulp
 from lxml import etree
+
+def p_log(f):
+    '''Decorator for logging function output'''
+    def wrapped(*args, **kwargs):
+        t = f(*args, **kwargs)
+        print(t)
+        return t
+    return wrapped
 
 
 # prefix namespace mapping
@@ -20,15 +29,6 @@ NAMESPACE_MAP = {
 LIDO_TAG = x3ml.expand_with_namespaces('lido:lido')
 OAI_SCHEMA_URL = 'http://www.openarchives.org/OAI/2.0/'
 RESUMPTION_TAG = f'{{{OAI_SCHEMA_URL}}}resumptionToken'
-
-
-def make_short_uri(uri: str, **kw) -> RF.term.URIRef:
-    '''Returns URI' like e.g. crm:Enn_cccc'''
-    # tag = kw.get('tag',None)
-    for k, v in NAMESPACE_MAP.items():
-        if uri.startswith(f"{k}:"):
-            return v[uri.split(':')[-1]]
-    return RF.term.URIRef(uri)
 
 
 def isURI(uri: str) -> bool:
@@ -100,14 +100,31 @@ def strip_schema(url: str) -> str:
     """Strips the schema from a URL"""
     return re.sub(r"^https?:", '', url).strip().strip('/')
 
+def make_curie_uri(uri: str, **kw) -> RF.term.URIRef:
+    '''Creates a URIRef from a CURIE or URI string'''
+    try:
+        nsm = kw.get('graph').namespace_manager
+        return nsm.expand_curie(uri)
+    except:
+        return RF.term.URIRef(uri)
 
-def make_n4o_id(text: str, **kw) -> RF.URIRef:
-    """Creates a N4O ID from text"""
-    return NAMESPACE_MAP['n4o'][f"{hash(text)}"]
+def make_id_node(id_str: str, **kw) -> RF.URIRef:
+    '''Creates an RDF node (BNode or URIRef) from id string and a mode'''
+    '''Gets the ID mode and graph from kw arguments'''
+    mode = kw.get('mode', x3ml.IDMode.LIDO_ID)
+    if mode == x3ml.IDMode.PATH:
+        return RF.BNode(hash(id_str))
+    uri = f'n4o:{hash(id_str)}'
+    try:
+        nsm = kw.get('graph').namespace_manager
+        return nsm.expand_curie(uri)
+    except:
+        return RF.term.URIRef(uri)
 
 
-def make_object(info) -> RF.URIRef | RF.Literal:
-    """Creates an RDF object (URIRef or Literal) from info and text"""
+
+def make_plain_node(info) -> RF.URIRef | RF.Literal:
+    """Creates an RDF node (URIRef or Literal) from info"""
     if isURI(info.text):
         return RF.URIRef(proper_uri(info.text))
     return RF.Literal(info.text, lang=info.lang)
@@ -119,10 +136,11 @@ def make_object(info) -> RF.URIRef | RF.Literal:
 def add_triples(graph, mapping: x3ml.Mapping, recID: str, **kw) -> None:
     '''Add triples to the graph'''
     info = mapping.info
-    if id_S := info.id.strip():
-        id_S = recID + '-' + id_S
-        S = make_n4o_id(id_S, tag='S')
-        triples = [(S, RF.RDF.type, make_short_uri(mapping.S.entity, tag='S'))]
+    if id_S := info.get_id(recID):
+        kw.update({'graph':graph,'mode':info.mode,'tag':'S'})
+        S = make_id_node(id_S, **kw)
+        triples = [(S, RF.RDF.type, make_curie_uri(mapping.S.entity, **kw))]
+        
         for po in mapping.POs:
             triples += get_po_triples(S, recID,  po, **kw)
         if len(triples) > 1:  # at least one PO triple
@@ -134,19 +152,21 @@ def get_po_triples(S, recID, po: x3ml.PO, **kw) -> list:
     '''Compile triples from PO data'''
     triples = []
     if po.valid:
-        P = make_short_uri(po.P.entity, tag='P')
+        kw.update({'tag':'P'})
+        P = make_curie_uri(po.P.entity, **kw)
+        kw.update({'tag':'O'})
         for info in po.infos:
             if info.hasID():
+                kw.update({'mode':info.mode})
                 id_O = info.get_id(recID)
-                O = make_n4o_id(id_O, tag='O')
+                O = make_id_node(id_O, **kw)
                 if (O != S):
-                    Pt = RF.RDF.type
-                    Ot = make_short_uri(po.O.entity, tag='O')
-                    triples.append((S, Pt, Ot))
                     triples.append((S, P, O))
+                    Ot = make_curie_uri(po.O.entity, **kw)
+                    triples.append((O, RF.RDF.type, Ot))
             else:
                 if info.text:
-                    O = make_object(info)
+                    O = make_plain_node(info)
                     triples.append((S, P, O))
     return triples
 

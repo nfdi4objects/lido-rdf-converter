@@ -6,8 +6,16 @@ import json
 from pathlib import Path
 from dataclasses import dataclass, field
 import re
+from enum import auto, Enum
+
+    
 
 ############################################################################################################################
+
+class IDMode(Enum):
+    LIDO_ID = auto()
+    PATH = auto()
+    NONE = auto()
 
 
 def not_none(*args) -> bool:
@@ -193,7 +201,7 @@ class Info:
     '''Information about an element'''
     text: str = ''
     attrib: dict = field(default_factory=dict)
-    mode: str = ''
+    mode: IDMode = IDMode.NONE
     id: str = ''
     index: int = -1
     lang: str = ''
@@ -210,26 +218,26 @@ class Info:
         # Priority of ID assignment
         if ids := get_IDs(elem):
             # Has an explicit ID
-            info.mode = 'lidoID'
+            info.mode = IDMode.LIDO_ID
             info.id = ids[0]
         elif len(elem) > 0 and not text:
             # Has subelements, use path as ID
-            info.mode = 'path'
+            info.mode = IDMode.PATH 
             info.id = root_path_as_list(elem) + '/'+str(i)
         else:
             # Just text
-            info.mode = 'text'
+            info.mode = IDMode.NONE
 
         return info
     
     def hasID(self) -> bool:
         '''Tests if the info has an ID'''
-        return self.mode in ('lidoID', 'path')
+        return self.mode in (IDMode.LIDO_ID, IDMode.PATH)
 
     def get_id(self, prefix) -> str:
         '''Returns the ID'''
         id = self.id.strip()
-        if self.mode == 'path':
+        if self.mode == IDMode.PATH:
             id = prefix + '-' + id  # make it unique per record
         return id
 

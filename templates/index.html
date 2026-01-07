@@ -6,6 +6,7 @@
   <script src="assets/node_modules/vue/dist/vue.global.js"></script>
   <script src="assets/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
   <script src="assets/node_modules/ace-builds/src-min/ace.js"></script>
+  <script src="assets/node_modules/ace-builds/src-min/ext-modelist.js"></script>
   <script src="assets/node_modules/jquery/dist/jquery.min.js"></script>
   <script src="assets/script.js"></script>
 
@@ -191,10 +192,17 @@
       </div>
       <div class="col">
         <div class="row">
-          <div>
-            Result (rdf/turtle):
-            <button type="button" class="btn btn-primary btn-sm" onclick="runMappings()">Apply mappings</button>
+          <div class="input-group">
+            <button type="button" class="btn btn-primary btn-sm" onclick="runMappings()">Apply mappings</button>&nbsp;
+            <div class="styled">
+              <select class="form-control" v-model="formatKey">
+                <option v-for="(item, index) in modeFormatKeys.keys()" :value="item" :key="index">
+                  <span class="option-label"> output format: ${item}$ </span>
+                </option>
+              </select>
+            </div>
           </div>
+          <p>
           <div id="rdfEditor"></div>
         </div>
 
@@ -255,7 +263,19 @@
     }
     var app = Vue.createApp({
       data() {
-        return { x3ml: {}, lido: '', x3file: null, lidoURL: null, activeM: -1, activeL: -1, conditions: [], mode: '' }
+        return {
+          x3ml: {},
+          lido: '',
+          x3file: null,
+          lidoURL: null,
+          activeM: -1,
+          activeL: -1,
+          conditions: [],
+          mode: '',
+          modeFormatKeys: new Map(),
+          tmp: ["abc", "abcd", "xxxx"],
+          formatKey: 'n3'
+        }
       },
       delimiters: ["${", "}$"], // for global
       compilerOptions: { delimiters: ["${", "}$"] }, // for standalone
@@ -275,15 +295,15 @@
             pText.then((x3mlStr) => {
               post('upload_mapping', { type: 'upload_mapping', data: x3mlStr })
                 .then((response) => response.json())
-                .then((jsData) => { 
-                  this.x3ml = JSON.parse(jsData.jsonX3ml); 
-                  rdfEditor.setValue('',-1);
+                .then((jsData) => {
+                  this.x3ml = JSON.parse(jsData.jsonX3ml);
+                  rdfEditor.setValue('', -1);
                 })
                 .catch((err) => { console.error(err); });
             });
           }
         },
-        applyConditionChanges()  {
+        applyConditionChanges() {
           if (this.mode == 'map') {
             // Applies condition changes for a mapping
             domain = this.x3ml.mappings[this.activeM].domain
@@ -294,13 +314,13 @@
             link = this.x3ml.mappings[this.activeM].links[this.activeL]
             link.path.targetRelation.conditions = this.conditions;
           }
-          rdfEditor.setValue('',-1);
+          rdfEditor.setValue('', -1);
           this.mode = ''
           this.activeL = -1;
           this.activeM = -1;
           this.conditions = [];
         },
-        
+
         downloadMappings() {
           post('json_to_x3ml', { x3ml: this.x3ml })
             .then(res => res.json())
@@ -318,21 +338,21 @@
         },
 
         resetMappings() {
-           rdfEditor.setValue('',-1); 
-           this.getDfltX3ml(); 
+          rdfEditor.setValue('', -1);
+          this.getDfltX3ml();
         },
         clearMappings() {
           // Post the deletion of all mapping and reloads server data
-          rdfEditor.setValue('',-1);
-          this.x3ml.mappings=[];
+          rdfEditor.setValue('', -1);
+          this.x3ml.mappings = [];
         },
         uploadLido() {
           // Loads text from the lido URL into the Lido editor
           if (this.lidoURL) {
             const pText = this.lidoURL.text();
             pText.then((lidoStr) => {
-              lidoEditor.setValue(lidoStr,-1)
-              rdfEditor.setValue('',-1);
+              lidoEditor.setValue(lidoStr, -1)
+              rdfEditor.setValue('', -1);
               this.lidoURL = null
             });
           }
@@ -341,15 +361,15 @@
           // Gets the default x3ml file from the server
           get("default_x3ml")
             .then((response) => response.json())
-            .then((jsData) => { 
-              this.x3ml = JSON.parse(jsData.jsonX3ml); 
-              rdfEditor.setValue('',-1);
+            .then((jsData) => {
+              this.x3ml = JSON.parse(jsData.jsonX3ml);
+              rdfEditor.setValue('', -1);
             })
             .catch((err) => { console.error(err); });
         },
         addMapping(event) {
           mappings = this.x3ml.mappings;
-          if (mappings.length  > 0) {
+          if (mappings.length > 0) {
             // Clone the last mapping
             mappings.push(clone(mappings.at(-1)));
           } else {
@@ -363,11 +383,11 @@
               links: []
             });
           }
-          rdfEditor.setValue('',-1);
+          rdfEditor.setValue('', -1);
         },
         deleteMapping(event) {
           this.x3ml.mappings.splice(event.target.attributes.iM.value, 1);
-          rdfEditor.setValue('',-1);
+          rdfEditor.setValue('', -1);
         },
         openLinkConditionEditor(event) {
           // Opens the condition editor for a link
@@ -398,7 +418,7 @@
             mIndex = attrs.iM.value;
             lIndex = attrs.iL.value;
             this.x3ml.mappings[mIndex].links.splice(lIndex, 1);
-            rdfEditor.setValue('',-1);
+            rdfEditor.setValue('', -1);
           }
         },
         addLink(event) {
@@ -411,14 +431,16 @@
               mapping.links.push(clone(mapping.links.at(-1)));
             } else {
               // Create a default link
-              mapping.links.push({attributes: {},path: {
-                sourceRelation: { relation: { text: '' } },
-                targetRelation: { relationship: { text: '' }, conditions: [] }
-              }, range: {
-                targetNode: { entity: { type: '' } }
-              } });
+              mapping.links.push({
+                attributes: {}, path: {
+                  sourceRelation: { relation: { text: '' } },
+                  targetRelation: { relationship: { text: '' }, conditions: [] }
+                }, range: {
+                  targetNode: { entity: { type: '' } }
+                }
+              });
             }
-            rdfEditor.setValue('',-1);
+            rdfEditor.setValue('', -1);
           }
         }
       },
@@ -434,6 +456,11 @@
         getLidoLabel()
         getDfltLido();
         this.getDfltX3ml();
+        this.modeFormatKeys.set("turtle", "ttl");
+        this.modeFormatKeys.set("nt", "ttl");
+        this.modeFormatKeys.set("n3", "ttl");
+        this.modeFormatKeys.set("json-ld", "json");
+        this.modeFormatKeys.set("xml", "xml");
       }
     }).mount('#app');
 
@@ -446,27 +473,35 @@
       return ed;
     }
 
+
     // Creator editors
     var lidoEditor = makeEditor("lidoEditor");
-    lidoEditor.setValue(app.lido,-1);
+    lidoEditor.setValue(app.lido, -1);
     var rdfEditor = makeEditor("rdfEditor", "ace/mode/turtle");
-    rdfEditor.setValue('',-1)
+    rdfEditor.setValue('', -1)
 
     function getDfltLido() {
       // Loads Lido data from server into the source editor
       get("default_lido")
         .then((response) => response.json())
-        .then((jsData) => { lidoEditor.setValue(jsData.lidoData,-1); })
+        .then((jsData) => { lidoEditor.setValue(jsData.lidoData, -1); })
         .catch((err) => { console.error(err); });
     }
 
+    var modelist = ace.require("ace/ext/modelist")
     function runMappings() {
       // Triggers the transformation lido + x3ml => ttl
       // and loads the result into the RDF editor.
-      data = { type: '/run_mappings', data: lidoEditor.getValue(), x3ml: app.x3ml }
+      format = app.formatKey
+      data = { type: '/run_mappings', data: lidoEditor.getValue(), x3ml: app.x3ml, format: format }
       post('run_mappings', data)
         .then(res => res.json())
-        .then(s => rdfEditor.setValue(s.text,-1));
+        .then(s => {
+          format = s.format;
+          var mode = modelist.getModeForPath("dummy." + app.modeFormatKeys.get(format));
+          rdfEditor.session.setMode(mode.mode);
+          rdfEditor.setValue(s.text, -1);
+        });
     }
 
 
@@ -478,9 +513,10 @@
       }
       else {
         // Create a default condition
-        conditions.push({ attributes: {}, tag: "equals", value: "a value", xpath: "a path" } );
+        conditions.push({ attributes: {}, tag: "equals", value: "a value", xpath: "a path" });
       }
     }
+
   </script>
 </body>
 
