@@ -1,6 +1,6 @@
 import unittest
 import rdflib
-from getCidocInfo import graphFromFile, namespaces2dict, QNameInfo, getQNameInfos
+from libs.getCidocInfo import graphFromFile, namespaces2dict, QNameInfo, getQNameInfos
 
 
 class TestGetCidocInfo(unittest.TestCase):

@@ -8,7 +8,7 @@ from sys import stdin, stderr, exit
 from io import BytesIO
 from urllib.error import HTTPError, URLError
 from pathlib import Path
-from LidoRDFConverter import LidoRDFConverter
+from libs.LidoRDFConverter import LidoRDFConverter
 
 VERSION = "0.1.0"
 

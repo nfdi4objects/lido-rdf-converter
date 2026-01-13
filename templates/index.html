@@ -168,7 +168,7 @@
                       <div class="accordion-body">
                         <form method="post">
                           <label for="fname">Path:</label>
-                          <input class="form-control" list="DLLidoClasses" type="text" name="P-path" :id="j" v-model="link.path.sourceRelation.relation.text">
+                          <input class="form-control" list="DLLidoClasses" type="text" :pid="i" :id="j" v-model="link.path.sourceRelation.relation.text" v-on:input="applyPathChange">
                           <label for="lname">Property:</label>
                           <input class="form-control" list="DLCidocProperties" type="text" name="P-type" :id="j" v-model="link.path.targetRelation.relationship.text">
                           <label for="lname">Entity:</label>
@@ -280,6 +280,13 @@
       delimiters: ["${", "}$"], // for global
       compilerOptions: { delimiters: ["${", "}$"] }, // for standalone
       methods: {
+        applyPathChange(event) {
+          let attrs = event.target.attributes;
+          let i = parseInt(attrs.id.value);
+          let j = parseInt(attrs.pid.value);
+          let link =  this.x3ml.mappings[j].links[i];
+          link.range.sourceNode.text = event.target.value
+        },
         saveX3mlUrl(event) {
           // Saves x3ml event data
           this.x3file = event.target.files[0];

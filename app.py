@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
-import LidoRDFConverter as LRC
+import libs.LidoRDFConverter as LRC
 from pathlib import Path
-from x3ml_classes import X3ml
+from libs.x3ml_classes import X3ml
 from flask import Flask, render_template, request,  jsonify, make_response
 import logging
 import json

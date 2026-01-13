@@ -1,6 +1,6 @@
 import hashlib
 from lxml import etree
-import x3ml
+import libs.x3ml as x3ml
 
 LIDO_NS = x3ml.used_namespaces['lido']
 XML_NS = x3ml.used_namespaces['xml']

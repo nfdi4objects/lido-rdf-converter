@@ -1,13 +1,22 @@
 import re
 import time
-import x3ml
 import os
 import shutil
 import rdflib as RF
 from rdflib.namespace import NamespaceManager
 import urllib.request as ulr
 import urllib.parse as ulp
+from pathlib import Path
 from lxml import etree
+import libs.x3ml as x3ml    
+
+def p_log(f):
+    '''Decorator for logging function output'''
+    def wrapped(*args, **kwargs):
+        t = f(*args, **kwargs)
+        print(t)
+        return t
+    return wrapped
 
 def p_log(f):
     '''Decorator for logging function output'''
@@ -20,7 +29,7 @@ def p_log(f):
 
 # prefix namespace mapping
 NAMESPACE_MAP = {
-    "lido": RF.Namespace('http://www.lido-schema.org'),
+    "lido": RF.Namespace('http://www.lido-schema.org/'),
     "n4o": RF.Namespace('http://graph.nfdi4objects.net/id/'),
     "crm": RF.Namespace("http://www.cidoc-crm.org/cidoc-crm/"),
     "geosparql": RF.Namespace('http://www.ontotext.com/plugins/geosparql#'),
@@ -67,12 +76,10 @@ def oai_request(server_uri: str, command: str) -> ulr.Request | None:
         return None
 
 
-def request_to_buffer_file(req: ulr.Request) -> str:
+def save_request_to_file(req: ulr.Request, buffer_file:str = 'oai.buffer.xml') -> str:
     '''Write request response in a buffer file'''
     with ulr.urlopen(req) as response:
-        buffer_file = 'oai.buffer.xml'
-        with open(buffer_file, 'w') as out_file:
-            out_file.write(response.read().decode('utf-8'))
+        Path(buffer_file).write_text(response.read().decode('utf-8'))
         return buffer_file
 
 
@@ -216,7 +223,7 @@ class LidoRDFConverter():
             request = oai_request(url, 'ListRecords&metadataPrefix=lido')
             index = 0
             while request:
-                buffer_file = request_to_buffer_file(request)
+                buffer_file = save_request_to_file(request)
                 graph, token = self.parse_file(buffer_file)
                 destination = f'./{rdf_folder}/lido_records_{index:05d}.{format}'
                 graph.serialize(destination=destination, format=format, encoding='utf-8')

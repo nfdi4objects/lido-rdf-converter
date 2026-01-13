@@ -1,5 +1,5 @@
 import unittest
-from generator import Arg, Custom, Generator, load_policy, save_policy
+from libs.generator import Arg, Custom, Generator, load_policy, save_policy
 import tempfile
 import os
 import xml.etree.ElementTree as ET
