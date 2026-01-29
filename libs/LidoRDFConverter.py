@@ -119,8 +119,12 @@ def make_id_node(id_str: str, **kw) -> RF.URIRef:
     '''Creates an RDF node (BNode or URIRef) from id string and a mode'''
     '''Gets the ID mode and graph from kw arguments'''
     mode = kw.get('mode', x3ml.IDMode.LIDO_ID)
+    useBlankNode = kw.get('useBlankNode',False)
     if mode == x3ml.IDMode.PATH:
-        return RF.BNode(hash(id_str))
+        if useBlankNode:
+            return RF.BNode(hash(id_str))
+        else:
+            return NAMESPACE_MAP['n4o'][f"{hash(id_str)}"]
     uri = f'n4o:{hash(id_str)}'
     try:
         nsm = kw.get('graph').namespace_manager
@@ -194,14 +198,15 @@ def get_ns(elem):
 class LidoRDFConverter():
     '''Converts LIDO XML files to RDF graphs using X3ML mappings'''
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, useBlankNode = False):
         self.mappings = x3ml.Mappings.from_file(file_path)
+        self.useBlankNode = useBlankNode
 
     Graph = RF.Graph
 
     @classmethod
-    def from_str(cls, mapping_str):
-        obj = cls('')
+    def from_str(cls, mapping_str,**kw):
+        obj = cls('',kw.get('useBlankNode',False))
         obj.mappings = x3ml.Mappings.from_str(mapping_str)
         return obj
 
@@ -278,4 +283,4 @@ class LidoRDFConverter():
         for data in [m.evaluate(elem) for m in self.mappings]:
             for i, mapping_data in enumerate(data):
                 if mapping_data.valid:
-                    add_triples(graph, mapping_data, recID, index=i)
+                    add_triples(graph, mapping_data, recID, index=i, useBlankNode = self.useBlankNode)

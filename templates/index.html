@@ -125,11 +125,11 @@
     <div class="row">
       <div class="col-5">
         <div> Mappings (x3ml):<br>
-          <button type="button" class="btn btn-primary btn-sm " @click="addMapping" title="Add a new mapping rule to the list.">Add mapping</button>
-          <button type="button" class="btn btn-primary btn-sm" @click="clearMappings" title="Remove all mapping rules.">Clear all</button>
-          <button type="button" class="btn btn-primary btn-sm" @click="resetMappings" title="Load the default mappings.">Load default</button>
-          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal" title="Upload a customer mapping.">Upload</button>
-          <button type="button" class="btn btn-primary btn-sm" @click="downloadMappings" title="Download the current mapping.">Download</button>
+          <button type="button" class="btn btn-primary btn-sm " @click="addMapping" title="Add new mapping.">Add mapping</button>
+          <button type="button" class="btn btn-primary btn-sm" @click="clearMappings" title="Remove all mappings.">Clear all</button>
+          <button type="button" class="btn btn-primary btn-sm" @click="resetMappings" title="Load default mappings.">Load default</button>
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadX3mlModal" title="Upload mappings.">Upload</button>
+          <button type="button" class="btn btn-primary btn-sm" @click="downloadMappings" title="Download mappings.">Download</button>
         </div>
         <div id="acc" class="accordion accordion-flush" style="overflow-y: scroll; height:1000px; width: 100%;">
           <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
@@ -201,6 +201,11 @@
                 </option>
               </select>
             </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" v-model="useBlankNode" id="flexCheckDefault">
+              <label class="form-check-label" for="flexCheckDefault">Use BNodes</label>
+            </div>
+
           </div>
           <p>
           <div id="rdfEditor"></div>
@@ -274,7 +279,8 @@
           mode: '',
           modeFormatKeys: new Map(),
           tmp: ["abc", "abcd", "xxxx"],
-          formatKey: 'n3'
+          formatKey: 'n3',
+          useBlankNode: false
         }
       },
       delimiters: ["${", "}$"], // for global
@@ -284,7 +290,7 @@
           let attrs = event.target.attributes;
           let i = parseInt(attrs.id.value);
           let j = parseInt(attrs.pid.value);
-          let link =  this.x3ml.mappings[j].links[i];
+          let link = this.x3ml.mappings[j].links[i];
           link.range.sourceNode.text = event.target.value
         },
         saveX3mlUrl(event) {
@@ -500,7 +506,7 @@
       // Triggers the transformation lido + x3ml => ttl
       // and loads the result into the RDF editor.
       format = app.formatKey
-      data = { type: '/run_mappings', data: lidoEditor.getValue(), x3ml: app.x3ml, format: format }
+      data = { type: '/run_mappings', data: lidoEditor.getValue(), x3ml: app.x3ml, format: format, useBlankNode: app.useBlankNode }
       post('run_mappings', data)
         .then(res => res.json())
         .then(s => {

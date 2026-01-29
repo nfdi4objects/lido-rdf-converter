@@ -21,11 +21,12 @@ def dlftLidoFile():
     return Path('./defaultLido.xml')
 
 
-def convert_lido_str(lido_str, x3ml_str, format='turtle'):
+def convert_lido_str(lido_str, x3ml_str,**kw):
     '''Converts LIDO XML string to RDF using the provided X3ML mapping string.
     Returns the RDF string in the specified format.'''
     if lido_str:
-        converter = LRC.LidoRDFConverter.from_str(x3ml_str)
+        format = kw.get('format','turtle')
+        converter = LRC.LidoRDFConverter.from_str(x3ml_str, **kw)
         graph = converter.parse_string(lido_str)
         return graph.serialize(format=format)
     return ''
@@ -95,8 +96,9 @@ def run_mappings():
     if js := parm.get('x3ml'):
         model = X3ml.fromJSON(js)
         format = parm.get('format','turtle')
+        useBlankNode = parm.get('useBlankNode',True)
         response_object = {'status': 'success', 'message': 'Mappings applied to Lido!', 'format':format}
-        response_object['text'] = convert_lido_str(lido_data, model.to_str(),format=format)
+        response_object['text'] = convert_lido_str(lido_data, model.to_str(),format=format, useBlankNode = useBlankNode)
         return jsonify(response_object)
     return jsonify({'status': 'failed', 'message': 'No Lido data provided!'})
 
@@ -120,7 +122,7 @@ def convert():
         lido_data = request.get_data()
         format = 'turtle'
     try:
-        rdf_str = convert_lido_str(lido_data, mapping_data, format=format)
+        rdf_str = convert_lido_str(lido_data, mapping_data, format=format, useBlankNode = False)
         response = make_response(rdf_str, 200)
         response.mime_type = f"text/{format}"
     except Exception as e:
