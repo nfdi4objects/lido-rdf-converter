@@ -381,21 +381,15 @@
             .catch((err) => { console.error(err); });
         },
         addMapping(event) {
-          mappings = this.x3ml.mappings;
-          if (mappings.length > 0) {
-            // Clone the last mapping
-            mappings.push(clone(mappings.at(-1)));
-          } else {
-            // Create a default mapping
-            mappings.push({
-              attributes: {},
-              domain: {
-                sourceNode: { text: '', attributes: {} },
-                targetNode: { entity: { type: '' }, conditions: [] }
-              },
-              links: []
-            });
-          }
+          this.x3ml.mappings.push({
+            attributes: {},
+            domain: {
+              sourceNode: { text: '', attributes: {} },
+              targetNode: { entity: { type: '' }, conditions: [] }
+            },
+            links: []
+          });
+
           rdfEditor.setValue('', -1);
         },
         deleteMapping(event) {
@@ -439,20 +433,16 @@
           if (attrs.iM) {
             mIndex = attrs.iM.value;
             mapping = this.x3ml.mappings[mIndex];
-            if (mapping.links.length > 0) {
-              // Clone the last link
-              mapping.links.push(clone(mapping.links.at(-1)));
-            } else {
-              // Create a default link
-              mapping.links.push({
-                attributes: {}, path: {
-                  sourceRelation: { relation: { text: '' } },
-                  targetRelation: { relationship: { text: '' }, conditions: [] }
-                }, range: {
-                  targetNode: { entity: { type: '' } }
-                }
-              });
-            }
+
+            // Create a default link
+            mapping.links.push({
+              attributes: {}, path: {
+                sourceRelation: { relation: { text: '' } },
+                targetRelation: { relationship: { text: '' }, conditions: [] }
+              }, range: {
+                targetNode: { entity: { type: '' } }
+              }
+            });
             rdfEditor.setValue('', -1);
           }
         }
