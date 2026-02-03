@@ -1,0 +1,52 @@
+{
+   "mapping": {
+      "lido:lido": {
+         "tag": "lido:lidoRecID"
+      },
+      "lido:event": {
+         "tag": "lido:eventID"
+      },
+      "lido:eventType": {
+         "tag": "lido:eventID"
+      },
+      "lido:actor": {
+         "tag": "lido:actorID"
+      },
+      "lido:category": {
+         "tag": "lido:conceptID"
+      },
+      "lido:repositorySet": {
+         "tag": "lido:workID"
+      },
+      "lido:place": {
+         "tags": [
+            "lido:placeID",
+            "lido:namePlaceSet/lido:appellationValue"
+         ]
+      },
+      "lido:namePlaceSet": {
+         "tag": "lido:appellationValue"
+      },
+      "lido:subjectConcept": {
+         "tag": "lido:conceptID"
+      },
+      "lido:recordWrap": {
+         "tag": "lido:recordID"
+      },
+      "lido:object": {
+         "tag": "lido:objectID"
+      },
+      "lido:recordType": {
+         "tag": "lido:conceptID"
+      },
+      "lido:rightsHolder": {
+         "tag": "lido:legalBodyID"
+      },
+      "lido:resourceSet": {
+         "tag": "lido:resourceID"
+      },
+      "lido:repositoryName": {
+         "tag": "lido:legalBodyID"
+      }
+   }
+}
