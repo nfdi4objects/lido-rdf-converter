@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import libs.LidoRDFConverter as LRC
 from pathlib import Path
 from libs.x3ml_classes import X3ml
+from libs.x3ml import load_lido_map
 from flask import Flask, render_template, request,  jsonify, make_response
 import logging
 import json
@@ -175,6 +176,7 @@ if __name__ == '__main__':
         logging.basicConfig(filename='app.log', level=logging.INFO)
 
     get_version_data()
+    load_lido_map() 
 
     if args.wsgi:
         print(f"Starting WSGI server at http://localhost:{args.port}/")

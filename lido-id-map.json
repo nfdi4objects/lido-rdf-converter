@@ -19,10 +19,7 @@
          "tag": "lido:workID"
       },
       "lido:place": {
-         "tags": [
-            "lido:placeID",
-            "lido:namePlaceSet/lido:appellationValue"
-         ]
+         "tag": "lido:placeID"
       },
       "lido:namePlaceSet": {
          "tag": "lido:appellationValue"

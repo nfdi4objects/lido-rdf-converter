@@ -159,7 +159,7 @@ class ID_Host_List():
                 return ch
         return []
 
-
+    
 '''Mapping lido tags to its ID hosts'''
 LIDO_ID_MAP = {
     'lido:lido': ID_Host('lido:lidoRecID'),
@@ -178,6 +178,19 @@ LIDO_ID_MAP = {
     'lido:resourceSet': ID_Host('lido:resourceID'),
     'lido:repositoryName': ID_Host('lido:legalBodyID')
 }
+
+def load_lido_map(fname='./lido-id-map.json'):
+    '''Loads the LIDO ID map from file'''
+    global LIDO_ID_MAP
+    p = Path(fname)
+    if p.is_file():
+        LIDO_ID_MAP.clear()
+        data = json.loads(p.read_text(encoding='UTF-8'))
+        for k, v in data.get('mapping').items():
+            if w := v.get('tags'):
+                LIDO_ID_MAP[k] = ID_Host_List(tags=w)
+            elif w := v.get('tag'):
+                LIDO_ID_MAP[k] = ID_Host(tag=w)
 
 
 def get_ID_elements(elem):
