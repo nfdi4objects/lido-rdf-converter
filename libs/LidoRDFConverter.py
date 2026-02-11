@@ -8,7 +8,8 @@ import urllib.request as ulr
 import urllib.parse as ulp
 from pathlib import Path
 from lxml import etree
-import libs.x3ml as x3ml    
+import libs.x3ml as x3ml
+
 
 def p_log(f):
     '''Decorator for logging function output'''
@@ -17,6 +18,7 @@ def p_log(f):
         print(t)
         return t
     return wrapped
+
 
 def p_log(f):
     '''Decorator for logging function output'''
@@ -76,7 +78,7 @@ def oai_request(server_uri: str, command: str) -> ulr.Request | None:
         return None
 
 
-def save_request_to_file(req: ulr.Request, buffer_file:str = 'oai.buffer.xml') -> str:
+def save_request_to_file(req: ulr.Request, buffer_file: str = 'oai.buffer.xml') -> str:
     '''Write request response in a buffer file'''
     with ulr.urlopen(req) as response:
         Path(buffer_file).write_text(response.read().decode('utf-8'))
@@ -100,7 +102,7 @@ def make_clean_subdir(dir_path) -> None:
 
 def hash(s: str) -> str:
     '''Returns a hash of the string s'''
-    #print('hashing', s)
+    # print('hashing', s)
     return x3ml.md5Hash(s)
 
 
@@ -108,31 +110,28 @@ def strip_schema(url: str) -> str:
     """Strips the schema from a URL"""
     return re.sub(r"^https?:", '', url).strip().strip('/')
 
-def make_curie_uri(uri: str, **kw) -> RF.term.URIRef:
+
+def make_curie_uri(uri: str, nsm: NamespaceManager) -> RF.term.URIRef:
     '''Creates a URIRef from a CURIE or URI string'''
     try:
-        nsm = kw.get('graph').namespace_manager
         return nsm.expand_curie(uri)
     except:
         return RF.term.URIRef(uri)
 
-def make_id_node(id_str: str, **kw) -> RF.URIRef:
+
+def make_id_node(info, nsm: NamespaceManager, use_bn=False) -> RF.URIRef:
     '''Creates an RDF node (BNode or URIRef) from id string and a mode'''
     '''Gets the ID mode and graph from kw arguments'''
-    mode = kw.get('mode', x3ml.IDMode.LIDO_ID)
-    useBlankNode = kw.get('useBlankNode',False)
-    if mode == x3ml.IDMode.UUID:
-        if useBlankNode:
-            return RF.BNode(hash(id_str))
+    if info.mode == x3ml.IDMode.UUID:
+        if use_bn:
+            return RF.BNode(hash(info.id))
         else:
-            return NAMESPACE_MAP['n4o'][f"{hash(id_str)}"]
-    uri = f'n4o:{hash(id_str)}'
+            return NAMESPACE_MAP['n4o'][f"{hash(info.id)}"]
+    uri = f'n4o:{hash(info.id)}'
     try:
-        nsm = kw.get('graph').namespace_manager
         return nsm.expand_curie(uri)
     except:
         return RF.term.URIRef(uri)
-
 
 
 def make_plain_node(info) -> RF.URIRef | RF.Literal:
@@ -145,36 +144,32 @@ def make_plain_node(info) -> RF.URIRef | RF.Literal:
 # def pd(*args): print([json.dumps(x, indent=2) for x in args])
 
 
-def add_triples(graph, mapping: x3ml.Mapping, **kw) -> None:
+def add_triples(graph, mapping: x3ml.Mapping, use_bn) -> None:
     '''Add triples to the graph'''
     info = mapping.info
-    if id_S := info.id:
-        kw.update({'graph':graph,'mode':info.mode,'tag':'S'})
-        S = make_id_node(id_S, **kw)
-        triples = [(S, RF.RDF.type, make_curie_uri(mapping.S.entity, **kw))]
-        
+    if info.id:
+        nsm = graph.namespace_manager
+        S = make_id_node(info, nsm, use_bn)
+        triples = [(S, RF.RDF.type, make_curie_uri(mapping.S.entity, nsm))]
+
         for po in mapping.POs:
-            triples += get_po_triples(S, po, **kw)
+            triples += get_po_triples(S, po, info, nsm, use_bn)
         if len(triples) > 1:  # at least one PO triple
             for t in triples:
                 graph.add(t)
 
 
-def get_po_triples(S,  po: x3ml.PO, **kw) -> list:
+def get_po_triples(S,  po: x3ml.PO, info: x3ml.Info, nsm: NamespaceManager, use_bn: bool) -> list:
     '''Compile triples from PO data'''
     triples = []
     if po.valid:
-        kw.update({'tag':'P'})
-        P = make_curie_uri(po.P.entity, **kw)
-        kw.update({'tag':'O'})
+        P = make_curie_uri(po.P.entity, nsm)
         for info in po.infos:
             if info.hasID():
-                kw.update({'mode':info.mode})
-                id_O = info.id
-                O = make_id_node(id_O, **kw)
+                O = make_id_node(info, nsm, use_bn)
                 if (O != S):
                     triples.append((S, P, O))
-                    Ot = make_curie_uri(po.O.entity, **kw)
+                    Ot = make_curie_uri(po.O.entity, nsm)
                     triples.append((O, RF.RDF.type, Ot))
             else:
                 if info.text:
@@ -199,15 +194,15 @@ def get_ns(elem):
 class LidoRDFConverter():
     '''Converts LIDO XML files to RDF graphs using X3ML mappings'''
 
-    def __init__(self, file_path, useBlankNode = False):
+    def __init__(self, file_path, use_bn=False):
         self.mappings = x3ml.Mappings.from_file(file_path)
-        self.useBlankNode = useBlankNode
+        self.use_bn = use_bn
 
     Graph = RF.Graph
 
     @classmethod
-    def from_str(cls, mapping_str,**kw):
-        obj = cls('',kw.get('useBlankNode',False))
+    def from_str(cls, mapping_str, **kw):
+        obj = cls('', kw.get('useBlankNode', False))
         obj.mappings = x3ml.Mappings.from_str(mapping_str)
         return obj
 
@@ -282,4 +277,4 @@ class LidoRDFConverter():
         for data in [m.evaluate(elem) for m in self.mappings]:
             for i, mapping_data in enumerate(data):
                 if mapping_data.valid:
-                    add_triples(graph, mapping_data,  index=i, useBlankNode = self.useBlankNode)
+                    add_triples(graph, mapping_data, self.use_bn)
