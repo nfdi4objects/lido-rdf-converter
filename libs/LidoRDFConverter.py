@@ -100,6 +100,7 @@ def make_clean_subdir(dir_path) -> None:
 
 def hash(s: str) -> str:
     '''Returns a hash of the string s'''
+    #print('hashing', s)
     return x3ml.md5Hash(s)
 
 
@@ -120,7 +121,7 @@ def make_id_node(id_str: str, **kw) -> RF.URIRef:
     '''Gets the ID mode and graph from kw arguments'''
     mode = kw.get('mode', x3ml.IDMode.LIDO_ID)
     useBlankNode = kw.get('useBlankNode',False)
-    if mode == x3ml.IDMode.PATH:
+    if mode == x3ml.IDMode.UUID:
         if useBlankNode:
             return RF.BNode(hash(id_str))
         else:
@@ -144,22 +145,22 @@ def make_plain_node(info) -> RF.URIRef | RF.Literal:
 # def pd(*args): print([json.dumps(x, indent=2) for x in args])
 
 
-def add_triples(graph, mapping: x3ml.Mapping, recID: str, **kw) -> None:
+def add_triples(graph, mapping: x3ml.Mapping, **kw) -> None:
     '''Add triples to the graph'''
     info = mapping.info
-    if id_S := info.get_id(recID):
+    if id_S := info.id:
         kw.update({'graph':graph,'mode':info.mode,'tag':'S'})
         S = make_id_node(id_S, **kw)
         triples = [(S, RF.RDF.type, make_curie_uri(mapping.S.entity, **kw))]
         
         for po in mapping.POs:
-            triples += get_po_triples(S, recID,  po, **kw)
+            triples += get_po_triples(S, po, **kw)
         if len(triples) > 1:  # at least one PO triple
             for t in triples:
                 graph.add(t)
 
 
-def get_po_triples(S, recID, po: x3ml.PO, **kw) -> list:
+def get_po_triples(S,  po: x3ml.PO, **kw) -> list:
     '''Compile triples from PO data'''
     triples = []
     if po.valid:
@@ -169,7 +170,7 @@ def get_po_triples(S, recID, po: x3ml.PO, **kw) -> list:
         for info in po.infos:
             if info.hasID():
                 kw.update({'mode':info.mode})
-                id_O = info.get_id(recID)
+                id_O = info.id
                 O = make_id_node(id_O, **kw)
                 if (O != S):
                     triples.append((S, P, O))
@@ -278,9 +279,7 @@ class LidoRDFConverter():
 
     def _process_lido_element(self, elem, graph) -> None:
         '''Create graph LIDO root element w.r.t given mappings'''
-        recIDs = x3ml.xpath_lido(elem, "./lido:lidoRecID/text()")
-        recID = ' '.join([x.strip() for x in recIDs])
         for data in [m.evaluate(elem) for m in self.mappings]:
             for i, mapping_data in enumerate(data):
                 if mapping_data.valid:
-                    add_triples(graph, mapping_data, recID, index=i, useBlankNode = self.useBlankNode)
+                    add_triples(graph, mapping_data,  index=i, useBlankNode = self.useBlankNode)

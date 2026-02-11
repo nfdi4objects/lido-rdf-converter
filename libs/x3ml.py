@@ -14,7 +14,7 @@ import uuid
 
 class IDMode(Enum):
     LIDO_ID = auto()
-    PATH = auto()
+    UUID = auto()
     NONE = auto()
 
 
@@ -222,21 +222,21 @@ class Info:
     lido_type: str = ''
 
     @classmethod
-    def from_elem(cls, elem, i):
+    def from_elem(cls, elem, index = -1):
         '''Creates an Info object from an element'''
         text = elem.text or ''
         lang = elem.get(expand_with_namespaces('xml:lang'), '')
         lido_type = elem.get(expand_with_namespaces('lido:type'), '')
 
-        info = cls(text=text, attrib=elem.attrib, index=i, lang=lang, lido_type=lido_type)
+        info = cls(text=text, attrib=elem.attrib, index=index, lang=lang, lido_type=lido_type)
         # Priority of ID assignment
         if ids := get_IDs(elem):
             # Has an explicit ID
             info.mode = IDMode.LIDO_ID
-            info.id = ids[0]
+            info.id = ids[0].strip()
         elif len(elem) > 0 and not text:
             # Has subelements, use path as ID
-            info.mode = IDMode.PATH
+            info.mode = IDMode.UUID
             if n := elem.get('n4o_id'):
                 info.id = n
             else:
@@ -250,14 +250,7 @@ class Info:
 
     def hasID(self) -> bool:
         '''Tests if the info has an ID'''
-        return self.mode in (IDMode.LIDO_ID, IDMode.PATH)
-
-    def get_id(self, prefix) -> str:
-        '''Returns the ID'''
-        id = self.id.strip()
-        if self.mode == IDMode.PATH:
-            id = prefix + '-' + id  # make it unique per record
-        return id
+        return self.mode in (IDMode.LIDO_ID, IDMode.UUID)
 
 
 ############################################################################################################################

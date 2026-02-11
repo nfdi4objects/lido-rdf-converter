@@ -73,7 +73,7 @@ def test_Info_from_elem_and_lang_and_modes():
     parent = etree.Element(f'{{{LIDO_NS}}}parent')
     etree.SubElement(parent, f'{{{LIDO_NS}}}child')
     info2 = x3ml.Info.from_elem(parent, 1)
-    assert info2.mode in (Mode.LIDO_ID,Mode.PATH)  # path expected unless mapped ID is found
+    assert info2.mode in (Mode.LIDO_ID,Mode.UUID)  # path expected unless mapped ID is found
 
 
 def test_ExP_fromElements_and_subs_behavior():
