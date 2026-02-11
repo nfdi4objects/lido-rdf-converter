@@ -7,8 +7,8 @@ from pathlib import Path
 from dataclasses import dataclass, field
 import re
 from enum import auto, Enum
+import uuid
 
-    
 
 ############################################################################################################################
 
@@ -159,7 +159,7 @@ class ID_Host_List():
                 return ch
         return []
 
-    
+
 '''Mapping lido tags to its ID hosts'''
 LIDO_ID_MAP = {
     'lido:lido': ID_Host('lido:lidoRecID'),
@@ -178,6 +178,7 @@ LIDO_ID_MAP = {
     'lido:resourceSet': ID_Host('lido:resourceID'),
     'lido:repositoryName': ID_Host('lido:legalBodyID')
 }
+
 
 def load_lido_map(fname='./lido-id-map.json'):
     '''Loads the LIDO ID map from file'''
@@ -235,18 +236,18 @@ class Info:
             info.id = ids[0]
         elif len(elem) > 0 and not text:
             # Has subelements, use path as ID
-            info.mode = IDMode.PATH 
+            info.mode = IDMode.PATH
             if n := elem.get('n4o_id'):
                 info.id = n
             else:
-                info.id = root_path_as_list(elem) + '/'+str(i)
+                info.id = str(uuid.uuid4())  # generate a unique ID
                 elem.set('n4o_id', info.id)
         else:
             # Just text
             info.mode = IDMode.NONE
 
         return info
-    
+
     def hasID(self) -> bool:
         '''Tests if the info has an ID'''
         return self.mode in (IDMode.LIDO_ID, IDMode.PATH)
