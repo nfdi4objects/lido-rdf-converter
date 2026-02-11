@@ -236,7 +236,11 @@ class Info:
         elif len(elem) > 0 and not text:
             # Has subelements, use path as ID
             info.mode = IDMode.PATH 
-            info.id = root_path_as_list(elem) + '/'+str(i)
+            if n := elem.get('n4o_id'):
+                info.id = n
+            else:
+                info.id = root_path_as_list(elem) + '/'+str(i)
+                elem.set('n4o_id', info.id)
         else:
             # Just text
             info.mode = IDMode.NONE
