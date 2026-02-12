@@ -13,8 +13,6 @@ def test_basic_utils():
     assert x3ml.apply_valid_arg(lambda s: s.upper(), None, "DEFAULT") == "DEFAULT"
     assert x3ml.str2bool("True") is True
     assert x3ml.str2bool("no") is False
-    assert x3ml.md5Hash("abc") == hashlib.md5(b"abc").hexdigest()
-
 
 def test_namespace_expand_compress():
     expanded = x3ml.expand_with_namespaces("lido:event")
@@ -53,7 +51,7 @@ def test_root_path_and_get_IDs():
     record_wrap = root.find(f'.//{{{LIDO_NS}}}recordWrap')
     record_id = record_wrap.find(f'./{{{LIDO_NS}}}recordID')
     # root_path_as_list should return a slash-separated path of local names
-    assert x3ml.root_path_as_list(record_id) == "root/recordWrap/recordID"
+    assert x3ml.full_path(record_id) == "root/recordWrap/recordID"
     # get_IDs should discover the ID value from recordWrap
     ids = x3ml.get_IDs(record_wrap)
     assert ids == ["ID123"]

@@ -1,7 +1,6 @@
 #!.venv/bin/python
 from lxml import etree
 import sys
-import hashlib
 import json
 from pathlib import Path
 from dataclasses import dataclass, field
@@ -36,11 +35,6 @@ def str2bool(bool_str) -> bool:
 def skipped(elem: etree.Element) -> bool:
     '''Tests if an element is marked as skipped'''
     return str2bool(elem.get('skip', 'false'))
-
-
-def md5Hash(s: str) -> str:
-    '''Returns the MD5 hash of a string'''
-    return hashlib.md5(s.encode()).hexdigest()
 
 
 def strip_elem_text(elem):
@@ -100,12 +94,12 @@ def transform_subs(path_to_subs, sub_elements):
             se.text = se.get(attr_name)
 
 
-def root_path_as_list(elem):
+def full_path(elem):
     '''Return the full lido path of an element'''
     tags = elem.tag.replace(f"{{{used_namespaces.get('lido', '')}}}", '')
     parent = elem.getparent()
     if not_none(parent):
-        tags = root_path_as_list(parent) + '/' + tags
+        tags = full_path(parent) + '/' + tags
     return tags
 
 
@@ -240,7 +234,7 @@ class Info:
             if n := elem.get('n4o_id'):
                 info.id = n
             else:
-                info.id = str(uuid.uuid4())  # generate a unique ID
+                info.id = full_path(elem) + '/'+str(index)
                 elem.set('n4o_id', info.id)
         else:
             # Just text

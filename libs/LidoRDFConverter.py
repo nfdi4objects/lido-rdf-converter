@@ -9,6 +9,7 @@ import urllib.parse as ulp
 from pathlib import Path
 from lxml import etree
 import libs.x3ml as x3ml
+import hashlib
 
 
 def p_log(f):
@@ -101,9 +102,8 @@ def make_clean_subdir(dir_path) -> None:
 
 
 def hash(s: str) -> str:
-    '''Returns a hash of the string s'''
-    # print('hashing', s)
-    return x3ml.md5Hash(s)
+    '''Returns a md5 hash of the string s'''
+    return hashlib.md5(s.encode()).hexdigest()
 
 
 def strip_schema(url: str) -> str:
@@ -119,14 +119,14 @@ def make_curie_uri(uri: str, nsm: NamespaceManager) -> RF.term.URIRef:
         return RF.term.URIRef(uri)
 
 
-def make_id_node(info, nsm: NamespaceManager, use_bn=False) -> RF.URIRef:
-    '''Creates an RDF node (BNode or URIRef) from id string and a mode'''
-    '''Gets the ID mode and graph from kw arguments'''
+def make_id_node(info, nsm: NamespaceManager, prefix='', use_bn=False) -> RF.URIRef:
+    '''Creates an RDF node (URIRef or BNode) from info, using a hash of the ID'''
     if info.mode == x3ml.IDMode.UUID:
+        label = prefix + '-' + info.id if prefix else info.id
         if use_bn:
-            return RF.BNode(hash(info.id))
+            return RF.BNode(hash(label))
         else:
-            return NAMESPACE_MAP['n4o'][f"{hash(info.id)}"]
+            return NAMESPACE_MAP['n4o'][f"{hash(label)}"]
     uri = f'n4o:{hash(info.id)}'
     try:
         return nsm.expand_curie(uri)
@@ -144,29 +144,29 @@ def make_plain_node(info) -> RF.URIRef | RF.Literal:
 # def pd(*args): print([json.dumps(x, indent=2) for x in args])
 
 
-def add_triples(graph, mapping: x3ml.Mapping, use_bn) -> None:
+def add_triples(graph, mapping: x3ml.Mapping, prefix: str, use_bn: bool) -> None:
     '''Add triples to the graph'''
     info = mapping.info
     if info.id:
         nsm = graph.namespace_manager
-        S = make_id_node(info, nsm, use_bn)
+        S = make_id_node(info, nsm, prefix, use_bn)
         triples = [(S, RF.RDF.type, make_curie_uri(mapping.S.entity, nsm))]
 
         for po in mapping.POs:
-            triples += get_po_triples(S, po, info, nsm, use_bn)
+            triples += get_po_triples(S, po, info, nsm, prefix, use_bn)
         if len(triples) > 1:  # at least one PO triple
             for t in triples:
                 graph.add(t)
 
 
-def get_po_triples(S,  po: x3ml.PO, info: x3ml.Info, nsm: NamespaceManager, use_bn: bool) -> list:
+def get_po_triples(S,  po: x3ml.PO, info: x3ml.Info, nsm: NamespaceManager, prefix: str, use_bn: bool) -> list:
     '''Compile triples from PO data'''
     triples = []
     if po.valid:
         P = make_curie_uri(po.P.entity, nsm)
         for info in po.infos:
             if info.hasID():
-                O = make_id_node(info, nsm, use_bn)
+                O = make_id_node(info, nsm, prefix, use_bn)
                 if (O != S):
                     triples.append((S, P, O))
                     Ot = make_curie_uri(po.O.entity, nsm)
@@ -274,7 +274,9 @@ class LidoRDFConverter():
 
     def _process_lido_element(self, elem, graph) -> None:
         '''Create graph LIDO root element w.r.t given mappings'''
+        recIDs = x3ml.xpath_lido(elem, "./lido:lidoRecID/text()")
+        recID = ' '.join([x.strip() for x in recIDs])
         for data in [m.evaluate(elem) for m in self.mappings]:
             for i, mapping_data in enumerate(data):
                 if mapping_data.valid:
-                    add_triples(graph, mapping_data, self.use_bn)
+                    add_triples(graph, mapping_data, recID, self.use_bn)
