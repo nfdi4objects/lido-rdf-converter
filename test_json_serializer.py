@@ -2,8 +2,8 @@ import unittest
 from dataclasses import dataclass
 from typing import List, Dict, Tuple, Set, Any
 import enum
-from json_serializer import from_json, to_json
-import x3ml_classes as xc
+from libs.json_serializer import from_json, to_json
+import libs.x3ml_classes as xc
 from xml.etree.ElementTree import Element, SubElement
 
 
