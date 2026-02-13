@@ -151,7 +151,7 @@
                     <button type="button" class="btn btn-primary btn-sm" @click="addLink" :iM="i" title="Add a new link to the rule.">Add Link</button>
                     <button type="button" class="btn btn-primary btn-sm" @click="deleteMapping" :iM="i" title="Delete this rule.">Delete</button>
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" :id="'Mapskip' + i" v-model="mapping.attributes.skip">
+                    <input class="form-check-input" type="checkbox" value="" :id="'Mapskip' + i" v-model="mapping.skip">
                     <label class="form-check-label" :for="'Mapskip' + i">Skip</label>
                   </div>
 
@@ -174,7 +174,7 @@
                           <label for="lname">Entity:</label>
                           <input class="form-control" list="DLCidocClasses" type="text" name="P-type" :id="j" v-model="link.range.targetNode.entity.type">
                           <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" :id="'LinkSkip' + i +'-' + j" v-model="link.attributes.skip">
+                            <input class="form-check-input" type="checkbox" value="" :id="'LinkSkip' + i +'-' + j" v-model="link.skip">
                             <label class="form-check-label" :for="'LinkSkip' + i +'-' + j">Skip</label>
                           </div>
                           <br />

@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<lido:lido xmlns:lido="http://www.lido-schema.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.lido-schema.org http://www.lido-schema.org/schema/v1.0/lido-v1.0.xsd">
+<lido:lido xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.lido-schema.org" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:gml="http://www.opengis.net/gml" xmlns:doc="http://www.mda.org.uk/spectrumXML/Documentation" xmlns:sch="http://purl.oclc.org/dsdl/schematron" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns:lido="http://www.lido-schema.org" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:smil20lang="http://www.w3.org/2001/SMIL20/Language" xsi:schemaLocation="http://www.lido-schema.org http://www.lido-schema.org/schema/v1.1/lido-v1.1.xsd">
 	<lido:lidoRecID lido:type="http://terminology.lido-schema.org/lido00100">DE-MUS-059918/dc00018494</lido:lidoRecID>
 	<lido:descriptiveMetadata xml:lang="de">
 		<lido:objectClassificationWrap>
 			<lido:objectWorkTypeWrap>
 				<lido:objectWorkType>
-					<lido:conceptID lido:type="http://terminology.lido-schema.org/lido00099">http://vocab.getty.edu/aat/300379868</lido:conceptID>
-					<lido:term xml:lang="de">Kabinettschrank</lido:term>
-					<lido:term xml:lang="en">display cabinets</lido:term>
+					<skos:Concept rdf:about="http://vocab.getty.edu/aat/300038888">
+						<skos:prefLabel xml:lang="de">Kabinettschrank</skos:prefLabel>
+						<skos:prefLabel xml:lang="en">cabinets (case furniture)</skos:prefLabel>
+						<skos:exactMatch>http://vocab.getty.edu/aat/300379868</skos:exactMatch>
+					</skos:Concept>
 				</lido:objectWorkType>
 			</lido:objectWorkTypeWrap>
 			<lido:classificationWrap>
 				<lido:classification lido:type="http://terminology.lido-schema.org/lido00853">
-					<lido:conceptID lido:type="http://terminology.lido-schema.org/lido00099">http://obg.vocnet.org/00000883</lido:conceptID>
-					<lido:conceptID lido:type="http://terminology.lido-schema.org/lido00099">https://term.museum-digital.de/hesys/tag/275</lido:conceptID>
-					<lido:term xml:lang="de">Schrankmöbel</lido:term>
+					<skos:Concept rdf:about="https://d-nb.info/gnd/4039860-2">
+						<skos:prefLabel xml:lang="de">Möbel</skos:prefLabel>
+						<skos:narrowMatch>https://term.museum-digital.de/hesys/tag/275</skos:narrowMatch>
+					</skos:Concept>
 				</lido:classification>
 			</lido:classificationWrap>
 		</lido:objectClassificationWrap>
@@ -26,6 +29,7 @@
 			</lido:titleWrap>
 			<lido:repositoryWrap>
 				<lido:repositorySet lido:type="http://terminology.lido-schema.org/lido00475">
+					<lido:displayRepository xml:lang="de">Museum für Kunst und Gewerbe Hamburg</lido:displayRepository>
 					<lido:repositoryName>
 						<lido:legalBodyID lido:type="http://terminology.lido-schema.org/lido00099">http://ld.zdb-services.de/resource/organisations/DE-MUS-059918</lido:legalBodyID>
 						<lido:legalBodyName>
@@ -38,24 +42,61 @@
 			<lido:objectDescriptionWrap>
 				<lido:objectDescriptionSet>
 					<lido:descriptiveNoteValue xml:lang="de">Die große Welt im kleinen Schrank: Die Fassadenarchitektur des Kabinettschranks findet ihr Vorbild im antiken Theaterbau. Mit seinem ausgeklügelten System von Fächern und Schubladen diente er zur Aufbewahrung von gesammelten Kostbarkeiten der Kunstkammer. Über seine Bestimmung zum funktionalen Möbel hinaus ist der Schrank selbst auch als Kunstwerk zu verstehen. Die Elfenbeintafeln zeigen ein umfangreiches Bildprogramm: die Gründer der vier großen Weltreiche des Altertums und die Taten des tugendhaften antiken Helden Herkules. Die ausziehbare Schreibplatte enthält eine drehbare Weltkarte, die auf die Habsburger verweist und vermuten lässt, dass das Kabinettmöbel für König Phillipp II. von Spanien angefertigt worden ist.</lido:descriptiveNoteValue>
+					<lido:objectDescriptionRights>
+						<lido:rightsType>
+							<skos:Concept rdf:about="https://creativecommons.org/publicdomain/zero/1.0/">
+								<skos:prefLabel xml:lang="de">CC0 1.0 Universell</skos:prefLabel>
+							</skos:Concept>
+						</lido:rightsType>
+						<lido:rightsHolder>
+							<lido:legalBodyID lido:type="http://terminology.lido-schema.org/lido00099">https://ld.zdb-services.de/resource/organisations/DE-MUS-059918</lido:legalBodyID>
+							<lido:legalBodyName>
+								<lido:appellationValue xml:lang="de">Museum für Kunst und Gewerbe</lido:appellationValue>
+							</lido:legalBodyName>
+						</lido:rightsHolder>
+					</lido:objectDescriptionRights>
 				</lido:objectDescriptionSet>
 			</lido:objectDescriptionWrap>
 			<lido:objectMeasurementsWrap>
 				<lido:objectMeasurementsSet>
 					<lido:objectMeasurements>
 						<lido:measurementsSet>
-							<lido:measurementType xml:lang="de">Höhe</lido:measurementType>
-							<lido:measurementUnit>cm</lido:measurementUnit>
+							<lido:measurementType>
+								<skos:Concept rdf:about="https://www.wikidata.org/entity/Q208826">
+									<skos:prefLabel xml:lang="de">Höhe</skos:prefLabel>
+								</skos:Concept>
+							</lido:measurementType>
+							<lido:measurementUnit>
+								<skos:Concept rdf:about="https://www.wikidata.org/entity/Q174728">
+									<skos:prefLabel xml:lang="de">Zentimeter</skos:prefLabel>
+								</skos:Concept>
+							</lido:measurementUnit>
 							<lido:measurementValue>106</lido:measurementValue>
 						</lido:measurementsSet>
 						<lido:measurementsSet>
-							<lido:measurementType xml:lang="de">Breite</lido:measurementType>
-							<lido:measurementUnit>cm</lido:measurementUnit>
+							<lido:measurementType>
+								<skos:Concept rdf:about="http://www.wikidata.org/wiki/Q35059">
+									<skos:prefLabel xml:lang="de">Breite</skos:prefLabel>
+								</skos:Concept>
+							</lido:measurementType>
+							<lido:measurementUnit>
+								<skos:Concept rdf:about="https://www.wikidata.org/entity/Q174728">
+									<skos:prefLabel xml:lang="de">Zentimeter</skos:prefLabel>
+								</skos:Concept>
+							</lido:measurementUnit>
 							<lido:measurementValue>101,1</lido:measurementValue>
 						</lido:measurementsSet>
 						<lido:measurementsSet>
-							<lido:measurementType xml:lang="de">Tiefe</lido:measurementType>
-							<lido:measurementUnit>cm</lido:measurementUnit>
+							<lido:measurementType>
+								<skos:Concept rdf:about="https://www.wikidata.org/wiki/Q181591">
+									<skos:prefLabel xml:lang="de">Tiefe</skos:prefLabel>
+								</skos:Concept>
+							</lido:measurementType>
+							<lido:measurementUnit>
+								<skos:Concept rdf:about="https://www.wikidata.org/entity/Q174728">
+									<skos:prefLabel xml:lang="de">Zentimeter</skos:prefLabel>
+								</skos:Concept>
+							</lido:measurementUnit>
 							<lido:measurementValue>60,9</lido:measurementValue>
 						</lido:measurementsSet>
 					</lido:objectMeasurements>
@@ -64,8 +105,16 @@
 					<lido:displayObjectMeasurements>Breite: 190 cm (geöffnet)</lido:displayObjectMeasurements>
 					<lido:objectMeasurements>
 						<lido:measurementsSet>
-							<lido:measurementType xml:lang="de">Breite</lido:measurementType>
-							<lido:measurementUnit>cm</lido:measurementUnit>
+							<lido:measurementType>
+								<skos:Concept rdf:about="http://www.wikidata.org/wiki/Q35059">
+									<skos:prefLabel xml:lang="de">Breite</skos:prefLabel>
+								</skos:Concept>
+							</lido:measurementType>
+							<lido:measurementUnit>
+								<skos:Concept rdf:about="https://www.wikidata.org/entity/Q174728">
+									<skos:prefLabel xml:lang="de">Zentimeter</skos:prefLabel>
+								</skos:Concept>
+							</lido:measurementUnit>
 							<lido:measurementValue>190</lido:measurementValue>
 						</lido:measurementsSet>
 					</lido:objectMeasurements>
@@ -76,9 +125,10 @@
 			<lido:eventSet>
 				<lido:event>
 					<lido:eventType>
-						<lido:conceptID lido:type="http://terminology.lido-schema.org/lido00099">http://terminology.lido-schema.org/lido00007</lido:conceptID>
-						<lido:term xml:lang="de">Herstellung</lido:term>
-						<lido:term xml:lang="en">Production</lido:term>
+						<skos:Concept rdf:about="http://terminology.lido-schema.org/lido00007">
+							<skos:prefLabel xml:lang="de">Herstellung</skos:prefLabel>
+							<skos:prefLabel xml:lang="en">Production</skos:prefLabel>
+						</skos:Concept>
 					</lido:eventType>
 					<lido:eventActor>
 						<lido:actorInRole>
@@ -89,7 +139,9 @@
 								</lido:nameActorSet>
 							</lido:actor>
 							<lido:roleActor>
-								<lido:term xml:lang="de">Künstler</lido:term>
+								<skos:Concept rdf:about="http://ddb.vocnet.org/rolle/r0035">
+									<skos:prefLabel xml:lang="de">Künstler</skos:prefLabel>
+								</skos:Concept>
 							</lido:roleActor>
 						</lido:actorInRole>
 					</lido:eventActor>
@@ -102,7 +154,9 @@
 								</lido:nameActorSet>
 							</lido:actor>
 							<lido:roleActor>
-								<lido:term xml:lang="de">Graveur</lido:term>
+								<skos:Concept rdf:about="http://vocab.getty.edu/aat/300239410">
+									<skos:prefLabel xml:lang="de">Graveur</skos:prefLabel>
+								</skos:Concept>
 							</lido:roleActor>
 						</lido:actorInRole>
 					</lido:eventActor>
@@ -115,7 +169,9 @@
 								</lido:nameActorSet>
 							</lido:actor>
 							<lido:roleActor>
-								<lido:term xml:lang="de">Graveur</lido:term>
+								<skos:Concept rdf:about="http://vocab.getty.edu/aat/300239410">
+									<skos:prefLabel xml:lang="de">Graveur</skos:prefLabel>
+								</skos:Concept>
 							</lido:roleActor>
 						</lido:actorInRole>
 					</lido:eventActor>
@@ -137,24 +193,28 @@
 					<lido:eventMaterialsTech>
 						<lido:materialsTech>
 							<lido:termMaterialsTech lido:type="http://terminology.lido-schema.org/lido00132">
-								<lido:conceptID lido:type="http://terminology.lido-schema.org/lido00099">http://vocab.getty.edu/aat/300375333</lido:conceptID>
-								<lido:term xml:lang="de">Palisander</lido:term>
+								<skos:Concept rdf:about="http://vocab.getty.edu/aat/300375333">
+									<skos:prefLabel xml:lang="de">Palisander</skos:prefLabel>
+								</skos:Concept>
 							</lido:termMaterialsTech>
 							<lido:termMaterialsTech lido:type="http://terminology.lido-schema.org/lido00132">
-								<lido:conceptID lido:type="http://terminology.lido-schema.org/lido00099">http://www.wikidata.org/entity/Q156005</lido:conceptID>
-								<lido:term xml:lang="de">Ebenholz</lido:term>
+								<skos:Concept rdf:about="https://d-nb.info/gnd/7697258-6">
+									<skos:prefLabel xml:lang="de">Ebenholz</skos:prefLabel>
+								</skos:Concept>
 							</lido:termMaterialsTech>
 							<lido:termMaterialsTech lido:type="http://terminology.lido-schema.org/lido00132">
-								<lido:conceptID lido:type="http://terminology.lido-schema.org/lido00099">http://vocab.getty.edu/aat/300011857</lido:conceptID>
-								<lido:term xml:lang="de">Elfenbein (Material)</lido:term>
+								<skos:Concept rdf:about="http://vocab.getty.edu/aat/300011857">
+									<skos:prefLabel xml:lang="de">Elfenbein (Material)</skos:prefLabel>
+								</skos:Concept>
 							</lido:termMaterialsTech>
 						</lido:materialsTech>
 					</lido:eventMaterialsTech>
 					<lido:eventMaterialsTech>
 						<lido:materialsTech>
 							<lido:termMaterialsTech lido:type="http://terminology.lido-schema.org/lido00131">
-								<lido:conceptID lido:type="http://terminology.lido-schema.org/lido00099">https://d-nb.info/gnd/4191438-7</lido:conceptID>
-								<lido:term xml:lang="de">Gravierung</lido:term>
+								<skos:Concept rdf:about="http://vocab.getty.edu/aat/300053829">
+									<skos:prefLabel xml:lang="de">Gravierung</skos:prefLabel>
+								</skos:Concept>
 							</lido:termMaterialsTech>
 						</lido:materialsTech>
 					</lido:eventMaterialsTech>
@@ -166,8 +226,10 @@
 				<lido:subjectSet>
 					<lido:subject lido:type="http://terminology.lido-schema.org/lido00745">
 						<lido:subjectConcept>
-							<lido:conceptID lido:type="http://terminology.lido-schema.org/lido00099">https://iconclass.org/94L</lido:conceptID>
-							<lido:term xml:lang="de">Geschichte von Hercules (Herakles)</lido:term>
+							<skos:Concept rdf:about="https://iconclass.org/94L">
+								<skos:prefLabel xml:lang="de">Geschichte von Hercules (Herakles)</skos:prefLabel>
+								<skos:notation>94L</skos:notation>
+							</skos:Concept>
 						</lido:subjectConcept>
 					</lido:subject>
 				</lido:subjectSet>
@@ -178,14 +240,15 @@
 		<lido:recordWrap>
 			<lido:recordID lido:type="http://terminology.lido-schema.org/lido00100">dc00018494</lido:recordID>
 			<lido:recordType>
-				<lido:conceptID lido:type="http://terminology.lido-schema.org/lido00099">http://terminology.lido-schema.org/lido00141</lido:conceptID>
-				<lido:term xml:lang="de">Einzelobjekt (Katalogisierungsebene)</lido:term>
-				<lido:term xml:lang="en">item-level record</lido:term>
+				<skos:Concept rdf:about="http://terminology.lido-schema.org/lido00141">
+					<skos:prefLabel xml:lang="de">Einzelobjekt (Katalogisierungsebene)</skos:prefLabel>
+					<skos:prefLabel xml:lang="en">Item-level record</skos:prefLabel>
+				</skos:Concept>
 			</lido:recordType>
 			<lido:recordSource>
 				<lido:legalBodyID lido:type="http://terminology.lido-schema.org/lido00099">https://ld.zdb-services.de/resource/organisations/DE-MUS-059918</lido:legalBodyID>
 				<lido:legalBodyName>
-					<lido:appellationValue>Museum für Kunst und Gewerbe Hamburg</lido:appellationValue>
+					<lido:appellationValue>Museum für Kunst und Gewerbe</lido:appellationValue>
 				</lido:legalBodyName>
 			</lido:recordSource>
 			<lido:recordSource lido:type="dataProvider">
@@ -196,8 +259,9 @@
 			</lido:recordSource>
 			<lido:recordRights>
 				<lido:rightsType>
-					<lido:conceptID lido:type="http://terminology.lido-schema.org/lido00099">http://creativecommons.org/publicdomain/zero/1.0/</lido:conceptID>
-					<lido:term>CC0 1.0 Universell</lido:term>
+					<skos:Concept rdf:about="https://creativecommons.org/publicdomain/zero/1.0/">
+						<skos:prefLabel xml:lang="de">CC0 1.0 Universell</skos:prefLabel>
+					</skos:Concept>
 				</lido:rightsType>
 			</lido:recordRights>
 			<lido:recordInfoSet lido:type="http://terminology.lido-schema.org/lido00916">
@@ -213,14 +277,23 @@
 					<lido:linkResource lido:formatResource="image/jpeg">http://resources.digicult-museen.net/dam/provided_image/m5ea54539bef06</lido:linkResource>
 				</lido:resourceRepresentation>
 				<lido:resourceType>
-					<lido:term>Bild</lido:term>
+					<skos:Concept rdf:about="http://ddb.vocnet.org/medientyp/mt002">
+						<skos:prefLabel xml:lang="de">Bild</skos:prefLabel>
+					</skos:Concept>
 				</lido:resourceType>
 				<lido:resourceDescription lido:type="https://www.wikidata.org/entity/P11265">Blick in geöffneten Kabinettschrank mit dunkelbrauner und weißer Fassadenarchitektur aus Ebenholz und Elfenbein im Inneren des Schrankes und der beiden Türen</lido:resourceDescription>
 				<lido:rightsResource>
 					<lido:rightsType>
-						<lido:conceptID lido:type="http://terminology.lido-schema.org/lido00099">http://creativecommons.org/publicdomain/zero/1.0/</lido:conceptID>
-						<lido:term>CC0 1.0</lido:term>
+						<skos:Concept rdf:about="https://creativecommons.org/publicdomain/zero/1.0/">
+							<skos:prefLabel xml:lang="de">CC0 1.0 Universell</skos:prefLabel>
+						</skos:Concept>
 					</lido:rightsType>
+					<lido:rightsHolder>
+						<lido:legalBodyID lido:type="http://terminology.lido-schema.org/lido00099">https://ld.zdb-services.de/resource/organisations/DE-MUS-059918</lido:legalBodyID>
+						<lido:legalBodyName>
+							<lido:appellationValue xml:lang="de">Museum für Kunst und Gewerbe</lido:appellationValue>
+						</lido:legalBodyName>
+					</lido:rightsHolder>
 				</lido:rightsResource>
 			</lido:resourceSet>
 			<lido:resourceSet lido:sortorder="2">
@@ -228,14 +301,23 @@
 					<lido:linkResource lido:formatResource="image/jpeg">http://resources.digicult-museen.net/dam/provided_image/m5ea5453a0926f</lido:linkResource>
 				</lido:resourceRepresentation>
 				<lido:resourceType>
-					<lido:term>Bild</lido:term>
+					<skos:Concept rdf:about="http://ddb.vocnet.org/medientyp/mt002">
+						<skos:prefLabel xml:lang="de">Bild</skos:prefLabel>
+					</skos:Concept>
 				</lido:resourceType>
 				<lido:resourceDescription lido:type="https://www.wikidata.org/entity/P11265">Detailansicht eines Kabinettschranks mit gravierter Elfenbeinplakette mit Abbildung des Romulus in Rom</lido:resourceDescription>
 				<lido:rightsResource>
 					<lido:rightsType>
-						<lido:conceptID lido:type="http://terminology.lido-schema.org/lido00099">http://creativecommons.org/publicdomain/zero/1.0/</lido:conceptID>
-						<lido:term>CC0 1.0</lido:term>
+						<skos:Concept rdf:about="https://creativecommons.org/publicdomain/zero/1.0/">
+							<skos:prefLabel xml:lang="de">CC0 1.0 Universell</skos:prefLabel>
+						</skos:Concept>
 					</lido:rightsType>
+					<lido:rightsHolder>
+						<lido:legalBodyID lido:type="http://terminology.lido-schema.org/lido00099">https://ld.zdb-services.de/resource/organisations/DE-MUS-059918</lido:legalBodyID>
+						<lido:legalBodyName>
+							<lido:appellationValue xml:lang="de">Museum für Kunst und Gewerbe</lido:appellationValue>
+						</lido:legalBodyName>
+					</lido:rightsHolder>
 				</lido:rightsResource>
 			</lido:resourceSet>
 			<lido:resourceSet lido:sortorder="3">
@@ -243,14 +325,23 @@
 					<lido:linkResource lido:formatResource="image/jpeg">http://resources.digicult-museen.net/dam/provided_image/m5ea5453a433bb</lido:linkResource>
 				</lido:resourceRepresentation>
 				<lido:resourceType>
-					<lido:term>Bild</lido:term>
+					<skos:Concept rdf:about="http://ddb.vocnet.org/medientyp/mt002">
+						<skos:prefLabel xml:lang="de">Bild</skos:prefLabel>
+					</skos:Concept>
 				</lido:resourceType>
 				<lido:resourceDescription lido:type="https://www.wikidata.org/entity/P11265">Detailansicht eines Kabinettschranks mit Fassadenarchitektur einschließlich Säulen, Atlanten und weiterer gravierter Bauelemente aus Elfenbein auf Ebenholzkonstruktion</lido:resourceDescription>
 				<lido:rightsResource>
 					<lido:rightsType>
-						<lido:conceptID lido:type="http://terminology.lido-schema.org/lido00099">http://creativecommons.org/publicdomain/zero/1.0/</lido:conceptID>
-						<lido:term>CC0 1.0</lido:term>
+						<skos:Concept rdf:about="https://creativecommons.org/publicdomain/zero/1.0/">
+							<skos:prefLabel xml:lang="de">CC0 1.0 Universell</skos:prefLabel>
+						</skos:Concept>
 					</lido:rightsType>
+     					<lido:rightsHolder>
+						<lido:legalBodyID lido:type="http://terminology.lido-schema.org/lido00099">https://ld.zdb-services.de/resource/organisations/DE-MUS-059918</lido:legalBodyID>
+						<lido:legalBodyName>
+							<lido:appellationValue xml:lang="de">Museum für Kunst und Gewerbe</lido:appellationValue>
+						</lido:legalBodyName>
+					</lido:rightsHolder>
 				</lido:rightsResource>
 			</lido:resourceSet>
 		</lido:resourceWrap>

@@ -550,15 +550,18 @@ class Link(X3Base):
     '''Class for link elements'''
     path: Path = field(default_factory=Path)
     range: Range = field(default_factory=Range)
+    skip: bool = False  
     
     def deserialize(self, elem: Element):
         X3Base.deserialize(self, elem)
+        self.skip = elem.get('skip', 'false').lower() == 'true'
         self.path = Path.from_serial(elem.find('path'))
         self.range = Range.from_serial(elem.find('range'))
         return self
 
     def serialize(self, elem: Element):
         X3Base.serialize(self, elem)
+        elem.set('skip', str(self.skip).lower())
         self.path.serialize(SubElement(elem, 'path'))
         self.range.serialize(SubElement(elem, 'range'))
         return elem
@@ -568,15 +571,18 @@ class Mapping(X3Base):
     '''Class for mapping elements'''
     domain: Domain = field(default_factory=Domain)
     links: List[Link] = field(default_factory=list)
-
+    skip: bool = False  
+  
     def deserialize(self, elem: Element):
         X3Base.deserialize(self, elem)
+        self.skip = elem.get('skip', 'false').lower() == 'true'
         self.domain = Domain.from_serial(elem.find('domain'))
         self.links = [Link.from_serial(x) for x in elem.findall('link')]
         return self
 
     def serialize(self, elem: Element):
         X3Base.serialize(self, elem)
+        elem.set('skip', str(self.skip).lower())
         self.domain.serialize(SubElement(elem, 'domain'))
         for link in self.links:
             link.serialize(SubElement(elem, 'link'))
