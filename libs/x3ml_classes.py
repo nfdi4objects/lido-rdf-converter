@@ -3,6 +3,14 @@ from dataclasses import dataclass, field
 from typing import  List
 from libs.json_serializer import to_json, from_json
 
+def SumElementList(elem: Element, subpath:list) -> Element:
+    if len(subpath) > 0:
+        return SumElementList(SubElement(elem, subpath[0]) , subpath[1:])
+    return elem
+    
+def SubElementPath(elem, path):
+    return SumElementList(elem, path.split('/'))
+
 class JSON_Serializer:
     '''Base class for JSON serialization'''
     def toJSON(self):
@@ -107,8 +115,7 @@ class Source(X3Base):
 
     def serialize(self, elem: Element):
         X3Base.serialize(self, elem)
-        subElem = SubElement(elem, 'source_info')
-        self.source_schema.serialize(SubElement(subElem, 'source_schema'))
+        self.source_schema.serialize(SubElementPath(elem, 'source_info/source_schema'))
         return elem
 
     def set(self, schema):
@@ -126,8 +133,7 @@ class Target(X3Base):
 
     def serialize(self, elem: Element):
         X3Base.serialize(self, elem)
-        subElem = SubElement(elem, 'target_info')
-        self.target_schema.serialize(SubElement(subElem, 'target_schema'))
+        self.target_schema.serialize(SubElementPath(elem, 'target_info/target_schema'))
         return elem
 
     def set(self, schema):
@@ -300,8 +306,7 @@ class Entity(X3Base):
 
     def serialize(self, elem: Element):
         X3Base.serialize(self, elem)
-        t = SubElement(elem, 'type')
-        t.text = self.type
+        SubElement(elem, 'type').text = self.type
         for x in self.instance_info:
             x.serialize(SubElement(elem, 'instance_info'))
         return elem
@@ -323,7 +328,7 @@ class TargetNode(X3Base):
         X3Base.serialize(self, elem)
         self.entity.serialize(SubElement(elem, 'entity'))
         for cond in self.conditions:
-            e = SubElement(SubElement(SubElement(SubElement(elem, 'if'), 'or'), 'if'), 'equals')
+            e = SubElementPath(elem, 'if/or/if/equals')
             cond.serialize(e)
         return elem
 
@@ -461,8 +466,7 @@ class TargetRelation(X3Base):
         X3Base.serialize(self, elem)
         
         for cond in self.conditions:
-            e = SubElement(SubElement(SubElement(SubElement(elem, 'if'), 'or'), 'if'), 'equals')
-            cond.serialize(e)
+            cond.serialize( SubElementPath(elem,'if/or/if/equals'))
 
         self.relationship.serialize(SubElement(elem, 'relationship'))
 
