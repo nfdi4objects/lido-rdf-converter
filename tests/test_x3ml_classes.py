@@ -31,14 +31,14 @@ class Test_X3ml_Classes(unittest.TestCase):
     def test_X3Base_1(self):
         '''X3Base: Ctor, De/Serial, Attributes'''
         testee = XC.X3Base()
-        testee.deserialize(XML('<test A="44" B="ZZ"/>'))
+        testee.from_elem(XML('<test A="44" B="ZZ"/>'))
         self.assertEqual(testee.attributes['A'], '44')
         self.assertEqual(testee.attributes['B'], 'ZZ')
  
     def test_X3Base_2(self):
         '''X3Base: Ctor, Attributes'''
         testee = XC.X3Base()
-        testee.deserialize(XML('<test A="44" B="ZZ"/>'))
+        testee.from_elem(XML('<test A="44" B="ZZ"/>'))
         self.assertEqual(testee.attributes['A'], '44')
         self.assertEqual(testee.attributes['B'], 'ZZ')
 
@@ -49,7 +49,7 @@ class Test_X3ml_Classes(unittest.TestCase):
 
         elem = ElementPath('test', '\\lido:lido')
 
-        testee.deserialize(elem)
+        testee.from_elem(elem)
 
         self.assertEqual(testee.text, '\\lido:lido')
 
@@ -57,7 +57,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         '''SimpleText: Access, Serial, Str'''
         elem = ElementPath('test','lido:event')
         testee = XC.SimpleText()
-        testee.deserialize(elem)
+        testee.from_elem(elem)
         self.assertEqual(testee.text, 'lido:event')
 
     def test_Source_1(self):
@@ -65,7 +65,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         elem = ElementPath('test/source_info/source_schema','schema')
         testee = XC.Source()
 
-        testee.deserialize(elem)
+        testee.from_elem(elem)
 
         self.assertIsNotNone(testee.source_schema)
         self.assertEqual(type(testee.source_schema).__name__, 'SimpleText')
@@ -76,7 +76,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee = XC.Source()
         testee.set('schema')
         
-        elem = testee.serialize(Element('test'))
+        elem = testee.to_elem(Element('test'))
 
         subElem = elem.findall('source_info/source_schema')
         self.assertEqual(len(subElem), 1)
@@ -87,7 +87,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         elem = ElementPath('test/target_info/target_schema','schema')
         testee = XC.Target()
 
-        testee.deserialize(elem)
+        testee.from_elem(elem)
 
         self.assertIsNotNone(testee.target_schema)
         self.assertEqual(type(testee.target_schema).__name__, 'SimpleText')
@@ -98,7 +98,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee = XC.Target()
         testee.set('schema')
        
-        elem = testee.serialize(Element('test'))
+        elem = testee.to_elem(Element('test'))
        
         subElems = elem.findall('target_info/target_schema')
         self.assertEqual(len(subElems), 1)
@@ -108,7 +108,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         '''MappingInfo 2: Ctor,  Serial'''
         testee = XC.MappingInfo()
         
-        elem = testee.serialize(Element('test'))
+        elem = testee.to_elem(Element('test'))
         
         self.assertIsNotNone(elem.find('mapping_created_by_org'))
         self.assertIsNotNone(elem.find('in_collaboration_with'))
@@ -118,7 +118,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         '''Comment: Ctor,  Serial'''
         testee = XC.Comment()
         
-        elem = testee.serialize(Element('test'))
+        elem = testee.to_elem(Element('test'))
         
         self.assertIsNotNone(elem.find('rationale'))
         self.assertIsNotNone(elem.find('alternatives'))
@@ -132,7 +132,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         '''ExampleDataInfo: Ctor,  Serial'''
         testee = XC.ExampleDataInfo()
         
-        elem = testee.serialize(Element('test'))
+        elem = testee.to_elem(Element('test'))
         
         self.assertIsNotNone(elem.find('example_data_from'))
         self.assertIsNotNone(elem.find('example_data_contact_person'))
@@ -158,7 +158,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         SubElementPath(elem, 'target/target_info/target_schema').text = 'tinfo'
 
         testee = XC.Info()
-        testee.deserialize(elem)
+        testee.from_elem(elem)
         self.assertEqual(testee.title.text, 'title')
         self.assertEqual(testee.sSchema, 'sinfo')
         self.assertEqual(testee.tSchema, 'tinfo')
@@ -168,7 +168,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         info = XC.Info()
         info.title.text = 'title'
 
-        elem = info.serialize(Element('test'))
+        elem = info.to_elem(Element('test'))
 
         titleElem = elem.find('title')
         self.assertIsNotNone(titleElem)
@@ -188,7 +188,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         namespace.set('crm', 'http://cidoc.com')
         testee = Element('test')
 
-        testee = namespace.serialize(testee)
+        testee = namespace.to_elem(testee)
 
         self.assertEqual(testee.attrib['prefix'], 'crm')
         self.assertEqual(testee.attrib['uri'], 'http://cidoc.com')
@@ -198,7 +198,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         elem = Element('test', attrib={'prefix': 'crm', 'uri': 'http://cidoc.com'})
 
         testee = XC.Namespace()
-        testee.deserialize(elem)
+        testee.from_elem(elem)
 
         self.assertEqual(testee.prefix, 'crm')
         self.assertEqual(testee.uri, 'http://cidoc.com')
@@ -243,7 +243,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee.set('ABC', 'XYZ')
         elem = Element('test')
 
-        testee.serialize(elem)
+        testee.to_elem(elem)
 
         self.assertEqual(elem.find('source_node').text, 'ABC')
         self.assertEqual(elem.find('target_node/entity/type').text, 'XYZ')
@@ -263,7 +263,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         elem = Element('test')
         testee = XC.NR.create('ABC', 'XYZ')
 
-        testee.serialize(elem)
+        testee.to_elem(elem)
 
         self.assertEqual(elem.find('node').text, 'ABC')
         self.assertEqual(elem.find('relation').text, 'XYZ')
@@ -275,7 +275,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         SubElement(elem, 'relation').text = 'XYZ'
         testee = XC.NR.create()
 
-        testee.deserialize(elem)
+        testee.from_elem(elem)
 
         self.assertEqual(testee.node.text, 'ABC')
         self.assertEqual(testee.relation.text, 'XYZ')
@@ -292,7 +292,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee.nodes.append(XC.NR.create('N1', 'R1'))
         elem = Element('test')
 
-        testee.serialize(elem)
+        testee.to_elem(elem)
 
         rElems = elem.findall('relation')
         nElems = elem.findall('node')
@@ -315,7 +315,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         SubElementPath(comsElem, 'comment/rationale').text = 'comment 2'
         testee = XC.Path()
 
-        testee.deserialize(elem)
+        testee.from_elem(elem)
         self.assertEqual(testee.sourceRelation.path, 'ABC')
         self.assertEqual(testee.targetRelation.entity, 'xyz')
         self.assertEqual(len(testee.comments), 2)
@@ -335,7 +335,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee.set('ABC', 'xyz')
         elem = Element('test')
 
-        testee.serialize(elem)
+        testee.to_elem(elem)
 
         self.assertEqual(elem.find('source_node').text, 'ABC')
         self.assertEqual(elem.find('target_node/entity/type').text, 'xyz')
@@ -347,7 +347,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         SubElementPath(elem, 'target_node/entity/type').text = 'xyz'
         testee = XC.Range()
 
-        testee.deserialize(elem)
+        testee.from_elem(elem)
         self.assertEqual(testee.path, 'ABC')
         self.assertEqual(testee.entity, 'xyz')
     
@@ -366,7 +366,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         SubElementPath(instance_info_elem, 'constant')
 
         testee = XC.Entity()
-        testee.deserialize(elem)
+        testee.from_elem(elem)
 
         self.assertEqual(testee.type, 'entityType')
         self.assertEqual(len(testee.instance_info), 1)
@@ -381,7 +381,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee.instance_info.append(instance_info)
 
         elem = Element('test')
-        testee.serialize(elem)
+        testee.to_elem(elem)
 
         self.assertEqual(elem.find('type').text, 'entityType')
         self.assertEqual(len(elem.findall('instance_info')), 1)
@@ -436,7 +436,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         SubElement(elem, 'relationship').text = 'intermediateRelationship'
 
         testee = XC.TargetRelation()
-        testee.deserialize(elem)
+        testee.from_elem(elem)
 
         self.assertEqual(len(testee.extensions), 1)
         self.assertEqual(testee.extensions[0].entity.type, 'entityType')
@@ -452,7 +452,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         '''TargetNode: Deserialize'''
         elem = ElementPath('test/entity/type','entityType')
         SubElement(elem, 'if')
-        testee = XC.TargetNode().deserialize(elem)
+        testee = XC.TargetNode().from_elem(elem)
         self.assertEqual(testee.entity.type, 'entityType')
  
   
@@ -480,7 +480,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         SubElementPath(domainElem, 'target_node/entity/type').text = 'domainEntity'
 
         testee = XC.X3ml()
-        testee.deserialize(elem)
+        testee.from_elem(elem)
 
         self.assertEqual(testee.info.title.text, 'infoTitle')
         self.assertEqual(len(testee.namespaces), 1)
@@ -502,7 +502,7 @@ class Test_X3ml_Classes(unittest.TestCase):
         testee.mappings.append(mapping)
 
         elem = Element('test')
-        testee.serialize(elem)
+        testee.to_elem(elem)
 
         self.assertEqual(elem.find('info/title').text, 'infoTitle')
         self.assertEqual(elem.find('namespaces/namespace').attrib['prefix'], 'nsPrefix')
@@ -523,7 +523,7 @@ class Test_X3ml_Classes(unittest.TestCase):
             elem.text = 'testXpath'
             testee = XC.Predicate()
             
-            testee.deserialize(elem)
+            testee.from_elem(elem)
             
             self.assertEqual(testee.xpath, 'testXpath')
             self.assertEqual(testee.value, 'testValue')
@@ -535,7 +535,7 @@ class Test_X3ml_Classes(unittest.TestCase):
             testee.value = 'testValue'
             elem = Element('test')
             
-            testee.serialize(elem)
+            testee.to_elem(elem)
             
             self.assertEqual(elem.text, 'testXpath')
             self.assertEqual(elem.attrib['value'], 'testValue')
@@ -552,7 +552,7 @@ class Test_X3ml_Classes(unittest.TestCase):
             testee.value = 'someValue'
             elem = Element('equals')
             
-            testee.serialize(elem)
+            testee.to_elem(elem)
             
             self.assertEqual(elem.text, 'someXpath')
             self.assertEqual(elem.attrib['value'], 'someValue')

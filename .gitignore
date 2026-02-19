@@ -11,3 +11,4 @@ rdfData/
 oai.buffer.xml
 *.log
 version.txt
+.vscode/

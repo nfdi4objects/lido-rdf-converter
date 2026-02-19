@@ -217,15 +217,15 @@ class TestFromJson(unittest.TestCase):
 
     def test_X3Base_deserialize(self):
         elem = Element('x3base', attrib={'id': 'node2', 'category': 'test'})
-        x3base_instance = xc.X3Base().deserialize(elem)
+        x3base_instance = xc.X3Base().from_elem(elem)
         self.assertIsInstance(x3base_instance, xc.X3Base)
         self.assertEqual(x3base_instance.attributes['id'], 'node2')
         self.assertEqual(x3base_instance.attributes['category'], 'test')
 
     def test_X3Base_serialize_loop(self):
         original = xc.X3Base(attributes={"serialize_key": "serialize_value"})
-        elem = original.serialize(Element('x3base'))
-        reconstructed = xc.X3Base().deserialize(elem)
+        elem = original.to_elem(Element('x3base'))
+        reconstructed = xc.X3Base().from_elem(elem)
         self.assertIsInstance(reconstructed, xc.X3Base)
         self.assertEqual(original, reconstructed)
 
@@ -283,7 +283,7 @@ class TestFromJson(unittest.TestCase):
 
     def test_simpletext_serialize_deserialize(self):
         original = xc.SimpleText(text='Deserialize Test', attributes={'key': 'value'})
-        elem = original.serialize(Element('simpletext'))
+        elem = original.to_elem(Element('simpletext'))
         reconstructed = xc.SimpleText.from_serial(elem)
         self.assertIsInstance(reconstructed, xc.SimpleText)
         self.assertEqual(reconstructed, original)
@@ -367,7 +367,7 @@ class TestFromJson(unittest.TestCase):
                 attributes={'info': 'Serialize test'}
             )
         )
-        elem = original.serialize(Element('target'))
+        elem = original.to_elem(Element('target'))
         reconstructed = xc.Target.from_serial(elem)
         self.assertEqual(reconstructed, original)
 
@@ -375,7 +375,7 @@ class TestFromJson(unittest.TestCase):
 
     def test_MappingInfo_serialize(self):
         original = xc.MappingInfo()
-        serial = original.serialize(Element('mappinginfo'))
+        serial = original.to_elem(Element('mappinginfo'))
         self.assertEqual(serial.tag, 'mappinginfo')
         self.assertIsNotNone(serial.find('mapping_created_by_org'))
         self.assertIsNotNone(serial.find('mapping_created_by_person'))
@@ -386,7 +386,7 @@ class TestFromJson(unittest.TestCase):
         SubElement(elem, 'mapping_created_by_org')
         SubElement(elem, 'mapping_created_by_person')
         SubElement(elem, 'in_collaboration_with')
-        mappinginfo_instance = xc.MappingInfo().deserialize(elem)
+        mappinginfo_instance = xc.MappingInfo().from_elem(elem)
         self.assertIsInstance(mappinginfo_instance, xc.MappingInfo)
         self.assertEqual(mappinginfo_instance, xc.MappingInfo())
 
@@ -422,7 +422,7 @@ class TestFromJson(unittest.TestCase):
 
     def test_Link_xml_loop(self):
         original = create_link('path1')
-        data = original.serialize(Element('link'))
+        data = original.to_elem(Element('link'))
         reconstructed = xc.Link.from_serial(data)
         self.assertIsInstance(reconstructed, xc.Link)
         self.assertEqual(reconstructed, original)
