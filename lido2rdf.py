@@ -27,12 +27,13 @@ def getValidFormat(format_str, file_name) -> str:
     suffix = format_str or Path(file_name).suffix.strip('.')
     return SUFFIX_FORMAT_MAP.get(suffix, 'nt')
 
+def isURL(s): 
+    return re.compile("^(https?|file):").match(s)
 
 def lido2rdf(input, mapping_file, **kw) -> LidoRDFConverter.Graph | None:
     '''Applies a x3ml mapping to a LIDO file'''
     converter = LidoRDFConverter(mapping_file)
-    isRessource = lambda s: re.compile("^(https?|file):").match(s)
-    if isRessource(input):
+    if isURL(input):
         return converter.process_url(input, **kw)
     else:
         if input == "-":
@@ -55,7 +56,7 @@ def cli_convert():
                         default="-", help='LIDO file or URL (default: -)')
     parser.add_argument("-o", '--output', metavar="FILE", dest="target",
                         default='/dev/stdout', help="RDF output file (default: -)")
-    parser.add_argument("-t", '--type', dest="format",
+    parser.add_argument("-t", '--type', dest="format", default="ttl",
                         help=f"RDF output format ({formats})")
     parser.add_argument('-m', '--mapping', dest="mapping", metavar="X3ML", default='defaultMapping.x3ml',
                         help="X3ML mapping file (default: defaultMapping.x3ml)")
