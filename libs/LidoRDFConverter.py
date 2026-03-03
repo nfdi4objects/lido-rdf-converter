@@ -43,9 +43,12 @@ OAI_SCHEMA_URL = 'http://www.openarchives.org/OAI/2.0/'
 RESUMPTION_TAG = f'{{{OAI_SCHEMA_URL}}}resumptionToken'
 
 
-def isURI(uri: str) -> bool:
-    '''Checks if a string is a valid URI'''
-    return ulp.urlparse(uri).netloc != ''
+def isURI(url: str) -> bool:
+  try:
+    result = ulp.urlsplit(url)
+    return all([result.scheme, result.netloc])
+  except ValueError:
+    return False    
 
 
 def proper_uri(uri: str | None) -> str | None:
