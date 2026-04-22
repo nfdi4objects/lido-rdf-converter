@@ -5,7 +5,7 @@ import sys
 ''' Read RDF file and return graph '''
 
 
-def graphFromFile(file_path):
+def createGraph():
     graph = rdflib.Graph()
     graph.namespace_manager.bind('crm', rdflib.URIRef(
         'http://www.cidoc-crm.org/cidoc-crm/'))
@@ -13,15 +13,10 @@ def graphFromFile(file_path):
         'http://www.w3.org/2004/02/skos/core#'))
     graph.namespace_manager.bind('rdf', rdflib.URIRef(
         'http://www.w3.org/1999/02/22-rdf-syntax-ns#'))
-    graph.parse(file_path)
     return graph
 
 
 ''' Get all namespaces from the graph '''
-
-
-def namespaces2dict(graph):
-    return {k: v for k, v in graph.namespaces() if not k.isdigit()}
 
 
 ''' Class to store entity information '''
@@ -41,9 +36,12 @@ class QNameInfo():
 
     def __lt__(self, other):
         return self.entity < other.entity
+    
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
 
     def __hash__(self):
-        return hash(self.entity)
+        return hash(str(self))
 
     def __str__(self):
         return f'{self.prefix}:{self.entity}'
@@ -52,43 +50,49 @@ class QNameInfo():
 ''' Get all entity and property names from the graph '''
 
 
-def getQNameInfos(graph, **kw):
-    entities = set()
-    properties = set()
-    rdfProperty = rdflib.term.URIRef(
-        'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property')
-    rdfClass = rdflib.term.URIRef('http://www.w3.org/2000/01/rdf-schema#Class')
-    predicate = rdflib.term.URIRef(
-        'http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
+def readGraph(graph, properties,classes,namespaces):
+    '''Read properties,classes and namespaces from graph'''
+    _PROPERTY = rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#Property')
+    _CLASS = rdflib.term.URIRef('http://www.w3.org/2000/01/rdf-schema#Class')
+    _PREDICATE = rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
+    
     # Get all classes and properties
-    for subject, object in graph.subject_objects(predicate):
+    for subject, object in graph.subject_objects(_PREDICATE):
         info = QNameInfo(graph.qname(subject))
-        if object == rdfProperty:
+        if object == _PROPERTY:
             properties.add(info)
-        elif object == rdfClass:
-            entities.add(info)
+        elif object == _CLASS:
+            classes.add(info)
+    # Get all namespaces
+    for k, v in graph.namespaces():
+        if not k.isdigit():
+           namespaces.update({k: v})
 
-    # Return the compiled data
-    def sortedDictList(aList):
-        return [x.__dict__ for x in sorted(aList)]
-    return {
-        'source': kw.get('source', ''),
-        'namespaces': namespaces2dict(graph),
-        'classes': sortedDictList(entities),
-        'properties': sortedDictList(properties)
-    }
-
+ADDITIONAL_CLASSES = ['skos:Concept','skos:ConceptScheme']
+ADDITIONAL_PROPS = ['geo:hasGeometry','skos:inScheme']
 
 if __name__ == "__main__":
-    file_path = 'CIDOC_CRM_v7.1.1.rdf'
     args = sys.argv[1:]
     if len(args) > 0:
-        file_path = args[0]
-        graph = graphFromFile(file_path)
-        data = getQNameInfos(graph, source=file_path)
-        print(json.dumps(data, indent=3))
+        namespaces = {}
+        classes = set()
+        properties = set()
+        sources = []
+
+        for file in args:
+            graph = createGraph()
+            graph.parse(file)
+            readGraph(graph, properties, classes, namespaces)
+            sources.append(file)
+            
+        for item in ADDITIONAL_CLASSES: classes.add(QNameInfo(item))
+        for item in ADDITIONAL_PROPS: properties.add(QNameInfo(item))
+            
+        dict_list = lambda l:[x.__dict__ for x in sorted(l)] # sorted list of dict's
+        json_data = {'sources': sources, 'namespaces': namespaces, 'classes': dict_list(classes), 'properties':  dict_list(properties) }
+        print(json.dumps(json_data, indent=3))
     else:
         appName = sys.argv[0]
         print(f'Usage: python {appName} <rdf_file>')
-        print(f'Example: python {appName} CIDOC_CRM_v7.1.1.rdf')
+        print(f'Example: python {appName} CIDOC_CRM_v7.1.3.rdf')
         sys.exit(1)

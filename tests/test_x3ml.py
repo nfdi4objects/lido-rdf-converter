@@ -14,6 +14,7 @@ def test_basic_utils():
     assert x3ml.str2bool("True") is True
     assert x3ml.str2bool("no") is False
 
+
 def test_namespace_expand_compress():
     expanded = x3ml.expand_with_namespaces("lido:event")
     assert expanded == f"{{{LIDO_NS}}}event"
@@ -62,16 +63,16 @@ def test_Info_from_elem_and_lang_and_modes():
     elem = etree.Element(f'{{{LIDO_NS}}}title')
     elem.text = "  Hello  "
     elem.set(f'{{{XML_NS}}}lang', "en")
-    info = x3ml.Info.from_elem(elem, 0)
+    info = x3ml.Info.from_elem(elem, index=0)
     Mode = x3ml.IDMode
-    assert info.text ==  "  Hello  "
+    assert info.text == "  Hello  "
     assert info.lang == "en"
     assert info.mode == Mode.NONE
     # element with subelements and no own text -> path mode
     parent = etree.Element(f'{{{LIDO_NS}}}parent')
     etree.SubElement(parent, f'{{{LIDO_NS}}}child')
-    info2 = x3ml.Info.from_elem(parent, 1)
-    assert info2.mode in (Mode.LIDO_ID,Mode.UUID)  # path expected unless mapped ID is found
+    info2 = x3ml.Info.from_elem(parent, index=1)
+    assert info2.mode in (Mode.LIDO_ID, Mode.LOCAL_ID)  # path expected unless mapped ID is found
 
 
 def test_ExP_fromElements_and_subs_behavior():
@@ -80,7 +81,7 @@ def test_ExP_fromElements_and_subs_behavior():
     s_elem.text = "lido:recordWrap"
     o_elem = etree.Element("o")
     o_elem.text = "lido:recordID"
-    exp = x3ml.ExP.fromElements(s_elem, o_elem, "v", "g")
+    exp = x3ml.ExP.fromElements(s_elem, o_elem, x3ml.SourceMode.O, "v", "g")
     assert exp.path == "lido:recordWrap"
     assert exp.entity == "lido:recordID"  # entity carries the text given
 
@@ -101,7 +102,7 @@ def test_ExP_fromElements_and_subs_behavior():
     assert len(subs) == 2
     # test that O.subs can find recordID children
     o = x3ml.ExP(path="lido:recordID", entity="http://example.org/object")
-    infos = [x3ml.Info.from_elem(e, i) for i, e in enumerate(o.subs(root))]
+    infos = [x3ml.Info.from_elem(e, index=i) for i, e in enumerate(o.subs(root))]
     assert any(info.text == "R1" for info in infos)
     assert any(info.text == "R2" for info in infos)
 
@@ -147,7 +148,7 @@ def test_mapping_and_po_evaluate_integration():
     # info objects are created from each S.subs element and should exist
     assert all(isinstance(r.info, x3ml.Info) for r in results)
     # Evaluate PO evaluation for first S.subs
-    po_data_list = results[0].POs
+    po_data_list = results[0].po_data_list
     assert isinstance(po_data_list, list)
     assert all(isinstance(pd, x3ml.PO_Data) for pd in po_data_list)
     # check that O infos include the recordID text
@@ -196,6 +197,7 @@ def test_mappings_from_str_parsing_simple():
     assert m.S.path == "lido:recordWrap"
     assert len(m.POs) == 1
     assert m.POs[0].O.path == "lido:recordID"
+
 
 def test_find_var_returns_variable_value():
     # build element with ./range/target_node/entity[@variable="v1"]

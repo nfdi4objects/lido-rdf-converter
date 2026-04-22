@@ -1,5 +1,9 @@
 {
-   "source": "cidoc-crm.rdf",
+   "sources": [
+      "CIDOC_CRM_v7.1.1.rdf",
+      "CIDOC_CRM_v7.1.3.rdf",
+      "CIDOC_CRM_v7.1.3_PC.rdf"
+   ],
    "namespaces": {
       "brick": "https://brickschema.org/schema/Brick#",
       "csvw": "http://www.w3.org/ns/csvw#",
@@ -135,6 +139,10 @@
       },
       {
          "prefix": "crm",
+         "entity": "E32_Authority_Document"
+      },
+      {
+         "prefix": "crm",
          "entity": "E33_E41_Linguistic_Appellation"
       },
       {
@@ -188,6 +196,10 @@
       {
          "prefix": "crm",
          "entity": "E54_Dimension"
+      },
+      {
+         "prefix": "crm",
+         "entity": "E55_Type"
       },
       {
          "prefix": "crm",
@@ -336,9 +348,101 @@
       {
          "prefix": "crm",
          "entity": "E9_Move"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC0_Typed_CRM_Property"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC102_has_title"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC107_has_current_or_former_member"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC130_shows_features_of"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC136_was_based_on"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC137_exemplifies"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC138_represents"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC139_has_alternative_form"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC144_joined_with"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC14_carried_out_by"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC16_used_specific_object"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC189_approximates"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC19_was_intended_use_of"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC3_has_note"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC62_depicts"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC67_refers_to"
+      },
+      {
+         "prefix": "crm",
+         "entity": "PC69_has_association_with"
       }
    ],
    "properties": [
+      {
+         "prefix": "crm",
+         "entity": "P01_has_domain"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P01i_is_domain_of"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P02_has_range"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P02i_is_range_of"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P03_has_range_literal"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P04_represents"
+      },
       {
          "prefix": "crm",
          "entity": "P100_was_death_of"
@@ -354,6 +458,10 @@
       {
          "prefix": "crm",
          "entity": "P101i_was_use_of"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P102.1_has_type"
       },
       {
          "prefix": "crm",
@@ -394,6 +502,10 @@
       {
          "prefix": "crm",
          "entity": "P106i_forms_part_of"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P107.1_kind_of_member"
       },
       {
          "prefix": "crm",
@@ -509,6 +621,14 @@
       },
       {
          "prefix": "crm",
+         "entity": "P127_has_broader_term"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P127i_has_narrower_term"
+      },
+      {
+         "prefix": "crm",
          "entity": "P128_carries"
       },
       {
@@ -530,6 +650,10 @@
       {
          "prefix": "crm",
          "entity": "P12i_was_present_at"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P130.1_kind_of_similarity"
       },
       {
          "prefix": "crm",
@@ -565,11 +689,19 @@
       },
       {
          "prefix": "crm",
+         "entity": "P136.1_in_the_taxonomic_role"
+      },
+      {
+         "prefix": "crm",
          "entity": "P136_was_based_on"
       },
       {
          "prefix": "crm",
          "entity": "P136i_supported_type_creation"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P137.1_in_the_taxonomic_role"
       },
       {
          "prefix": "crm",
@@ -581,11 +713,19 @@
       },
       {
          "prefix": "crm",
+         "entity": "P138.1_mode_of_representation"
+      },
+      {
+         "prefix": "crm",
          "entity": "P138_represents"
       },
       {
          "prefix": "crm",
          "entity": "P138i_has_representation"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P139.1_has_type"
       },
       {
          "prefix": "crm",
@@ -602,6 +742,10 @@
       {
          "prefix": "crm",
          "entity": "P13i_was_destroyed_by"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P14.1_in_the_role_of"
       },
       {
          "prefix": "crm",
@@ -634,6 +778,10 @@
       {
          "prefix": "crm",
          "entity": "P143i_was_joined_by"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P144.1_kind_of_member"
       },
       {
          "prefix": "crm",
@@ -733,6 +881,10 @@
       },
       {
          "prefix": "crm",
+         "entity": "P16.1_mode_of_use"
+      },
+      {
+         "prefix": "crm",
          "entity": "P160_has_temporal_projection"
       },
       {
@@ -778,6 +930,10 @@
       {
          "prefix": "crm",
          "entity": "P167i_includes"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P168_place_is_defined_by"
       },
       {
          "prefix": "crm",
@@ -925,11 +1081,19 @@
       },
       {
          "prefix": "crm",
+         "entity": "P189.1_has_type"
+      },
+      {
+         "prefix": "crm",
          "entity": "P189_approximates"
       },
       {
          "prefix": "crm",
          "entity": "P189i_is_approximated_by"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P19.1_mode_of_use"
       },
       {
          "prefix": "crm",
@@ -1078,6 +1242,10 @@
       {
          "prefix": "crm",
          "entity": "P2i_is_type_of"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P3.1_has_type"
       },
       {
          "prefix": "crm",
@@ -1313,6 +1481,10 @@
       },
       {
          "prefix": "crm",
+         "entity": "P62.1_mode_of_depiction"
+      },
+      {
+         "prefix": "crm",
          "entity": "P62_depicts"
       },
       {
@@ -1326,6 +1498,10 @@
       {
          "prefix": "crm",
          "entity": "P65i_is_shown_by"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P67.1_has_type"
       },
       {
          "prefix": "crm",
@@ -1345,6 +1521,10 @@
       },
       {
          "prefix": "crm",
+         "entity": "P69.1_has_type"
+      },
+      {
+         "prefix": "crm",
          "entity": "P69_has_association_with"
       },
       {
@@ -1358,6 +1538,14 @@
       {
          "prefix": "crm",
          "entity": "P70i_is_documented_in"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P71_lists"
+      },
+      {
+         "prefix": "crm",
+         "entity": "P71i_is_listed_in"
       },
       {
          "prefix": "crm",

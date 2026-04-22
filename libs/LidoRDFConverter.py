@@ -37,18 +37,20 @@ NAMESPACE_MAP = {
     "crm": RF.Namespace("http://www.cidoc-crm.org/cidoc-crm/"),
     "geosparql": RF.Namespace('http://www.ontotext.com/plugins/geosparql#'),
     "lido_term": RF.Namespace('http://terminology.lido-schema.org/'),
+    "skos": RF.Namespace('http://www.w3.org/2004/02/skos/core#'),
 }
 LIDO_TAG = x3ml.expand_with_namespaces('lido:lido')
 OAI_SCHEMA_URL = 'http://www.openarchives.org/OAI/2.0/'
 RESUMPTION_TAG = f'{{{OAI_SCHEMA_URL}}}resumptionToken'
+DATE_TAG = f'{{{OAI_SCHEMA_URL}}}datestamp'
 
 
 def isURI(url: str) -> bool:
-  try:
-    result = ulp.urlsplit(url)
-    return all([result.scheme, result.netloc])
-  except ValueError:
-    return False    
+    try:
+        result = ulp.urlsplit(url)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
 
 
 def proper_uri(uri: str | None) -> str | None:
@@ -60,12 +62,12 @@ def proper_uri(uri: str | None) -> str | None:
         return uri_t
 
 
-def oai_request(server_uri: str, command: str) -> ulr.Request | None:
+def oai_request(server_url: str, oai_cmd: str) -> ulr.Request | None:
     """Primary function for requesting OAI-PMH data from repository,
        checking for errors, handling possible compression and returning
        the XML string to the rest of the script for writing to a file."""
 
-    request_str = server_uri + f'?verb={command}'
+    request_str = server_url + f'?verb={oai_cmd}'
     headers = {'User-Agent': 'pyoaiharvester/3.0',
                'Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
     try:
@@ -78,7 +80,7 @@ def oai_request(server_uri: str, command: str) -> ulr.Request | None:
                 return None
             print(f'Waiting {retry_wait} seconds')
             time.sleep(retry_wait)
-            return oai_request(server_uri, command)
+            return oai_request(server_url, oai_cmd)
         return None
 
 
@@ -97,7 +99,7 @@ def make_result_graph() -> RF.Graph:
     return graph
 
 
-def make_clean_subdir(dir_path) -> None:
+def make_clean_subdir(dir_path: str) -> None:
     '''Creates a clean subdirectory for storing RDF files'''
     if os.path.exists(dir_path):
         shutil.rmtree(dir_path)
@@ -124,7 +126,9 @@ def make_curie_uri(uri: str, nsm: NamespaceManager) -> RF.term.URIRef:
 
 def make_id_node(info, nsm: NamespaceManager, prefix='', use_bn=False) -> RF.URIRef:
     '''Creates an RDF node (URIRef or BNode) from info, using a hash of the ID'''
-    if info.mode == x3ml.IDMode.UUID:
+    if info.mode == x3ml.IDMode.ATTR_ID:
+        return RF.URIRef(info.id)
+    if info.mode == x3ml.IDMode.LOCAL_ID:
         label = prefix + '-' + info.id if prefix else info.id
         if use_bn:
             return RF.BNode(hash(label))
@@ -134,7 +138,7 @@ def make_id_node(info, nsm: NamespaceManager, prefix='', use_bn=False) -> RF.URI
     try:
         return nsm.expand_curie(uri)
     except:
-        return RF.term.URIRef(uri)
+        return RF.URIRef(uri)
 
 
 def make_plain_node(info) -> RF.URIRef | RF.Literal:
@@ -147,23 +151,21 @@ def make_plain_node(info) -> RF.URIRef | RF.Literal:
 # def pd(*args): print([json.dumps(x, indent=2) for x in args])
 
 
-def add_triples(graph, mapping: x3ml.Mapping, prefix: str, use_bn: bool) -> None:
-    '''Add triples to the graph'''
+def get_spo_triples(mapping: x3ml.Mapping_Data, nsm: NamespaceManager, prefix: str, use_bn: bool) -> list:
+    '''Gets triples from mapping data, creating a node for the S entity and then compiling triples from the POs'''
     info = mapping.info
+    triples = []
     if info.id:
-        nsm = graph.namespace_manager
         S = make_id_node(info, nsm, prefix, use_bn)
-        triples = [(S, RF.RDF.type, make_curie_uri(mapping.S.entity, nsm))]
+        triples += [(S, RF.RDF.type, make_curie_uri(mapping.S.entity, nsm))]
 
-        for po in mapping.POs:
+        for po in mapping.po_data_list:
             triples += get_po_triples(S, po, info, nsm, prefix, use_bn)
-        if len(triples) > 1:  # at least one PO triple
-            for t in triples:
-                graph.add(t)
+    return triples
 
 
-def get_po_triples(S,  po: x3ml.PO, info: x3ml.Info, nsm: NamespaceManager, prefix: str, use_bn: bool) -> list:
-    '''Compile triples from PO data'''
+def get_po_triples(S,  po: x3ml.PO_Data, info: x3ml.Info, nsm: NamespaceManager, prefix: str, use_bn: bool) -> list:
+    '''Gets triples from PO data'''
     triples = []
     if po.valid:
         P = make_curie_uri(po.P.entity, nsm)
@@ -172,8 +174,11 @@ def get_po_triples(S,  po: x3ml.PO, info: x3ml.Info, nsm: NamespaceManager, pref
                 O = make_id_node(info, nsm, prefix, use_bn)
                 if (O != S):
                     triples.append((S, P, O))
-                    Ot = make_curie_uri(po.O.entity, nsm)
-                    triples.append((O, RF.RDF.type, Ot))
+                    if info.map_class:  # Test for lido->crm mapping
+                        triples.append((O, RF.RDF.type, make_curie_uri(info.map_class, nsm)))
+                    else:
+                        Ot = make_curie_uri(po.O.entity, nsm)
+                        triples.append((O, RF.RDF.type, Ot))
             else:
                 if info.text:
                     O = make_plain_node(info)
@@ -194,6 +199,18 @@ def get_ns(elem):
     return dict(filter(lambda item: item[0], elem.nsmap.items()))
 
 
+def create_oai_cmd(args):
+    ''' Creates an oai-pmh cmd, e.g. ListRecords&from=2002-06-01T02:00:00Z&until=2002-06-01T03:00:00Z&metadataPrefix=lido'''
+    cmd = 'ListRecords'
+    if args:
+        if args.oai_from:
+            cmd += f'&from={args.oai_from}'
+        if args.oai_to:
+            cmd += f'&until={args.oai_to}'
+    cmd += '&metadataPrefix=lido'
+    return cmd
+
+
 class LidoRDFConverter():
     '''Converts LIDO XML files to RDF graphs using X3ML mappings'''
 
@@ -209,11 +226,11 @@ class LidoRDFConverter():
         obj.mappings = x3ml.Mappings.from_str(mapping_str)
         return obj
 
-    def process_url(self, url: str, **kw) -> Graph | None:
-        if url.endswith('.xml'):
+    def process_url(self, server_url: str, **kw) -> Graph | None:
+        if server_url.endswith('.xml'):
             '''Fetches and parses a single LIDO XML file from a URL'''
             headers = {'Accept': 'text/html', 'Accept-Encoding': 'compress, deflate'}
-            request = ulr.Request(url, headers=headers)
+            request = ulr.Request(server_url, headers=headers)
             with ulr.urlopen(request) as response:
                 graph, _ = self.parse_file(response)
                 return graph
@@ -221,10 +238,10 @@ class LidoRDFConverter():
             '''Fetches and processes LIDO records from an OAI-PMH endpoint'''
             rdf_folder = kw.get('rdf_folder', 'data')
             format = kw.get('suffix', 'ttl')
+            oai_cmd = create_oai_cmd(kw.get('args'))
 
             make_clean_subdir(rdf_folder)
-
-            request = oai_request(url, 'ListRecords&metadataPrefix=lido')
+            request = oai_request(server_url, oai_cmd)
             index = 0
             while request:
                 buffer_file = save_request_to_file(request)
@@ -232,7 +249,7 @@ class LidoRDFConverter():
                 destination = f'./{rdf_folder}/lido_records_{index:05d}.{format}'
                 graph.serialize(destination=destination, format=format, encoding='utf-8')
                 if token:
-                    request = oai_request(url, f"ListRecords&resumptionToken={token}")
+                    request = oai_request(server_url, f"ListRecords&resumptionToken={token}")
                     index += 1
                 else:
                     request = None
@@ -241,7 +258,7 @@ class LidoRDFConverter():
     def parse_file(self, lido_file) -> tuple[RF.Graph, str]:
         '''Parses a LIDO file and returns the RDF graph and a resumption token'''
         graph = make_result_graph()
-        valid_tag = (LIDO_TAG, RESUMPTION_TAG, 'error')
+        valid_tag = (LIDO_TAG, RESUMPTION_TAG, 'error')  # , DATE_TAG)
         next_token = ''
         for _, elem in etree.iterparse(lido_file, events=("end",),  tag=valid_tag, encoding='UTF-8', remove_blank_text=True):
             updateNS(elem)
@@ -266,13 +283,15 @@ class LidoRDFConverter():
             print('cursor', elem.attrib['cursor'])
             print('expirationDate', elem.attrib['expirationDate'])
             print('token', token)
-        elif 'error' in elem.tag:
-            print('error', elem.tag, elem.text)
         elif elem.tag == LIDO_TAG:
             self._process_lido_element(elem, graph)
+        elif elem.tag == DATE_TAG:
+            print(f'Date: {elem.text}')
+        elif 'error' in elem.tag:
+            print('error', elem.tag, elem.text)
         else:
             print('unexpeced :-(')
-            elem.clear()
+        elem.clear()
         return token
 
     def _process_lido_element(self, elem, graph) -> None:
@@ -282,4 +301,5 @@ class LidoRDFConverter():
         for data in [m.evaluate(elem) for m in self.mappings]:
             for i, mapping_data in enumerate(data):
                 if mapping_data.valid:
-                    add_triples(graph, mapping_data, recID, self.use_bn)
+                    triples = get_spo_triples(mapping_data, graph.namespace_manager, recID, self.use_bn)
+                    graph += triples

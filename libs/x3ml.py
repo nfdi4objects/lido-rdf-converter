@@ -6,14 +6,24 @@ from pathlib import Path
 from dataclasses import dataclass, field
 import re
 from enum import auto, Enum
-import uuid
+import csv
+
+
+def load_lido_term_map(fname: Path = Path('LIDO-Term2CRM.json')):
+    if fname.is_file():
+        return json.loads(fname.read_text())
+    return {}
+
+
+LIDO_TERM_MAP = load_lido_term_map()
 
 
 ############################################################################################################################
 
 class IDMode(Enum):
     LIDO_ID = auto()
-    UUID = auto()
+    LOCAL_ID = auto()
+    ATTR_ID = auto()
     NONE = auto()
 
 
@@ -35,13 +45,6 @@ def str2bool(bool_str) -> bool:
 def skipped(elem: etree.Element) -> bool:
     '''Tests if an element is marked as skipped'''
     return str2bool(elem.get('skip', 'false'))
-
-
-def strip_elem_text(elem):
-    '''Strips the text of an element'''
-    if elem.text:
-        elem.text = elem.text.strip()
-    return elem
 
 ############################################################################################################################
 
@@ -67,31 +70,37 @@ def expand_with_namespaces(xml_tag, namespaces=used_namespaces):
 
 def compress_with_namespaces(xml_tag, namespaces=used_namespaces):
     '''Compresses a long tag, assume tags like {namespace}tag'''
-    if m := re.search(r'^{(.*)}', xml_tag):  # has namespace, pattern {namespace}localname
-        ns_uri = m.group(1)
-        for prefix, ns in namespaces.items():
-            if ns == ns_uri:
-                local_name = xml_tag[len(m.group(0)):]
+    if match := re.search(r'^{(.*)}', xml_tag):  # has namespace, pattern {namespace}localname
+        ns_uri = match.group(1)
+        for prefix, uri in namespaces.items():
+            if uri == ns_uri:
+                local_name = xml_tag[len(match.group(0)):]
                 return f'{prefix}:{local_name}'
     return xml_tag
+
+
+def match_attr(path: str):
+    '''Matches an attribute filter in an xpath, pattern [@attr]'''
+    return re.search(r'\[@(.*)\]', path)
 
 
 def xpath_lido(elem: etree.Element, path_to_subs: str) -> list:
     '''Wrapper for xpath with Lido namespaces'''
     sub_elements = elem.xpath(path_to_subs, namespaces=used_namespaces)
-    if re.search(r'\[@(.*)\]', path_to_subs):  # has attribute filter, pattern [@attr]
-        strip_elem_text(elem)
+    if match := match_attr(path_to_subs):  # has attribute filter, pattern [@attr]
+        if elem.text:
+            elem.text = elem.text.strip()
         if not elem.text:
-            transform_subs(path_to_subs, sub_elements)
+            transform_subs(match.group(1), sub_elements)
     return sub_elements
 
 
-def transform_subs(path_to_subs, sub_elements):
+def transform_subs(attr_name: str, sub_elements):
     '''Transforms sub-elements by populating text from attribute'''
-    if m := re.search(r'\[@(.*)\]', path_to_subs):  # has attribute filter, pattern [@attr]
-        attr_name = expand_with_namespaces(m.group(1))
-        for se in sub_elements:
-            se.text = se.get(attr_name)
+    if attr_name:  # has attribute filter, pattern [@attr]
+        attr_name = expand_with_namespaces(attr_name)
+        for elem in sub_elements:
+            elem.text = elem.get(attr_name)
 
 
 def full_path(elem):
@@ -147,30 +156,31 @@ class ID_Host_List():
     tags: list = field(default_factory=list)
 
     def elements(self, elem: etree.Element) -> list:
-        '''Returns first child elements from multiple tags'''
+        '''Returns all child elements from multiple tags'''
+        all_elems = []
         for tag in self.tags:
-            if ch := ID_Host(tag=tag).elements(elem):
-                return ch
-        return []
+            if elems := ID_Host(tag=tag).elements(elem):
+                all_elems += elems
+        return all_elems
 
 
 '''Mapping lido tags to its ID hosts'''
 LIDO_ID_MAP = {
-    'lido:lido': ID_Host('lido:lidoRecID'),
-    'lido:event': ID_Host('lido:eventID'),
-    'lido:eventType': ID_Host('lido:eventID'),
-    'lido:actor': ID_Host('lido:actorID'),
-    'lido:category': ID_Host('lido:conceptID'),
-    'lido:repositorySet': ID_Host('lido:workID'),
-    'lido:place': ID_Host_List(['lido:placeID', 'lido:namePlaceSet/lido:appellationValue']),
-    'lido:namePlaceSet': ID_Host('lido:appellationValue'),
-    'lido:subjectConcept': ID_Host('lido:conceptID'),
-    'lido:recordWrap': ID_Host('lido:recordID'),
-    'lido:object': ID_Host('lido:objectID'),
-    'lido:recordType': ID_Host('lido:conceptID'),
-    'lido:rightsHolder': ID_Host('lido:legalBodyID'),
-    'lido:resourceSet': ID_Host('lido:resourceID'),
-    'lido:repositoryName': ID_Host('lido:legalBodyID')
+    'lido:lido': ID_Host(tag='lido:lidoRecID'),
+    'lido:event': ID_Host(tag='lido:eventID'),
+    'lido:eventType': ID_Host(tag='lido:eventID'),
+    'lido:actor': ID_Host(tag='lido:actorID'),
+    'lido:category': ID_Host(tag='lido:conceptID'),
+    'lido:repositorySet': ID_Host(tag='lido:workID'),
+    'lido:place': ID_Host_List(tags=['lido:placeID', 'lido:namePlaceSet/lido:appellationValue']),
+    'lido:namePlaceSet': ID_Host(tag='lido:appellationValue'),
+    'lido:subjectConcept': ID_Host(tag='lido:conceptID'),
+    'lido:recordWrap': ID_Host(tag='lido:recordID'),
+    'lido:object': ID_Host(tag='lido:objectID'),
+    'lido:recordType': ID_Host(tag='lido:conceptID'),
+    'lido:rightsHolder': ID_Host(tag='lido:legalBodyID'),
+    'lido:resourceSet': ID_Host(tag='lido:resourceID'),
+    'lido:repositoryName': ID_Host(tag='lido:legalBodyID')
 }
 
 
@@ -198,8 +208,8 @@ def get_ID_elements(elem):
 
 def get_IDs(elem):
     '''Returns all ID values from an element'''
-    validItems = filter(lambda t: not_none(t.text), get_ID_elements(elem))
-    return list(map(lambda x: x.text, validItems))
+    id_elems = get_ID_elements(elem)
+    return [e.text for e in id_elems if not_none(e.text)]
 
 
 ############################################################################################################################
@@ -214,25 +224,35 @@ class Info:
     index: int = -1
     lang: str = ''
     lido_type: str = ''
+    map_class: str = ''
+    rdf_about: str = ''
 
     @classmethod
-    def from_elem(cls, elem, index = -1):
+    def from_elem(cls, elem, **kw):
         '''Creates an Info object from an element'''
+        index = kw.get('index', -1)
+        id_attr = kw.get('id_attr')
         text = elem.text or ''
         lang = elem.get(expand_with_namespaces('xml:lang'), '')
         lido_type = elem.get(expand_with_namespaces('lido:type'), '')
+        about = elem.get(expand_with_namespaces('rdf:about'), '')
+        map_class = LIDO_TERM_MAP.get(about, '')
 
-        info = cls(text=text, attrib=elem.attrib, index=index, lang=lang, lido_type=lido_type)
+        info = cls(text=text, attrib=elem.attrib, index=index, lang=lang, lido_type=lido_type, map_class=map_class, rdf_about=about)
         # Priority of ID assignment
         if ids := get_IDs(elem):
             # Has an explicit ID
             info.mode = IDMode.LIDO_ID
             info.id = ids[0].strip()
+        elif id_attr:
+            # Is a URI literal, use text as ID
+            info.mode = IDMode.ATTR_ID
+            info.id = elem.get(expand_with_namespaces(id_attr), '')
         elif len(elem) > 0 and not text:
             # Has subelements, use path as ID
-            info.mode = IDMode.UUID
-            if n := elem.get('n4o_id'):
-                info.id = n
+            info.mode = IDMode.LOCAL_ID
+            if recent_id := elem.get('n4o_id'):
+                info.id = recent_id
             else:
                 info.id = full_path(elem) + '/'+str(index)
                 elem.set('n4o_id', info.id)
@@ -244,10 +264,15 @@ class Info:
 
     def hasID(self) -> bool:
         '''Tests if the info has an ID'''
-        return self.mode in (IDMode.LIDO_ID, IDMode.UUID)
+        return self.mode in (IDMode.LIDO_ID, IDMode.LOCAL_ID, IDMode.ATTR_ID) and self.id != ''
 
 
 ############################################################################################################################
+class SourceMode(Enum):
+    S = auto()
+    P = auto()
+    O = auto()
+
 
 @dataclass
 class ExP:
@@ -256,6 +281,14 @@ class ExP:
     entity: str = ''
     variable: str = ''
     generator: str = ''
+    source_mode: SourceMode = SourceMode.S
+    path_attr: str = ''
+
+    def __post_init__(self):
+        if self.source_mode == SourceMode.S:
+            if m := match_attr(self.path):  # has attribute filter, pattern [@attr]
+                self.path_attr = m.group(1)
+                self.path = self.path.replace(m.group(0), '')
 
     def isRoot(self):
         '''Tests if the path is the root element'''
@@ -265,19 +298,19 @@ class ExP:
         '''Tests if the entity is a literal'''
         return self.entity.startswith('http')
 
-    def subs(self, elem) -> list:
+    def subs(self, elem, **kw) -> list:
         '''Returns all subelements for the given path'''
         xpath = "." if self.isRoot() else f".//{self.path}"
         return xpath_lido(elem, xpath)
 
     @classmethod
-    def fromElements(cls, path_elem: etree.Element, entity_elem: etree.Element, variable: str = '', gen: str = ''):
+    def fromElements(cls, path_elem: etree.Element, entity_elem: etree.Element, source_mode: SourceMode, variable: str = '', gen: str = ''):
         '''Creates an cls object from path and type elements'''
         if not_none(path_elem, entity_elem):
             path = path_elem.text or ''
             entity = entity_elem.text or ''
             if entity and path:
-                return cls(path=path.strip(), entity=entity.strip(), variable=variable, generator=gen)
+                return cls(path=path.strip(), entity=entity.strip(), variable=variable, generator=gen, source_mode=source_mode)
 
 
 def stripPath(link: ExP, txt: str) -> str:
@@ -330,7 +363,7 @@ class PO():
         return self.condition.isValid(elem)
 
     def evaluate(self, elem):
-        infos = [Info.from_elem(e, i) for i, e in enumerate(self.O.subs(elem))]
+        infos = [Info.from_elem(e, index=i) for i, e in enumerate(self.O.subs(elem, tag='O'))]
         return PO_Data(P=self.P, O=self.O, infos=infos, valid=self.isValid(elem))
 
 
@@ -339,7 +372,7 @@ class PO():
 class Mapping_Data:
     '''Data for a single mapping'''
     S: ExP = None
-    POs: list = field(default_factory=list)
+    po_data_list: list = field(default_factory=list)
     valid: bool = False
     info: Info = field(default_factory=Info)
 
@@ -356,11 +389,11 @@ class Mapping:
         return self.condition.isValid(elem)
 
     def evaluate_n(self, elem, i):
-        POs = [po.evaluate(elem) for po in self.POs]
-        return Mapping_Data(S=self.S, POs=POs, valid=self.isValid(elem), info=Info.from_elem(elem, i))
+        po_data_list = [po.evaluate(elem) for po in self.POs]
+        return Mapping_Data(S=self.S, po_data_list=po_data_list, valid=self.isValid(elem), info=Info.from_elem(elem, index=i, id_attr=self.S.path_attr))
 
     def evaluate(self, elem):
-        return [self.evaluate_n(e, i) for i, e in enumerate(self.S.subs(elem))]
+        return [self.evaluate_n(e, i) for i, e in enumerate(self.S.subs(elem, tag='S'))]
 
     def addPO(self, po: PO):
         self.POs.append(po)
@@ -395,7 +428,7 @@ class Mappings:
         mappings = cls()
         for _, elem in parser.read_events():
             if not str2bool(elem.get('skip', 'false')):
-                mappings += cls(mapping_list(elem))
+                mappings += cls.from_element(elem)
         return mappings
 
     @classmethod
@@ -411,19 +444,20 @@ class Mappings:
 def mapping_list(elem) -> list:
     '''Reads a list of mappings from an x3ml mapping element'''
     mappings = []
-    if subject_ExP := ExP.fromElements(elem.find(DOMAIN_SN_PATH), elem.find(DOMAIN_ET_PATH)):
+    if subject_ExP := ExP.fromElements(elem.find(DOMAIN_SN_PATH), elem.find(DOMAIN_ET_PATH), SourceMode.S):
         mapping = Mapping(subject_ExP)
         # Find domain conditions
         for elem_d in elem.findall(DOMAIN_COND_PATH):
             mapping.condition.add(elem_d.text, elem_d.get('value'))
-        for elem_l in elem.findall('./link'):
-            if not skipped(elem_l):
-                if predicate_ExP := ExP.fromElements(elem_l.find(PATH_SRR_PATH), elem_l.find(PATH_TRR_PATH)):
-                    varStr = find_var(elem_l)
-                    genStr = find_gen(elem_l)
-                    if object_ExP := ExP.fromElements(elem_l.find(RANGE_SN_PATH), elem_l.find(RANGE_ET_PATH), varStr, genStr):
+        # Evaluate non-skipped links
+        for link_elem in elem.findall('./link'):
+            if not skipped(link_elem):
+                if predicate_ExP := ExP.fromElements(link_elem.find(PATH_SRR_PATH), link_elem.find(PATH_TRR_PATH), SourceMode.P):
+                    varStr = find_var(link_elem)
+                    genStr = find_gen(link_elem)
+                    if object_ExP := ExP.fromElements(link_elem.find(RANGE_SN_PATH), link_elem.find(RANGE_ET_PATH), SourceMode.O, varStr, genStr):
                         po = PO(P=predicate_ExP, O=object_ExP)
-                        for elemO in elem_l.findall(PATH_COND_PATH):
+                        for elemO in link_elem.findall(PATH_COND_PATH):
                             po.condition.add(elemO.text, elemO.get('value'))
                         mapping.addPO(po)
         mappings.append(mapping)

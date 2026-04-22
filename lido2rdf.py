@@ -63,13 +63,16 @@ def cli_convert():
     parser.add_argument('--rdf-folder', metavar="DIR", dest="rdf_folder",
                         default='rdfData', help="RDF output folder for OAI-PMH processing (default: rdfData)")
 
+    parser.add_argument('-of', '--oai-from',  dest="oai_from",  default='', help="OAI from argument")
+    parser.add_argument('-ot', '--oai-to',  dest="oai_to",  default='', help="OAI to argument")
+
     args = parser.parse_args()
     if args.source == "-" and stdin.isatty():
         parser.print_help()
     else:
         try:
             format = getValidFormat(args.format, args.target)
-            if graph := lido2rdf(args.source, args.mapping, suffix=args.format, format=format, rdf_folder=args.rdf_folder):
+            if graph := lido2rdf(args.source, args.mapping, suffix=args.format, format=format, rdf_folder=args.rdf_folder, args=args):
                 graph.serialize(destination=args.target, format=format, encoding='utf-8')
         except (HTTPError, URLError) as exception:
             error(exception)

@@ -1,0 +1,356 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xml:lang="en" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:crm="http://www.cidoc-crm.org/cidoc-crm/" xml:base="http://www.cidoc-crm.org/cidoc-crm/">
+  <!--
+CIDOC CRM v7.1.3 module for the implementation of properties of properties (.1 properties) in RDFS.
+It implements a substitute of n-ary relations defined in the CIDOC CRM.
+
+Created by FORTH-ICS - February 13, 2024
+CC BY 4.0 https://creativecommons.org/licenses/by/4.0/legalcode
+
+This model provides classes and properties for encoding in RDF the below 
+properties of properties (.1 properties) of CIDOC-CRM: 
+- P3.1 has type: E55 Type
+- P14.1 in the role of: E55 Type
+- P16.1 mode of use: E55 Type
+- P19.1 mode of use: E55 Type
+- P62.1 mode of depiction: E55 Type
+- P67.1 has type: E55 Type
+- P69.1 has type: E55 Type
+- P102.1 has type: E55 Type
+- P107.1 kind of member: E55 Type
+- P130.1 kind of similarity: E55 Type
+- P136.1 in the taxonomic role: E55 Type
+- P137.1 in the taxonomic role: E55 Type
+- P138.1 mode of representation: E55 Type
+- P139.1 has type: E55 Type
+- P144.1 kind of member: E55 Type
+- P189.1 has type: E55 Type
+
+The model defines all classes and properties needed for implementing a substitute of n-ary relations defined in the CIDOC CRM, in particular:
+- Main classes and properties needed for this implementation ('PC0 Typed CRM Property', 
+  'P01 has domain', 'P02 has range', 'P03_has_range_literal', 'P04_represents').
+- Property classes, each one represeting a property that has a .1 property. 
+- Properties of properties (.1 properties)
+
+
+*** Usage example ***
+
+We want to express the information that an activity (instance of 'E7 Activity') was carried out by an actor (instance of 'E39 Actor') and that the actor had a specific role while carrying out this activity. First, the activity instance is linked to the actor instance using the property 'P14 carried out by'. The P14 property has the .1 property 'P14.1 in the role of: E55 Type' which allows expressing the role the actor had while carrying out the activity. So, the property class 'PC14 carried out by' is defined and used as the domain of the property 'P14.1 in the role of'. 
+During data generation, an instance of 'PC14 carried out by' is created which is linked to: 
+i) the domain of 'P14 carried out by' (an instance of 'E7 Activity') using the property 'P01 has domain', 
+ii) the range of 'P14 carried out by' (an instance of 'E39 Actor') using the property 'P02 has range', and 
+iii) a type (instance of 'E55 Type') using the property 'P14.1 in the role of'. 
+
+Below is an indicative set of RDF triples:
+
+:painting_sistine_chapel   
+          a  crm:E7_Activity .
+:Michelangelo   
+          a  crm:E39_Actor . 
+:painting_sistine_chapel 
+          crm:P14_carried_out_by :Michelangelo .
+:instanceOfPC14   
+          a   crm:PC14_carried_out_by ;          
+          crm:P01_has_domain :painting_sistine_chapel ;                      
+          crm:P02_has_range :Michelangelo  ;
+          crm:P14.1_in_the_role_of  :master_craftsman .
+:master_craftsman  
+           a   crm:E55_Type ;
+           rdfs:label "Master Craftsman" .
+
+*** Implementation Recommendation***
+
+
+The instantiation of a property class in a knowledge base implies that the original property (represented by the property class) is also instantiated in the knowledge base. I.e. (for the case of PC14_carried_out_by): 
+
+PC14(x) ∧ P01(x, a) ∧ P02(x,b) ∧ P14.1(x,c) ⇒ P14(a,b)
+
+Therefore, do not instantiate the property class without instantiating the property itself. This may be achieved manually or by an automated procedure.
+
+
+-->
+  <!--
+
+*** Main classes and properties needed for implementing a substitute of n-ary relations defined in the CIDOC CRM ***
+
+-->
+  <rdfs:Class rdf:about="PC0_Typed_CRM_Property">
+    <rdfs:label xml:lang="en">Typed CRM Property</rdfs:label>
+    <rdfs:comment xml:lang="en">This class comprises all classes representing properties that have properties, thereby allowing representing n-ary relationships in RDF.</rdfs:comment>
+  </rdfs:Class>
+  <rdf:Property rdf:about="P01_has_domain">
+    <rdfs:label xml:lang="en">has domain</rdfs:label>
+    <rdfs:comment xml:lang="en">This property associates an instance of a property class with an instance of the property's domain class. For example, it links an instance of 'PC14 carried out by' (the property class of 'P14 carried out by') with an instance of 'E7 Activity' (the domain of 'P14 carried out by').</rdfs:comment>
+    <rdfs:domain rdf:resource="PC0_Typed_CRM_Property" />
+    <rdfs:range rdf:resource="E1_CRM_Entity" />
+    <owl:inverseOf rdf:resource="P01i_is_domain_of" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P01i_is_domain_of">
+    <rdfs:label xml:lang="en">is domain of</rdfs:label>
+    <rdfs:comment xml:lang="en">This property associates an instance of a property's domain class with an instance of the property's property class. For example, it links an instance of 'E7 Activity' (the domain of 'P14 carried out by') with an instance of 'PC14 carried out by' (the property class of 'P14 carried out by').</rdfs:comment>
+    <rdfs:domain rdf:resource="E1_CRM_Entity" />
+    <rdfs:range rdf:resource="PC0_Typed_CRM_Property" />
+    <owl:inverseOf rdf:resource="P01_has_domain" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P02_has_range">
+    <rdfs:label xml:lang="en">has range</rdfs:label>
+    <rdfs:comment xml:lang="en">This property associates an instance of a property class with an instance of the property's range class. For example, it links an instance of 'PC14 carried out by' (the property class of 'P14 carried out by') with an instance of 'E39 Actor' (the range of 'P14 carried out by').</rdfs:comment>
+    <rdfs:domain rdf:resource="PC0_Typed_CRM_Property" />
+    <rdfs:range rdf:resource="E1_CRM_Entity" />
+    <owl:inverseOf rdf:resource="P02i_is_range_of" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P02i_is_range_of">
+    <rdfs:label xml:lang="en">is range of</rdfs:label>
+    <rdfs:comment xml:lang="en">This property associates an instance of a property's range class with an instance of the property's property class. For example, it links an instance of 'E39 Actor' (the range of 'P14 carried out by') with an instance of 'PC14 carried out by' (the property class of 'P14 carried out by').</rdfs:comment>
+    <rdfs:domain rdf:resource="E1_CRM_Entity" />
+    <rdfs:range rdf:resource="PC0_Typed_CRM_Property" />
+    <owl:inverseOf rdf:resource="P02_has_range" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P03_has_range_literal">
+    <rdfs:label xml:lang="en">has range literal</rdfs:label>
+    <rdfs:comment xml:lang="en">This property associates an instance of a property class with a literal value that is an instance of the property's range class. For example, it links an instance of 'PC3 has note' (the property class of 'P3 has note') with a text (literal) representing a note (the range of 'P3 has note').</rdfs:comment>
+    <rdfs:domain rdf:resource="PC0_Typed_CRM_Property" />
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P04_represents">
+    <rdfs:label xml:lang="en">represents</rdfs:label>
+    <rdfs:comment xml:lang="en">This property associates a property class with the property it represents.</rdfs:comment>
+    <rdfs:domain rdf:resource="http://www.w3.org/2000/01/rdf-schema#Class" />
+    <rdfs:range rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property" />
+  </rdf:Property>
+  <!--
+
+*** Property classes needed for implementing a substitute of n-ary relations defined in the CIDOC CRM ***
+
+-->
+  <rdfs:Class rdf:about="PC3_has_note">
+    <rdfs:label xml:lang="en">has note</rdfs:label>
+    <rdfs:comment xml:lang="en">This class is the representation of the n-ary relationship form of the property 'P3 has note'.
+This property is a container for all informal descriptions about an object that have not been expressed in terms of CIDOC CRM constructs.
+In particular, it captures the characterisation of the item itself, its internal structures, appearance, etc.
+Like property P2 has type (is type of), this property is a consequence of the restricted focus of the CIDOC CRM. The aim is not to capture, in a structured form, everything that can be said about an item; indeed, the CIDOC CRM formalism is not regarded as sufficient to express everything that can be said. Good practice requires use of distinct note fields for different aspects of a characterisation. The P3.1 has type property of P3 has note allows differentiation of specific notes, e.g. “construction”, “decoration”, etc.
+An item may have many notes, but a note is attached to a specific item.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="PC0_Typed_CRM_Property" />
+    <crm:P04_represents rdf:resource="P3_has_note" />
+  </rdfs:Class>
+  <rdfs:Class rdf:about="PC14_carried_out_by">
+    <rdfs:label xml:lang="en">carried out by</rdfs:label>
+    <rdfs:comment xml:lang="en">This class is the representation of the n-ary relationship form of the property 'P14 carried out by'.
+This property describes the active participation of an instance of E39 Actor in an instance of E7 Activity.
+It implies causal or legal responsibility. The P14.1 in the role of property of the property specifies the nature of an Actor’s participation.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="PC0_Typed_CRM_Property" />
+    <crm:P04_represents rdf:resource="P14_carried_out_by" />
+  </rdfs:Class>
+  <rdfs:Class rdf:about="PC16_used_specific_object">
+    <rdfs:label xml:lang="en">used specific object</rdfs:label>
+    <rdfs:comment xml:lang="en">This class is the representation of the n-ary relationship form of the property 'P16 used specific object'.
+This property describes the use of material or immaterial things in a way essential to the performance or the outcome of an instance of E7 Activity.
+This property typically applies to tools, instruments, moulds, raw materials and items embedded in a product. It implies that the presence of the object in question was a necessary condition for the action. For example, the activity of writing this text required the use of a computer. An immaterial thing can be used if at least one of its carriers is present. For example, the software tools on a computer.
+Another example is the use of a particular name by a particular group of people over some span to identify a thing, such as a settlement. In this case, the physical carriers of this name are at least the people understanding its use.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="PC0_Typed_CRM_Property" />
+    <crm:P04_represents rdf:resource="P16_used_specific_object" />
+  </rdfs:Class>
+  <rdfs:Class rdf:about="PC19_was_intended_use_of">
+    <rdfs:label xml:lang="en">was intended use of</rdfs:label>
+    <rdfs:comment xml:lang="en">This class is the representation of the n-ary relationship form of the property 'P19 was intended use of'.
+This property relates an instance of E7 Activity with instances of E71 Human-Made Thing, created specifically for use in the activity.
+This is distinct from the intended use of an item in some general type of activity such as the book of common prayer which was intended for use in Church of England services (see P101 had as general use (was use of)).</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="PC0_Typed_CRM_Property" />
+    <crm:P04_represents rdf:resource="P19_was_intended_use_of" />
+  </rdfs:Class>
+  <rdfs:Class rdf:about="PC62_depicts">
+    <rdfs:label xml:lang="en">depicts</rdfs:label>
+    <rdfs:comment xml:lang="en">This class is the representation of the n-ary relationship form of the property 'P62 depicts'.
+This property identifies something that is depicted by an instance of E24 Physical Human-Made Thing. Depicting is meant in the sense that an instance of E24 Physical Human-Made Thing intentionally shows, through its optical qualities or form, a representation of the entity depicted. Photographs are by default regarded as being intentional in this sense. Anything that is designed to change the properties of the depiction, such as an e-book reader, is specifically excluded. The property does not pertain to inscriptions or any other information encoding.
+This property is a shortcut of the more fully developed path from E24 Physical Human-Made Thing through P65 shows visual item, E36 Visual Item, P138 represents to E1 CRM Entity. P62.1 mode of depiction allows the nature of the depiction to be refined.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="PC0_Typed_CRM_Property" />
+    <crm:P04_represents rdf:resource="P62_depicts" />
+  </rdfs:Class>
+  <rdfs:Class rdf:about="PC67_refers_to">
+    <rdfs:label xml:lang="en">refers to</rdfs:label>
+    <rdfs:comment xml:lang="en">This class is the representation of the n-ary relationship form of the property 'P67 refers to'.
+This property documents that an instance of E89 Propositional Object makes a statement about an instance of E1 CRM Entity. P67 refers to (is referred to by) has the P67.1 has type link to an instance of E55 Type. This is intended to allow a more detailed description of the type of reference. This differs from P129 is about (is subject of), which describes the primary subject or subjects of the instance of E89 Propositional Object.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="PC0_Typed_CRM_Property" />
+    <crm:P04_represents rdf:resource="P67_refers_to" />
+  </rdfs:Class>
+  <rdfs:Class rdf:about="PC69_has_association_with">
+    <rdfs:label xml:lang="en">has association with</rdfs:label>
+    <rdfs:comment xml:lang="en">This class is the representation of the n-ary relationship form of the property 'P69 has association with'.
+This property generalises relationships like whole-part, sequence, prerequisite or inspired by between instances of E29 Design or Procedure. Any instance of E29 Design or Procedure may be associated with other designs or procedures. The property is considered to be symmetrical unless otherwise indicated by P69.1 has type. The property is not transitive.
+This property is a directed relationship. The P69.1 has type property of P69 has association with allows the nature of the association to be specified reading from domain to range; examples of types of association between instances of E29 Design or Procedure include: has part, follows, requires, etc.
+Instances of this property are considered to be symmetric, in case no directed sense is provided for them by the property P69.1 has type.
+The property can typically be used to model the decomposition of the description of a complete workflow into a series of separate procedures.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="PC0_Typed_CRM_Property" />
+    <crm:P04_represents rdf:resource="P69_has_association_with" />
+  </rdfs:Class>
+  <rdfs:Class rdf:about="PC102_has_title">
+    <rdfs:label xml:lang="en">has title</rdfs:label>
+    <rdfs:comment xml:lang="en">This class is the representation of the n-ary relationship form of the property 'P102 has title'.
+This property associates an instance of E35 Title that has been applied to an instance of E71 Human-Made Thing.
+The P102.1 has type property of the P102 has title (is title of) property enables the relationship between the title and the thing to be further clarified, for example, if the title was a given title, a supplied title etc.
+It allows any human-made material or immaterial thing to be given a title. It is possible to imagine a title being created without a specific object in mind.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="PC0_Typed_CRM_Property" />
+    <crm:P04_represents rdf:resource="P102_has_title" />
+  </rdfs:Class>
+  <rdfs:Class rdf:about="PC107_has_current_or_former_member">
+    <rdfs:label xml:lang="en">has current or former member</rdfs:label>
+    <rdfs:comment xml:lang="en">This class is the representation of the n-ary relationship form of the property 'P107 has current or former member'.
+This property associates an instance of E74 Group with an instance of E39 Actor that is or has been a member thereof.
+Instances of E74 Group and E21 Person may all be members of instances of E74 Group. An instance of E74 Group may be founded initially without any member.
+This property is a shortcut of the more fully developed path from E74 Group, P144i gained member by, E85 Joining, P143 joined to E39 Actor.
+The property P107.1 kind of member can be used to specify the type of membership or the role the member has in the group.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="PC0_Typed_CRM_Property" />
+    <crm:P04_represents rdf:resource="P107_has_current_or_former_member" />
+  </rdfs:Class>
+  <rdfs:Class rdf:about="PC130_shows_features_of">
+    <rdfs:label xml:lang="en">shows features of</rdfs:label>
+    <rdfs:comment xml:lang="en">This class is the representation of the n-ary relationship form of the property 'P130 shows features of'.
+This property generalises the notions of “copy of” and “similar to” into a directed relationship, where the domain expresses the derivative or influenced item and the range the source or influencing item, if such a direction can be established. The property can also be used to express similarity in cases that can be stated between two objects only, without historical knowledge about its reasons. The property expresses a symmetric relationship in case no direction of influence can be established either from evidence on the item itself or from historical knowledge. This holds in particular for siblings of a derivation process from a common source or non-causal cultural parallels, such as some weaving patterns.
+The P130.1 kind of similarity property of the P130 shows features of (features are also found on) property enables the relationship between the domain and the range to be further clarified, in the sense from domain to range, if applicable. For example, it may be expressed if both items are product “of the same mould”, or if two texts “contain identical paragraphs”.
+If the reason for similarity is a sort of derivation process, i.e. that the creator has used or had in mind the form of a particular thing during the creation or production, this process should be explicitly modelled. In these cases, P130 shows features of can be regarded as a shortcut of such a process. However, the current model does not contain any path specific enough to infer this property. Specializations of the CIDOC CRM may however be more explicit, for instance describing the use of moulds etc.
+This property is not transitive. This property is irreflexive.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="PC0_Typed_CRM_Property" />
+    <crm:P04_represents rdf:resource="P130_shows_features_of" />
+  </rdfs:Class>
+  <rdfs:Class rdf:about="PC136_was_based_on">
+    <rdfs:label xml:lang="en">was based on</rdfs:label>
+    <rdfs:comment xml:lang="en">This class is the representation of the n-ary relationship form of the property 'P136 was based on'.
+This property identifies one or more instances of E1 CRM Entity that were used as evidence to declare a new instance of E55 Type.
+The examination of these items is often the only objective way to understand the precise characteristics of a new type. Such items should be deposited in a museum or similar institution for that reason. The taxonomic role renders the specific relationship of each item to the type, such as “holotype” or “original element”.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="PC0_Typed_CRM_Property" />
+    <crm:P04_represents rdf:resource="P136_was_based_on" />
+  </rdfs:Class>
+  <rdfs:Class rdf:about="PC137_exemplifies">
+    <rdfs:label xml:lang="en">exemplifies</rdfs:label>
+    <rdfs:comment xml:lang="en">This class is the representation of the n-ary relationship form of the property 'P137 exemplifies'.
+This property associates an instance of E1 CRM Entity with an instance of E55 Type for which it has been declared to be a particularly characteristic example.
+The P137.1 in the taxonomic role property of P137 exemplifies (is exemplified by) allows differentiation of taxonomic roles. The taxonomic role renders the specific relationship of this example to the type, such as “prototypical”, “archetypical”, “lectotype”, etc. The taxonomic role “lectotype” is not associated with the instance of E83 Type Creation itself but is selected in a later phase.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="PC0_Typed_CRM_Property" />
+    <crm:P04_represents rdf:resource="P137_exemplifies" />
+  </rdfs:Class>
+  <rdfs:Class rdf:about="PC138_represents">
+    <rdfs:label xml:lang="en">represents</rdfs:label>
+    <rdfs:comment xml:lang="en">This class is the representation of the n-ary relationship form of the property 'P138 represents'.
+This property establishes the relationship between an instance of E36 Visual Item and the instance of E1 CRM Entity that it visually represents.
+Any entity may be represented visually. This property is part of the fully developed path from E24 Physical Human-Made Thing through P65 shows visual item (is shown by), E36 Visual Item, P138 represents (has representation) to E1 CRM Entity, which is shortcut by P62 depicts (is depicted by). P138.1 mode of representation allows the nature of the representation to be refined.
+This property is also used for the relationship between an original and a digitisation of the original by the use of techniques such as digital photography, flatbed or infrared scanning. Digitisation is here seen as a process with a mechanical, causal component rendering the spatial distribution of structural and optical properties of the original and does not necessarily include any visual similarity identifiable by human observation.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="PC0_Typed_CRM_Property" />
+    <crm:P04_represents rdf:resource="P138_represents" />
+  </rdfs:Class>
+  <rdfs:Class rdf:about="PC139_has_alternative_form">
+    <rdfs:label xml:lang="en">has alternative form</rdfs:label>
+    <rdfs:comment xml:lang="en">This class is the representation of the n-ary relationship form of the property 'P139 has alternative form'.
+This property associates an instance of E41 Appellation with another instance of E41 Appellation that constitutes a derivative or variant of the former and that may also be used for identifying items identified by the former, in suitable contexts, independent from the particular item to be identified. This property should not be confused with additional variants of names used characteristically for a single, particular item, such as individual nicknames. It is a directed relationship, where the range expresses the derivative or variant and the domain the source of derivation or original form of variation, if such a direction can be established. Otherwise, the relationship is symmetric.
+Multiple names assigned to an object, which do not apply to all things identified with the specific instance of E41 Appellation, should be modelled as repeated values of P1 is identified by (identifies) of this object.
+P139.1 has type allows the type of derivation to be refined, for instance “transliteration from Latin 1 to ASCII”.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="PC0_Typed_CRM_Property" />
+    <crm:P04_represents rdf:resource="P139_has_alternative_form" />
+  </rdfs:Class>
+  <rdfs:Class rdf:about="PC144_joined_with">
+    <rdfs:label xml:lang="en">joined with</rdfs:label>
+    <rdfs:comment xml:lang="en">This class is the representation of the n-ary relationship form of the property 'P144 joined with'.
+This property identifies the instance of E74 Group of which an instance of E39 Actor becomes a member through an instance of E85 Joining.
+Although a joining activity normally concerns only one instance of E74 Group, it is possible to imagine circumstances under which becoming member of one Group implies becoming member of another Group as well.
+Joining events allow for describing people becoming members of a group with a more detailed path from E74 Group through, P144i gained member by, E85 Joining, P143 joined, E39 Actor, compared to the shortcut offered by P107 has current or former member (is current or former member of).
+The property P144.1 kind of member can be used to specify the type of membership or the role the member has in the group.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="PC0_Typed_CRM_Property" />
+    <crm:P04_represents rdf:resource="P144_joined_with" />
+  </rdfs:Class>
+  <rdfs:Class rdf:about="PC189_approximates">
+    <rdfs:label xml:lang="en">approximates</rdfs:label>
+    <rdfs:comment xml:lang="en">This class is the representation of the n-ary relationship form of the property 'P189 approximates'.
+This property associates an instance of E53 Place with another instance of E53 Place, which is defined in the same reference space, and which is used to approximate the former. The property does not necessarily state the quality or accuracy of this approximation, but rather indicates the use of the first instance of place to approximate the second.
+In common documentation practice, find or encounter spots e.g. in archaeology, botany or zoology are often related to the closest village, river or other named place without detailing the relation, e.g. if it is located within the village or in a certain distance of the specified place. In this case the stated “phenomenal” place found in the documentation can be seen as an approximation of the actual encounter spot without more specific knowledge.
+In more recent documentation often point coordinate information is provided that originates from GPS measurements or georeferencing from a map. This point coordinate information does not state the actual place of the encounter spot but tries to approximate it with a “declarative” place. The accuracy depends on the methodology used when creating the coordinates. It may be dependent on technical limitations like GPS accuracy but also on the method where the GPS location is taken in relation to the measured feature. If the methodology is known a maximum deviation from the measured point can be calculated and the encounter spot or feature may be related to the resulting circle using an instance of P171 at some place within.
+This property is not transitive. This property is reflexive.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="PC0_Typed_CRM_Property" />
+    <crm:P04_represents rdf:resource="P189_approximates" />
+  </rdfs:Class>
+  <!--
+
+*** Properties of properties (.1 properties) ***
+
+The domain of a .1 property is a property class representing the n-ary relationship form of the corresponding property having the .1 property.
+
+-->
+  <rdf:Property rdf:about="P3.1_has_type">
+    <rdfs:label xml:lang="en">has type</rdfs:label>
+    <rdfs:domain rdf:resource="PC3_has_note" />
+    <rdfs:range rdf:resource="E55_Type" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P14.1_in_the_role_of">
+    <rdfs:label xml:lang="en">in the role of</rdfs:label>
+    <rdfs:domain rdf:resource="PC14_carried_out_by" />
+    <rdfs:range rdf:resource="E55_Type" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P16.1_mode_of_use">
+    <rdfs:label xml:lang="en">mode of use</rdfs:label>
+    <rdfs:domain rdf:resource="PC16_used_specific_object" />
+    <rdfs:range rdf:resource="E55_Type" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P19.1_mode_of_use">
+    <rdfs:label xml:lang="en">mode of use</rdfs:label>
+    <rdfs:domain rdf:resource="PC19_was_intended_use_of" />
+    <rdfs:range rdf:resource="E55_Type" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P62.1_mode_of_depiction">
+    <rdfs:label xml:lang="en">mode of depiction</rdfs:label>
+    <rdfs:domain rdf:resource="PC62_depicts" />
+    <rdfs:range rdf:resource="E55_Type" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P67.1_has_type">
+    <rdfs:label xml:lang="en">has type</rdfs:label>
+    <rdfs:domain rdf:resource="PC67_refers_to" />
+    <rdfs:range rdf:resource="E55_Type" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P69.1_has_type">
+    <rdfs:label xml:lang="en">has type</rdfs:label>
+    <rdfs:domain rdf:resource="PC69_has_association_with" />
+    <rdfs:range rdf:resource="E55_Type" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P102.1_has_type">
+    <rdfs:label xml:lang="en">has type</rdfs:label>
+    <rdfs:domain rdf:resource="PC102_has_title" />
+    <rdfs:range rdf:resource="E55_Type" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P107.1_kind_of_member">
+    <rdfs:label xml:lang="en">kind of member</rdfs:label>
+    <rdfs:domain rdf:resource="PC107_has_current_or_former_member" />
+    <rdfs:range rdf:resource="E55_Type" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P130.1_kind_of_similarity">
+    <rdfs:label xml:lang="en">kind of similarity</rdfs:label>
+    <rdfs:domain rdf:resource="PC130_shows_features_of" />
+    <rdfs:range rdf:resource="E55_Type" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P136.1_in_the_taxonomic_role">
+    <rdfs:label xml:lang="en">in the taxonomic role</rdfs:label>
+    <rdfs:domain rdf:resource="PC136_was_based_on" />
+    <rdfs:range rdf:resource="E55_Type" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P137.1_in_the_taxonomic_role">
+    <rdfs:label xml:lang="en">in the taxonomic role</rdfs:label>
+    <rdfs:domain rdf:resource="PC137_exemplifies" />
+    <rdfs:range rdf:resource="E55_Type" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P138.1_mode_of_representation">
+    <rdfs:label xml:lang="en">mode of representation</rdfs:label>
+    <rdfs:domain rdf:resource="PC138_represents" />
+    <rdfs:range rdf:resource="E55_Type" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P139.1_has_type">
+    <rdfs:label xml:lang="en">has type</rdfs:label>
+    <rdfs:domain rdf:resource="PC139_has_alternative_form" />
+    <rdfs:range rdf:resource="E55_Type" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P144.1_kind_of_member">
+    <rdfs:label xml:lang="en">kind of member</rdfs:label>
+    <rdfs:domain rdf:resource="PC144_joined_with" />
+    <rdfs:range rdf:resource="E55_Type" />
+  </rdf:Property>
+  <rdf:Property rdf:about="P189.1_has_type">
+    <rdfs:label xml:lang="en">has type</rdfs:label>
+    <rdfs:domain rdf:resource="PC189_approximates" />
+    <rdfs:range rdf:resource="E55_Type" />
+  </rdf:Property>
+</rdf:RDF>
