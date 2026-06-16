@@ -1,12 +1,12 @@
 #!.venv/bin/python
-from lxml import etree
 import sys
 import json
+import re
 from pathlib import Path
 from dataclasses import dataclass, field
-import re
 from enum import auto, Enum
-import csv
+from libs.tools import str2bool, not_none, apply_valid_arg
+from lxml import etree
 
 
 def load_lido_term_map(fname: Path = Path('LIDO-Term2CRM.json')):
@@ -27,21 +27,6 @@ class IDMode(Enum):
     NONE = auto()
 
 
-def not_none(*args) -> bool:
-    '''Tests all args to not None'''
-    return not any(x is None for x in args)
-
-
-def apply_valid_arg(func, x, default=None):
-    '''Applies a function on a valid argument'''
-    return func(x) if not_none(x) else default
-
-
-def str2bool(bool_str) -> bool:
-    '''Converts a string to boolean'''
-    return bool_str.lower() in ("yes", "true", "t", "1")
-
-
 def skipped(elem: etree.Element) -> bool:
     '''Tests if an element is marked as skipped'''
     return str2bool(elem.get('skip', 'false'))
@@ -58,7 +43,7 @@ used_namespaces = {
 }
 
 
-def expand_with_namespaces(xml_tag, namespaces=used_namespaces):
+def expand_ns(xml_tag, namespaces=used_namespaces):
     '''Expands a short tag, assume tags like prefix:tag'''
     tokens = xml_tag.split(':', 1)
     if len(tokens) == 2:
@@ -68,7 +53,7 @@ def expand_with_namespaces(xml_tag, namespaces=used_namespaces):
     return xml_tag
 
 
-def compress_with_namespaces(xml_tag, namespaces=used_namespaces):
+def compress_ns(xml_tag, namespaces=used_namespaces):
     '''Compresses a long tag, assume tags like {namespace}tag'''
     if match := re.search(r'^{(.*)}', xml_tag):  # has namespace, pattern {namespace}localname
         ns_uri = match.group(1)
@@ -80,7 +65,7 @@ def compress_with_namespaces(xml_tag, namespaces=used_namespaces):
 
 
 def match_attr(path: str):
-    '''Matches an attribute filter in an xpath, pattern [@attr]'''
+    '''Matches an attribute pattern in a LIDO path, pattern [@attr]'''
     return re.search(r'\[@(.*)\]', path)
 
 
@@ -91,16 +76,16 @@ def xpath_lido(elem: etree.Element, path_to_subs: str) -> list:
         if elem.text:
             elem.text = elem.text.strip()
         if not elem.text:
-            transform_subs(match.group(1), sub_elements)
+            attr_to_elems_text(match.group(1), sub_elements)
     return sub_elements
 
 
-def transform_subs(attr_name: str, sub_elements):
+def attr_to_elems_text(attr_name: str, elements):
     '''Transforms sub-elements by populating text from attribute'''
     if attr_name:  # has attribute filter, pattern [@attr]
-        attr_name = expand_with_namespaces(attr_name)
-        for elem in sub_elements:
-            elem.text = elem.get(attr_name)
+        attr_name = expand_ns(attr_name)
+        for e in elements:
+            e.text = e.get(attr_name,'')
 
 
 def full_path(elem):
@@ -200,7 +185,7 @@ def load_lido_map(fname='./lido-id-map.json'):
 
 def get_ID_elements(elem):
     '''Returns all ID child elements'''
-    tag = compress_with_namespaces(elem.tag)
+    tag = compress_ns(elem.tag)
     if id_host := LIDO_ID_MAP.get(tag):
         return id_host.elements(elem)
     return []
@@ -230,12 +215,14 @@ class Info:
     @classmethod
     def from_elem(cls, elem, **kw):
         '''Creates an Info object from an element'''
+        text = elem.text or ''
+        lang = elem.get(expand_ns('xml:lang'), '')
+        lido_type = elem.get(expand_ns('lido:type'), '')
+        about = elem.get(expand_ns('rdf:about'), '')
+ 
         index = kw.get('index', -1)
         id_attr = kw.get('id_attr')
-        text = elem.text or ''
-        lang = elem.get(expand_with_namespaces('xml:lang'), '')
-        lido_type = elem.get(expand_with_namespaces('lido:type'), '')
-        about = elem.get(expand_with_namespaces('rdf:about'), '')
+ 
         map_class = LIDO_TERM_MAP.get(about, '')
 
         info = cls(text=text, attrib=elem.attrib, index=index, lang=lang, lido_type=lido_type, map_class=map_class, rdf_about=about)
@@ -247,7 +234,7 @@ class Info:
         elif id_attr:
             # Is a URI literal, use text as ID
             info.mode = IDMode.ATTR_ID
-            info.id = elem.get(expand_with_namespaces(id_attr), '')
+            info.id = elem.get(expand_ns(id_attr), '')
         elif len(elem) > 0 and not text:
             # Has subelements, use path as ID
             info.mode = IDMode.LOCAL_ID
@@ -336,7 +323,7 @@ class Condition():
                 return self.values.intersection(pathValues) != set()
             else:
                 # assume path as an attribute label
-                attrName = expand_with_namespaces(self.access)
+                attrName = expand_ns(self.access)
                 attrValue = elem.get(attrName, '')
                 return attrValue in self.values
         return True

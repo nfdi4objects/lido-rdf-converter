@@ -10,24 +10,7 @@ from pathlib import Path
 from lxml import etree
 import libs.x3ml as x3ml
 import hashlib
-
-
-def p_log(f):
-    '''Decorator for logging function output'''
-    def wrapped(*args, **kwargs):
-        t = f(*args, **kwargs)
-        print(t)
-        return t
-    return wrapped
-
-
-def p_log(f):
-    '''Decorator for logging function output'''
-    def wrapped(*args, **kwargs):
-        t = f(*args, **kwargs)
-        print(t)
-        return t
-    return wrapped
+from libs.tools import add_method
 
 
 # prefix namespace mapping
@@ -35,11 +18,11 @@ NAMESPACE_MAP = {
     "lido": RF.Namespace('http://www.lido-schema.org/'),
     "n4o": RF.Namespace('http://graph.nfdi4objects.net/id/'),
     "crm": RF.Namespace("http://www.cidoc-crm.org/cidoc-crm/"),
-    "geosparql": RF.Namespace('http://www.ontotext.com/plugins/geosparql#'),
+    "geosparql": RF.Namespace('http://www.opengis.net/ont/geosparql#'),
     "lido_term": RF.Namespace('http://terminology.lido-schema.org/'),
     "skos": RF.Namespace('http://www.w3.org/2004/02/skos/core#'),
 }
-LIDO_TAG = x3ml.expand_with_namespaces('lido:lido')
+LIDO_TAG = x3ml.expand_ns('lido:lido')
 OAI_SCHEMA_URL = 'http://www.openarchives.org/OAI/2.0/'
 RESUMPTION_TAG = f'{{{OAI_SCHEMA_URL}}}resumptionToken'
 DATE_TAG = f'{{{OAI_SCHEMA_URL}}}datestamp'
@@ -124,31 +107,30 @@ def make_curie_uri(uri: str, nsm: NamespaceManager) -> RF.term.URIRef:
         return RF.term.URIRef(uri)
 
 
-def make_id_node(info, nsm: NamespaceManager, prefix='', use_bn=False) -> RF.URIRef:
+@add_method(x3ml.Info)
+def make_id_node(self, nsm: NamespaceManager, prefix='', use_bn=False) -> RF.URIRef:
     '''Creates an RDF node (URIRef or BNode) from info, using a hash of the ID'''
-    if info.mode == x3ml.IDMode.ATTR_ID:
-        return RF.URIRef(info.id)
-    if info.mode == x3ml.IDMode.LOCAL_ID:
-        label = prefix + '-' + info.id if prefix else info.id
+    if self.mode == x3ml.IDMode.ATTR_ID:
+        return RF.URIRef(self.id)
+    if self.mode == x3ml.IDMode.LOCAL_ID:
+        label = prefix + '-' + self.id if prefix else self.id
         if use_bn:
             return RF.BNode(hash(label))
         else:
             return NAMESPACE_MAP['n4o'][f"{hash(label)}"]
-    uri = f'n4o:{hash(info.id)}'
+    uri = f'n4o:{hash(self.id)}'
     try:
         return nsm.expand_curie(uri)
     except:
         return RF.URIRef(uri)
 
-
-def make_plain_node(info) -> RF.URIRef | RF.Literal:
+@add_method(x3ml.Info)
+def make_plain_node(self) -> RF.URIRef | RF.Literal:
     """Creates an RDF node (URIRef or Literal) from info"""
-    if isURI(info.text):
-        return RF.URIRef(proper_uri(info.text))
-    return RF.Literal(info.text, lang=info.lang)
+    if isURI(self.text):
+        return RF.URIRef(proper_uri(self.text))
+    return RF.Literal(self.text, lang=self.lang)
 
-
-# def pd(*args): print([json.dumps(x, indent=2) for x in args])
 
 
 def get_spo_triples(mapping: x3ml.Mapping_Data, nsm: NamespaceManager, prefix: str, use_bn: bool) -> list:
@@ -156,7 +138,7 @@ def get_spo_triples(mapping: x3ml.Mapping_Data, nsm: NamespaceManager, prefix: s
     info = mapping.info
     triples = []
     if info.id:
-        S = make_id_node(info, nsm, prefix, use_bn)
+        S = info.make_id_node(nsm, prefix, use_bn)
         triples += [(S, RF.RDF.type, make_curie_uri(mapping.S.entity, nsm))]
 
         for po in mapping.po_data_list:
@@ -171,7 +153,7 @@ def get_po_triples(S,  po: x3ml.PO_Data, info: x3ml.Info, nsm: NamespaceManager,
         P = make_curie_uri(po.P.entity, nsm)
         for info in po.infos:
             if info.hasID():
-                O = make_id_node(info, nsm, prefix, use_bn)
+                O = info.make_id_node(nsm, prefix, use_bn)
                 if (O != S):
                     triples.append((S, P, O))
                     if info.map_class:  # Test for lido->crm mapping
@@ -181,7 +163,7 @@ def get_po_triples(S,  po: x3ml.PO_Data, info: x3ml.Info, nsm: NamespaceManager,
                         triples.append((O, RF.RDF.type, Ot))
             else:
                 if info.text:
-                    O = make_plain_node(info)
+                    O = info.make_plain_node()
                     triples.append((S, P, O))
     return triples
 

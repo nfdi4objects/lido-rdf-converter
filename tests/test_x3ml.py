@@ -16,13 +16,13 @@ def test_basic_utils():
 
 
 def test_namespace_expand_compress():
-    expanded = x3ml.expand_with_namespaces("lido:event")
+    expanded = x3ml.expand_ns("lido:event")
     assert expanded == f"{{{LIDO_NS}}}event"
-    compressed = x3ml.compress_with_namespaces(expanded)
+    compressed = x3ml.compress_ns(expanded)
     assert compressed == "lido:event"
     # unknown stays the same
-    assert x3ml.expand_with_namespaces("unknown:tag") == "unknown:tag"
-    assert x3ml.compress_with_namespaces("{urn:other}tag") == "{urn:other}tag"
+    assert x3ml.expand_ns("unknown:tag") == "unknown:tag"
+    assert x3ml.compress_ns("{urn:other}tag") == "{urn:other}tag"
 
 
 def test_xpath_lido_and_transform_subs():
