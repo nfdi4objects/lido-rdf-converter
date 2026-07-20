@@ -11,6 +11,14 @@ def SumElementList(elem: Element, subpath:list) -> Element:
 def SubElementPath(elem, path):
     return SumElementList(elem, path.split('/'))
 
+def get_title(comments):
+    for comment in comments:
+        txt = comment.rationale.text
+        if txt.strip().lower().startswith('title='):
+            return txt[6:]
+    return 'no title'
+
+
 class JSON_Serializer:
     '''Base class for JSON serialization'''
     def toJSON(self):
@@ -156,22 +164,33 @@ class MappingInfo(X3Base):
 class Comment(X3Base):
     '''Class for comment elements'''
     rationale: SimpleText = field(default_factory=SimpleText)
+    type: str = ''
 
     def from_elem(self, elem: Element):
         X3Base.from_elem(self, elem)
         self.rationale = SimpleText.from_serial(elem.find('rationale'))
+        self.type = elem.get('type', '')
         return self
 
     def to_elem(self, elem: Element):
         X3Base.to_elem(self, elem)
+
+        elem.set('type', self.type)
+
         self.rationale.to_elem(SubElement(elem, 'rationale'))
         SubElement(elem, 'alternatives')
         SubElement(elem, 'typical_mistakes')
         SubElement(elem, 'local_habits')
         SubElement(elem, 'link_to_cook_book')
+        
         elem_ex = SubElement(elem, 'example')
         SubElement(elem_ex, 'example_source')
         SubElement(elem_ex, 'example_target')
+        
+        clu = SubElement(elem, 'comments_last_update')
+        clu.set('date', '')
+        clu.set('person', '')
+        
         return elem
 
 @dataclass
@@ -338,6 +357,10 @@ class Domain(X3Base):
     sourceNode: SimpleText = field(default_factory=SimpleText)
     targetNode: TargetNode = field(default_factory=TargetNode)
     comments: List[Comment] = field(default_factory=list)
+    title: str = ''
+  
+    def get_title(self):
+        return get_title(self.comments)
 
     @property
     def path(self):
@@ -364,17 +387,26 @@ class Domain(X3Base):
         self.sourceNode = SimpleText.from_serial(elem.find('source_node'))
         self.targetNode = TargetNode.from_serial(elem.find('target_node'))
         self.comments = [Comment.from_serial(x) for x in elem.findall('comments/comment')]
+        self.title = self.get_title()
         return self
 
     def to_elem(self, elem: Element):
         X3Base.to_elem(self, elem)
         self.sourceNode.to_elem(SubElement(elem, 'source_node'))
         self.targetNode.to_elem(SubElement(elem, 'target_node'))
+        if self.title:
+            self.add_comment(f"title={self.title}")
+ 
         if self.comments:
             cs = SubElement(elem, 'comments')
             for x in self.comments:
                 x.to_elem(SubElement(cs, 'comment'))
         return elem
+    def get_comments(self):
+        return [c.rationale.text for c in self.comments]
+    
+    def add_comment(self, comment: str):
+        self.comments.append(Comment(rationale=SimpleText(text=comment)))
 
 @dataclass
 class NR(X3Base):
@@ -493,18 +525,25 @@ class Path(X3Base):
     sourceRelation: SourceRelation = field(default_factory=SourceRelation)
     targetRelation: TargetRelation = field(default_factory=TargetRelation)
     comments: List[Comment] = field(default_factory=list)
+    title: str = ''
+    
+    def get_title(self):
+        return get_title(self.comments)
 
     def from_elem(self, elem: Element):
         X3Base.from_elem(self, elem)
         self.sourceRelation = SourceRelation.from_serial(elem.find('source_relation'))
         self.targetRelation = TargetRelation.from_serial(elem.find('target_relation'))
         self.comments = [Comment.from_serial(x) for x in elem.findall('comments/comment')]
+        self.title = self.get_title()
         return self
 
     def to_elem(self, elem: Element):
         X3Base.to_elem(self, elem)
         self.sourceRelation.to_elem(SubElement(elem, 'source_relation'))
         self.targetRelation.to_elem(SubElement(elem, 'target_relation'))
+        if self.title:
+            self.comments.append(Comment(rationale=SimpleText(text=f"title={self.title}")))
         if self.comments:
             cs = SubElement(elem, 'comments')
             for x in self.comments:
@@ -576,10 +615,11 @@ class Mapping(X3Base):
     domain: Domain = field(default_factory=Domain)
     links: List[Link] = field(default_factory=list)
     skip: bool = False  
-  
+    
     def from_elem(self, elem: Element):
         X3Base.from_elem(self, elem)
         self.skip = elem.get('skip', 'false').lower() == 'true'
+  
         self.domain = Domain.from_serial(elem.find('domain'))
         self.links = [Link.from_serial(x) for x in elem.findall('link')]
         return self

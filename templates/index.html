@@ -135,13 +135,15 @@
           <div class="accordion-item" v-for="(mapping, i) in x3ml.mappings" :key="i">
             <h2 class="accordion-header" :id="'M' + i">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#C' + i" aria-expanded="false" :aria-controls="'C' + i">
-                Mapping ${i+1}$ from: "${mapping.domain.sourceNode.text}$"
+                Mapping ${i+1}$: "${mapping.domain.title}$"
               </button>
             </h2>
             <div :id="'C' + i" class="accordion-collapse collapse" :aria-labelledby="'M' + i" data-bs-parent="#acc">
               <div class="accordion-body">
 
                 <div class="container-fluid">
+                  <label for="fname">Title:</label>
+                  <input class="form-control" type="text" name="S-title" :id="i" v-model="mapping.domain.title">
                   <label for="fname">Path:</label>
                   <input class="form-control" list="DLLidoClasses" type="text" name="S-path" :id="i" v-model="mapping.domain.sourceNode.text">
                   <label for="lname">Entity:</label>
@@ -161,12 +163,14 @@
                   <div class="accordion-item" v-for="(link, j) in mapping.links" :key="j">
                     <h2 class="accordion-header" :id="'L' + j">
                       <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#D' + j" aria-expanded="false" :aria-controls="'D' + j">
-                        Link ${i+1}$-${j+1}$ to: "${link.path.sourceRelation.relation.text}$"
+                        Link ${i+1}$-${j+1}$: "${link.path.title}$"
                       </button>
                     </h2>
                     <div :id="'D' + j" class="accordion-collapse collapse hide" :aria-labelledby="'L' + j" :data-bs-parent="'#LA' + i">
                       <div class="accordion-body">
                         <form method="post">
+                          <label for="fname">Title:</label>
+                          <input class="form-control" type="text" name="P-title" :id="i" v-model="link.path.title">
                           <label for="fname">Path:</label>
                           <input class="form-control" list="DLLidoClasses" type="text" :pid="i" :id="j" v-model="link.path.sourceRelation.relation.text" v-on:input="applyPathChange">
                           <label for="lname">Property:</label>
