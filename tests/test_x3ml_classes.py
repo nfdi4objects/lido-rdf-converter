@@ -370,14 +370,14 @@ class Test_X3ml_Classes(unittest.TestCase):
 
         self.assertEqual(testee.type, 'entityType')
         self.assertEqual(len(testee.instance_info), 1)
-        self.assertEqual(testee.instance_info[0].mode, 'constant')
+        self.assertEqual(testee.instance_info[0].mode_const, True)
 
     def test_Entity_3(self):
         '''Entity: Serialize'''
         testee = XC.Entity()
         testee.type = 'entityType'
         instance_info = XC.InstanceInfo()
-        instance_info.mode = 'constant'
+        instance_info.mode_const = True
         testee.instance_info.append(instance_info)
 
         elem = Element('test')

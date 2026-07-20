@@ -11,12 +11,13 @@ def SumElementList(elem: Element, subpath:list) -> Element:
 def SubElementPath(elem, path):
     return SumElementList(elem, path.split('/'))
 
-def get_title(comments):
-    for comment in comments:
+def pop_title_comment(comments):
+    for i, comment in enumerate(comments):
         txt = comment.rationale.text
         if txt.strip().lower().startswith('title='):
+            comments.pop(i)
             return txt[6:]
-    return 'no title'
+    return ''
 
 
 class JSON_Serializer:
@@ -287,25 +288,26 @@ class Namespace(X3Base):
 @dataclass
 class InstanceInfo(X3Base):
     '''Class for instance info elements'''
-    mode: str = ''
+    mode_const: bool = False
+    mode_lang: bool = False
+    mode_desc: bool = False
 
     def from_elem(self, elem: Element):
         if NN(elem.find('constant')):
-            self.mode = 'constant'
+            self.mode_const = True  
         if NN(elem.find('language')):
-            self.mode = 'language'
+            self.mode_lang = True
         if NN(elem.find('description')):
-            self.mode = 'description'
+            self.mode_desc = True
         return self
 
     def to_elem(self, elem: Element):
-        match self.mode:
-            case 'constant':
-                SubElement(elem, 'constant')
-            case 'language':
-                SubElement(elem, 'language')
-            case 'description':
-                SubElement(elem, 'description')
+        if self.mode_const:
+            SubElement(elem, 'constant')
+        if self.mode_lang:
+            SubElement(elem, 'language')
+        if self.mode_desc:
+            SubElement(elem, 'description')
         return elem
 
 @dataclass
@@ -339,16 +341,17 @@ class TargetNode(X3Base):
 
     def from_elem(self, elem: Element, **kw):
         X3Base.from_elem(self, elem)
-        self.entity = Entity.from_serial(elem.find('entity'))
         self.conditions = [Equals.from_serial(x) for x in elem.findall('if/or/if/equals')]
+        self.entity = Entity.from_serial(elem.find('entity'))
         return self
 
     def to_elem(self, elem: Element):
         X3Base.to_elem(self, elem)
+        if self.conditions:
+            ifor = SubElementPath(elem, 'if/or')
+            for cond in self.conditions:
+                cond.to_elem(SubElementPath(ifor, 'if/equals'))
         self.entity.to_elem(SubElement(elem, 'entity'))
-        for cond in self.conditions:
-            e = SubElementPath(elem, 'if/or/if/equals')
-            cond.to_elem(e)
         return elem
 
 @dataclass
@@ -360,7 +363,7 @@ class Domain(X3Base):
     title: str = ''
   
     def get_title(self):
-        return get_title(self.comments)
+        return pop_title_comment(self.comments)
 
     @property
     def path(self):
@@ -496,10 +499,11 @@ class TargetRelation(X3Base):
 
     def to_elem(self, elem: Element):
         X3Base.to_elem(self, elem)
-        
-        for cond in self.conditions:
-            cond.to_elem( SubElementPath(elem,'if/or/if/equals'))
-
+        if self.conditions:
+            if_or = SubElementPath(elem, 'if/or')
+            for cond in self.conditions:
+                cond.to_elem( SubElementPath(if_or,'if/equals'))
+                
         self.relationship.to_elem(SubElement(elem, 'relationship'))
 
         for x in self.extensions:
@@ -513,7 +517,7 @@ class TargetRelation(X3Base):
         self.conditions = [Equals.from_serial(x) for x in elem.findall('if/or/if/equals')]
         rsElems = elem.findall('relationship')
         if len(rsElems) > 0:
-            self.relationship = Relationship.from_serial(rsElems.pop())
+            self.relationship = Relationship.from_serial(rsElems.pop(0))
             enElems = elem.findall('entity')
             if len(enElems) == len(rsElems):
                 self.extensions = [TargetExtension(Entity.from_serial(e), Relationship.from_serial(r)) for e, r in zip(enElems, rsElems)]
@@ -528,7 +532,7 @@ class Path(X3Base):
     title: str = ''
     
     def get_title(self):
-        return get_title(self.comments)
+        return pop_title_comment(self.comments)
 
     def from_elem(self, elem: Element):
         X3Base.from_elem(self, elem)
@@ -555,6 +559,7 @@ class Range(X3Base):
     '''Class for range elements'''
     sourceNode: SimpleText = field(default_factory=SimpleText)
     targetNode: TargetNode = field(default_factory=lambda: TargetNode(enableC=True))
+    comments: List[Comment] = field(default_factory=list)
 
     @property
     def path(self):
@@ -580,12 +585,17 @@ class Range(X3Base):
         X3Base.from_elem(self, elem)
         self.sourceNode = SimpleText.from_serial(elem.find('source_node'))
         self.targetNode = TargetNode.from_serial(elem.find('target_node'))
+        self.comments = [Comment.from_serial(x) for x in elem.findall('comments/comment')]
         return self
 
     def to_elem(self, elem: Element):
         X3Base.to_elem(self, elem)
         self.sourceNode.to_elem(SubElement(elem, 'source_node'))
         self.targetNode.to_elem(SubElement(elem, 'target_node'))
+        if self.comments:
+            cs = SubElement(elem, 'comments')
+            for x in self.comments:
+                x.to_elem(SubElement(cs, 'comment'))
         return elem
 
 @dataclass
@@ -604,7 +614,8 @@ class Link(X3Base):
 
     def to_elem(self, elem: Element):
         X3Base.to_elem(self, elem)
-        elem.set('skip', str(self.skip).lower())
+        if self.skip:
+            elem.set('skip', str(self.skip).lower())
         self.path.to_elem(SubElement(elem, 'path'))
         self.range.to_elem(SubElement(elem, 'range'))
         return elem
@@ -626,7 +637,8 @@ class Mapping(X3Base):
 
     def to_elem(self, elem: Element):
         X3Base.to_elem(self, elem)
-        elem.set('skip', str(self.skip).lower())
+        if self.skip:
+            elem.set('skip', str(self.skip).lower())
         self.domain.to_elem(SubElement(elem, 'domain'))
         for link in self.links:
             link.to_elem(SubElement(elem, 'link'))
